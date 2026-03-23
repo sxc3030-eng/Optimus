@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIEM/SOAR — Optimus Suite</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   SIEM/SOAR Dashboard v1.0 — Optimus Suite
+   Dark theme, three-column layout, real-time event monitoring
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --bg: #0f0f13;
+    --bg-card: #16161c;
+    --bg-card-alt: #1a1a24;
+    --bg-hover: #1e1e2a;
+    --border: #2a2a3a;
+    --border-light: #333348;
+    --text: #e0e0e8;
+    --text-dim: #888899;
+    --text-muted: #555566;
+    --accent: #5b8af0;
+    --accent-glow: rgba(91,138,240,0.15);
+    --green: #2ecc71;
+    --green-dim: #1a7a42;
+    --yellow: #f1c40f;
+    --yellow-dim: #8a7209;
+    --orange: #e67e22;
+    --red: #e74c3c;
+    --red-dim: #8a2d22;
+    --red-glow: rgba(231,76,60,0.2);
+    --purple: #9b59b6;
+    --cyan: #00bcd4;
+    --pink: #e91e63;
+    --font: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+    --mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* ── Top Bar ────────────────────────────────────────────── */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 16px;
+    height: 52px;
+}
+.topbar-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+.topbar-title span { color: var(--text-dim); font-weight: 400; font-size: 12px; margin-left: 8px; }
+
+/* Risk Gauge */
+.risk-gauge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 14px;
+    background: var(--bg);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+.risk-gauge-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.risk-gauge-value { font-size: 22px; font-weight: 800; font-family: var(--mono); min-width: 42px; text-align: center; }
+.risk-gauge-bar { width: 100px; height: 8px; background: var(--bg-card-alt); border-radius: 4px; overflow: hidden; }
+.risk-gauge-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease, background 0.8s ease; }
+.risk-gauge-trend { font-size: 14px; }
+
+/* Agent health dots */
+.agent-health-row { display: flex; align-items: center; gap: 6px; }
+.agent-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1px solid var(--border);
+    transition: background 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+.agent-dot[data-status="online"] { background: var(--green); border-color: var(--green); box-shadow: 0 0 6px var(--green); }
+.agent-dot[data-status="offline"] { background: var(--text-muted); border-color: var(--text-muted); }
+.agent-dot[data-status="error"] { background: var(--red); border-color: var(--red); box-shadow: 0 0 6px var(--red); }
+.agent-dot[data-status="unknown"] { background: var(--text-muted); border-color: var(--border); }
+.agent-dot-label { font-size: 10px; color: var(--text-dim); }
+.agent-dot:hover::after {
+    content: attr(title);
+    position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-card); color: var(--text); padding: 4px 8px; border-radius: 4px;
+    font-size: 11px; white-space: nowrap; z-index: 999; border: 1px solid var(--border);
+    pointer-events: none;
+}
+
+/* ── Main Layout ────────────────────────────────────────── */
+.main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    grid-template-rows: 1fr auto;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+}
+
+/* ── Panels ─────────────────────────────────────────────── */
+.panel {
+    overflow-y: auto;
+    padding: 10px;
+    border-right: 1px solid var(--border);
+}
+.panel:last-of-type { border-right: none; }
+.panel-left { grid-column: 1; grid-row: 1; background: var(--bg-card); }
+.panel-center { grid-column: 2; grid-row: 1; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+.panel-right { grid-column: 3; grid-row: 1; background: var(--bg-card); border-left: 1px solid var(--border); }
+
+.section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim); margin-bottom: 8px; padding-bottom: 4px;
+    border-bottom: 1px solid var(--border); font-weight: 600;
+}
+
+/* ── Kill Chain Visualization ───────────────────────────── */
+.kill-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 14px;
+}
+.kc-stage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.3s;
+    font-size: 12px;
+}
+.kc-stage.active {
+    border-color: var(--red);
+    background: var(--red-glow);
+    color: #fff;
+}
+.kc-stage.active .kc-icon { color: var(--red); }
+.kc-icon { width: 20px; text-align: center; font-size: 14px; color: var(--text-muted); }
+.kc-label { flex: 1; }
+.kc-indicator {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-muted);
+}
+.kc-stage.active .kc-indicator {
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    animation: pulse 1.5s infinite;
+}
+.kc-arrow { text-align: center; color: var(--text-muted); font-size: 10px; line-height: 1; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Correlations List ──────────────────────────────────── */
+.correlation-item {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-left: 3px solid var(--text-muted);
+    margin-bottom: 6px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 12px;
+}
+.correlation-item:hover { background: var(--bg-hover); }
+.correlation-item.sev-critical { border-left-color: var(--red); }
+.correlation-item.sev-high { border-left-color: var(--orange); }
+.correlation-item.sev-medium { border-left-color: var(--yellow); }
+.correlation-item.sev-low { border-left-color: var(--accent); }
+.corr-name { font-weight: 600; margin-bottom: 2px; }
+.corr-meta { color: var(--text-dim); font-size: 11px; display: flex; gap: 8px; }
+
+/* ── Playbook Controls ──────────────────────────────────── */
+.playbook-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; border-radius: 4px; background: var(--bg);
+    margin-bottom: 4px; font-size: 12px;
+}
+.playbook-name { flex: 1; }
+.playbook-status { font-size: 10px; margin-right: 6px; }
+.playbook-status.running { color: var(--yellow); }
+.playbook-status.idle { color: var(--text-muted); }
+.btn-run {
+    padding: 2px 8px; border-radius: 3px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 11px; cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-run:hover { background: var(--accent); color: #fff; }
+
+/* ── Center: Event Timeline ─────────────────────────────── */
+.timeline-header {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.filter-btn {
+    padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-dim); font-size: 11px; cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.filter-select {
+    background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 6px; font-size: 11px; outline: none;
+}
+
+.timeline-list { flex: 1; overflow-y: auto; padding: 6px; }
+
+.event-row {
+    display: grid;
+    grid-template-columns: 72px 80px 60px 110px 1fr;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+    align-items: center;
+}
+.event-row:hover { background: var(--bg-hover); }
+.event-row.selected { background: var(--accent-glow); border-left-color: var(--accent); }
+
+.event-ts { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
+.event-agent { font-size: 11px; padding: 1px 6px; border-radius: 3px; text-align: center; white-space: nowrap; overflow: hidden; }
+.event-agent.netguard { background: rgba(91,138,240,0.2); color: var(--accent); }
+.event-agent.honeypot { background: rgba(155,89,182,0.2); color: var(--purple); }
+.event-agent.strikeback { background: rgba(231,76,60,0.2); color: var(--red); }
+.event-agent.fim { background: rgba(0,188,212,0.2); color: var(--cyan); }
+.event-agent.recorder { background: rgba(46,204,113,0.2); color: var(--green); }
+.event-agent.redteam { background: rgba(233,30,99,0.2); color: var(--pink); }
+
+.event-sev { font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+.event-sev.critical { color: var(--red); }
+.event-sev.high { color: var(--orange); }
+.event-sev.medium { color: var(--yellow); }
+.event-sev.low { color: var(--accent); }
+.event-sev.info { color: var(--text-dim); }
+
+.event-ip { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+.event-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Event detail panel */
+.event-detail {
+    border-top: 1px solid var(--border);
+    padding: 10px;
+    background: var(--bg-card);
+    flex-shrink: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+}
+.event-detail.visible { display: block; }
+.detail-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--accent); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 12px; }
+.detail-label { color: var(--text-dim); }
+.detail-value { font-family: var(--mono); font-size: 11px; word-break: break-all; }
+.detail-json { background: var(--bg); padding: 6px; border-radius: 4px; font-family: var(--mono); font-size: 11px; margin-top: 6px; max-height: 80px; overflow-y: auto; white-space: pre-wrap; color: var(--text-dim); }
+
+/* ── Right Panel: Risk, Threats, Agents ─────────────────── */
+.risk-trend { margin-bottom: 14px; }
+.risk-bars { display: flex; align-items: flex-end; gap: 2px; height: 60px; padding: 4px 0; }
+.risk-bar {
+    flex: 1; min-width: 3px; border-radius: 2px 2px 0 0;
+    transition: height 0.3s, background 0.3s;
+}
+
+.threat-ip-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 8px; border-radius: 4px; margin-bottom: 3px;
+    background: var(--bg); font-size: 12px;
+}
+.threat-ip { font-family: var(--mono); font-size: 11px; }
+.threat-score { font-weight: 700; font-size: 12px; }
+.threat-agents { font-size: 10px; color: var(--text-dim); }
+
+.agent-card {
+    padding: 6px 8px; border-radius: 4px; border: 1px solid var(--border);
+    margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    background: var(--bg); font-size: 12px;
+}
+.agent-card-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.agent-card-dot.online { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.agent-card-dot.offline { background: var(--text-muted); }
+.agent-card-dot.error { background: var(--red); box-shadow: 0 0 4px var(--red); }
+.agent-card-name { flex: 1; }
+.agent-card-count { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
+
+/* ── Bottom Bar ─────────────────────────────────────────── */
+.bottombar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    height: 40px;
+}
+.search-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-muted); }
+
+.btn {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--bg-card-alt); color: var(--text); font-size: 11px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-export { font-family: var(--mono); }
+
+.status-text { font-size: 11px; color: var(--text-dim); margin-left: auto; white-space: nowrap; }
+.status-text .count { color: var(--accent); font-weight: 600; }
+
+/* ── Utility ────────────────────────────────────────────── */
+.empty-state { text-align: center; color: var(--text-muted); padding: 20px; font-size: 12px; }
+.badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+}
+.badge-critical { background: var(--red-dim); color: var(--red); }
+.badge-high { background: rgba(230,126,34,0.2); color: var(--orange); }
+.badge-medium { background: rgba(241,196,15,0.15); color: var(--yellow); }
+.badge-low { background: var(--accent-glow); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOP BAR
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="topbar">
+    <div class="topbar-title">
+        SIEM/SOAR v1.0 <span>Optimus Suite</span>
+    </div>
+
+    <div class="risk-gauge">
+        <div class="risk-gauge-label">Risk</div>
+        <div class="risk-gauge-value" id="risk-value">0</div>
+        <div class="risk-gauge-bar">
+            <div class="risk-gauge-fill" id="risk-fill" style="width:0%;background:var(--green);"></div>
+        </div>
+        <div class="risk-gauge-trend" id="risk-trend" title="Trend">--</div>
+    </div>
+
+    <div class="agent-health-row" id="agent-dots"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN THREE-COLUMN LAYOUT
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="main-layout">
+
+    <!-- ── LEFT PANEL ─────────────────────────────────────────── -->
+    <div class="panel panel-left">
+        <!-- Kill Chain -->
+        <div class="section-title">Kill Chain</div>
+        <div class="kill-chain" id="kill-chain"></div>
+
+        <!-- Active Correlations -->
+        <div class="section-title" style="margin-top:10px;">Active Correlations <span id="corr-count" style="color:var(--accent);font-weight:400;">(0)</span></div>
+        <div id="correlations-list" style="max-height:220px; overflow-y:auto;"></div>
+
+        <!-- Playbook Controls -->
+        <div class="section-title" style="margin-top:10px;">Playbooks</div>
+        <div id="playbooks-list"></div>
+
+        <!-- Recent Executions -->
+        <div class="section-title" style="margin-top:10px;">Recent Actions</div>
+        <div id="execution-log" style="max-height:140px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- ── CENTER PANEL ───────────────────────────────────────── -->
+    <div class="panel-center">
+        <div class="timeline-header">
+            <span style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Unified Timeline</span>
+            <div style="flex:1;"></div>
+            <select class="filter-select" id="filter-agent" title="Filter by Agent">
+                <option value="">All Agents</option>
+                <option value="netguard">NetGuard</option>
+                <option value="honeypot">HoneyPot</option>
+                <option value="strikeback">StrikeBack</option>
+                <option value="fim">FIM</option>
+                <option value="recorder">Recorder</option>
+                <option value="redteam">RedTeam</option>
+            </select>
+            <select class="filter-select" id="filter-severity" title="Filter by Severity">
+                <option value="">All Severities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+                <option value="info">Info</option>
+            </select>
+            <button class="filter-btn" id="btn-pause" title="Pause/Resume auto-refresh">Live</button>
+        </div>
+        <div class="timeline-list" id="timeline-list"></div>
+        <div class="event-detail" id="event-detail"></div>
+    </div>
+
+    <!-- ── RIGHT PANEL ────────────────────────────────────────── -->
+    <div class="panel panel-right">
+        <!-- Risk Trend -->
+        <div class="section-title">Risk Trend</div>
+        <div class="risk-trend">
+            <div class="risk-bars" id="risk-bars"></div>
+        </div>
+
+        <!-- Top Threat IPs -->
+        <div class="section-title">Top Threat IPs</div>
+        <div id="threat-ips" style="max-height:180px; overflow-y:auto; margin-bottom:12px;"></div>
+
+        <!-- Agent Status -->
+        <div class="section-title">Agent Status</div>
+        <div id="agent-cards"></div>
+
+        <!-- Stats -->
+        <div class="section-title" style="margin-top:12px;">Statistics</div>
+        <div id="stats-panel" style="font-size:12px;color:var(--text-dim);"></div>
+    </div>
+
+    <!-- ── BOTTOM BAR ─────────────────────────────────────────── -->
+    <div class="bottombar">
+        <input type="text" class="search-input" id="search-input" placeholder="Search logs... (press Enter)">
+        <button class="btn" id="btn-search" title="Search">Search</button>
+        <button class="btn btn-export" id="btn-export-csv" title="Export CSV">CSV</button>
+        <button class="btn btn-export" id="btn-export-json" title="Export JSON">JSON</button>
+        <button class="btn btn-export" id="btn-export-syslog" title="Export Syslog">Syslog</button>
+        <div class="status-text">
+            Events: <span class="count" id="stat-events">0</span>
+            &nbsp;|&nbsp; Correlations: <span class="count" id="stat-corrs">0</span>
+            &nbsp;|&nbsp; Uptime: <span id="stat-uptime">0s</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    "use strict";
+
+    // ── State ────────────────────────────────────────────────
+    let state = null;
+    let selectedEvent = null;
+    let paused = false;
+    let refreshTimer = null;
+    const api = window.pywebview ? window.pywebview.api : null;
+
+    // Agent display config
+    const AGENTS = {
+        netguard:   { label: "NetGuard",   short: "NG" },
+        honeypot:   { label: "HoneyPot",   short: "HP" },
+        strikeback: { label: "StrikeBack", short: "SB" },
+        fim:        { label: "FIM",        short: "FI" },
+        recorder:   { label: "Recorder",   short: "RC" },
+        redteam:    { label: "RedTeam",    short: "RT" },
+    };
+
+    const KC_ICONS = {
+        recon: "\u{1F50D}", weaponize: "\u{2699}", deliver: "\u{1F4E6}",
+        exploit: "\u{1F4A5}", c2: "\u{1F4E1}", exfil: "\u{1F4E4}",
+    };
+
+    // ── API Wrapper ──────────────────────────────────────────
+    async function apiCall(method, ...args) {
+        if (!api) return null;
+        try {
+            const result = await api[method](...args);
+            return typeof result === "string" ? JSON.parse(result) : result;
+        } catch (e) {
+            console.error("[SIEM] API error:", method, e);
+            return null;
+        }
+    }
+
+    // ── Refresh Loop ─────────────────────────────────────────
+    async function refresh() {
+        if (paused) return;
+        const data = await apiCall("get_state");
+        if (!data) return;
+        state = data;
+        renderAll();
+    }
+
+    function startRefresh() {
+        refresh();
+        refreshTimer = setInterval(refresh, 3000);
+    }
+
+    // ── Render Functions ─────────────────────────────────────
+
+    function renderAll() {
+        if (!state) return;
+        renderRiskGauge();
+        renderAgentDots();
+        renderKillChain();
+        renderCorrelations();
+        renderPlaybooks();
+        renderExecutionLog();
+        renderTimeline();
+        renderRiskTrend();
+        renderThreatIPs();
+        renderAgentCards();
+        renderStats();
+    }
+
+    // Risk Gauge (top bar)
+    function renderRiskGauge() {
+        const risk = state.risk || {};
+        const score = risk.score || 0;
+        const trend = risk.trend || "stable";
+
+        const el = document.getElementById("risk-value");
+        el.textContent = score;
+        el.style.color = riskColor(score);
+
+        const fill = document.getElementById("risk-fill");
+        fill.style.width = score + "%";
+        fill.style.background = riskColor(score);
+
+        const trendEl = document.getElementById("risk-trend");
+        if (trend === "rising") { trendEl.textContent = "\u2191"; trendEl.style.color = "var(--red)"; trendEl.title = "Rising"; }
+        else if (trend === "falling") { trendEl.textContent = "\u2193"; trendEl.style.color = "var(--green)"; trendEl.title = "Falling"; }
+        else { trendEl.textContent = "\u2192"; trendEl.style.color = "var(--text-dim)"; trendEl.title = "Stable"; }
+    }
+
+    function riskColor(score) {
+        if (score >= 80) return "var(--red)";
+        if (score >= 60) return "var(--orange)";
+        if (score >= 35) return "var(--yellow)";
+        if (score >= 15) return "var(--accent)";
+        return "var(--green)";
+    }
+
+    // Agent health dots (top bar)
+    function renderAgentDots() {
+        const agents = state.agents || {};
+        const container = document.getElementById("agent-dots");
+        let html = "";
+        for (const [key, info] of Object.entries(AGENTS)) {
+            const h = agents[key] || {};
+            const status = h.status || "unknown";
+            const label = info.label;
+            html += `<div class="agent-dot" data-status="${status}" title="${label}: ${status}"></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Kill Chain (left panel)
+    function renderKillChain() {
+        const kc = state.kill_chain || {};
+        const stages = kc.stages || [];
+        const container = document.getElementById("kill-chain");
+        let html = "";
+        stages.forEach((s, i) => {
+            const icon = KC_ICONS[s.id] || "\u2022";
+            const active = s.active ? "active" : "";
+            html += `<div class="kc-stage ${active}">
+                <div class="kc-icon">${icon}</div>
+                <div class="kc-label">${s.label}</div>
+                <div class="kc-indicator"></div>
+            </div>`;
+            if (i < stages.length - 1) html += `<div class="kc-arrow">\u25BC</div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Active Correlations (left panel)
+    function renderCorrelations() {
+        const corrs = (state.correlations || {}).recent || [];
+        document.getElementById("corr-count").textContent = "(" + corrs.length + ")";
+        const container = document.getElementById("correlations-list");
+
+        if (!corrs.length) {
+            container.innerHTML = '<div class="empty-state">No active correlations</div>';
+            return;
+        }
+
+        let html = "";
+        corrs.slice(0, 20).forEach(c => {
+            const sev = c.severity || "medium";
+            const ts = formatTime(c.ts);
+            html += `<div class="correlation-item sev-${sev}" title="${c.description || ""}">
+                <div class="corr-name">${esc(c.rule_name)}</div>
+                <div class="corr-meta">
+                    <span>${ts}</span>
+                    <span>${esc(c.ip || "-")}</span>
+                    <span class="badge badge-${sev}">${sev}</span>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Playbooks (left panel)
+    function renderPlaybooks() {
+        const pbs = (state.playbooks || {}).list || [];
+        const container = document.getElementById("playbooks-list");
+
+        if (!pbs.length) {
+            container.innerHTML = '<div class="empty-state">No playbooks loaded</div>';
+            return;
+        }
+
+        let html = "";
+        pbs.forEach(pb => {
+            const statusClass = pb.status === "running" ? "running" : "idle";
+            html += `<div class="playbook-item">
+                <div class="playbook-name" title="${esc(pb.description || "")}">${esc(pb.label || pb.name)}</div>
+                <span class="playbook-status ${statusClass}">${pb.status || "idle"}</span>
+                <button class="btn-run" onclick="runPlaybook('${esc(pb.name)}')" ${pb.enabled ? "" : "disabled"} title="Run playbook">Run</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Execution log (left panel)
+    function renderExecutionLog() {
+        const execs = (state.playbooks || {}).recent_executions || [];
+        const container = document.getElementById("execution-log");
+
+        if (!execs.length) {
+            container.innerHTML = '<div class="empty-state">No recent actions</div>';
+            return;
+        }
+
+        let html = "";
+        execs.slice(0, 8).forEach(ex => {
+            const ts = formatTime(ex.started);
+            const actions = (ex.actions || []).length;
+            html += `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);">
+                <span style="color:var(--text-dim)">${ts}</span>
+                <span style="color:var(--accent)">${esc(ex.playbook)}</span>
+                <span style="color:var(--text-muted)">(${actions} actions, ${ex.duration || "?"}s)</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Unified Timeline (center panel)
+    function renderTimeline() {
+        const events = (state.events || {}).recent || [];
+        const container = document.getElementById("timeline-list");
+
+        // Apply filters
+        const agentFilter = document.getElementById("filter-agent").value;
+        const sevFilter = document.getElementById("filter-severity").value;
+
+        let filtered = events;
+        if (agentFilter) filtered = filtered.filter(e => e.source_agent === agentFilter);
+        if (sevFilter) filtered = filtered.filter(e => e.severity === sevFilter);
+
+        if (!filtered.length) {
+            container.innerHTML = '<div class="empty-state" style="padding-top:40px;">No events to display.<br>Waiting for agent data...</div>';
+            return;
+        }
+
+        let html = "";
+        filtered.slice(0, 200).forEach((ev, idx) => {
+            const ts = formatTime(ev.ts);
+            const agent = ev.source_agent || "unknown";
+            const agentInfo = AGENTS[agent] || { label: agent, short: "?" };
+            const sev = ev.severity || "info";
+            const ip = ev.ip || "-";
+            const desc = ev.event_type || "";
+            const detail = ev.details ? (ev.details.message || ev.details.description || "") : "";
+            const selClass = selectedEvent && selectedEvent._hash === ev._hash ? "selected" : "";
+
+            html += `<div class="event-row ${selClass}" data-idx="${idx}" onclick="selectEvent(${idx})">
+                <div class="event-ts">${ts}</div>
+                <div class="event-agent ${agent}">${agentInfo.short}</div>
+                <div class="event-sev ${sev}">${sev}</div>
+                <div class="event-ip">${esc(ip)}</div>
+                <div class="event-desc" title="${esc(desc + (detail ? " — " + detail : ""))}">${esc(desc)}${detail ? " — " + esc(detail) : ""}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Event Detail Panel (center bottom)
+    window.selectEvent = function(idx) {
+        const events = (state.events || {}).recent || [];
+        const agentFilter = document.getElementById("filter-agent").value;
+        const sevFilter = document.getElementById("filter-severity").value;
+        let filtered = events;
+        if (agentFilter) filtered = filtered.filter(e => e.source_agent === agentFilter);
+        if (sevFilter) filtered = filtered.filter(e => e.severity === sevFilter);
+
+        const ev = filtered[idx];
+        if (!ev) return;
+
+        selectedEvent = ev;
+        const panel = document.getElementById("event-detail");
+        panel.classList.add("visible");
+
+        const agentInfo = AGENTS[ev.source_agent] || { label: ev.source_agent };
+        const details = ev.details || {};
+
+        let html = `<div class="detail-title">${esc(ev.event_type)} — ${agentInfo.label}</div>`;
+        html += `<div class="detail-grid">
+            <div><span class="detail-label">Time:</span> <span class="detail-value">${ev.ts_iso || ""}</span></div>
+            <div><span class="detail-label">Severity:</span> <span class="badge badge-${ev.severity}">${ev.severity}</span></div>
+            <div><span class="detail-label">Source IP:</span> <span class="detail-value">${esc(ev.ip || "-")}</span></div>
+            <div><span class="detail-label">Agent:</span> <span class="detail-value">${agentInfo.label}</span></div>
+            <div><span class="detail-label">Kill Chain:</span> <span class="detail-value">${ev.kill_chain || "-"}</span></div>
+            <div><span class="detail-label">Hash:</span> <span class="detail-value">${ev._hash || "-"}</span></div>
+        </div>`;
+        if (Object.keys(details).length > 0) {
+            html += `<div class="detail-json">${esc(JSON.stringify(details, null, 2))}</div>`;
+        }
+        panel.innerHTML = html;
+
+        renderTimeline();
+    };
+
+    // Risk Trend bars (right panel)
+    function renderRiskTrend() {
+        const risk = state.risk || {};
+        const history = risk.history || [];
+        const container = document.getElementById("risk-bars");
+
+        if (!history.length) {
+            container.innerHTML = '<div class="empty-state" style="font-size:10px;">No data yet</div>';
+            return;
+        }
+
+        // Show last 40 data points
+        const points = history.slice(-40);
+        let html = "";
+        points.forEach(p => {
+            const h = Math.max(2, (p.score / 100) * 56);
+            const color = riskColor(p.score);
+            html += `<div class="risk-bar" style="height:${h}px;background:${color};" title="Risk: ${p.score}"></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Top Threat IPs (right panel)
+    function renderThreatIPs() {
+        const threats = state.top_threats || [];
+        const container = document.getElementById("threat-ips");
+
+        if (!threats.length) {
+            container.innerHTML = '<div class="empty-state">No threats detected</div>';
+            return;
+        }
+
+        let html = "";
+        threats.slice(0, 10).forEach(t => {
+            const color = t.score >= 20 ? "var(--red)" : t.score >= 10 ? "var(--orange)" : "var(--yellow)";
+            html += `<div class="threat-ip-item">
+                <div>
+                    <div class="threat-ip">${esc(t.ip)}</div>
+                    <div class="threat-agents">${t.agents.join(", ")} | ${t.event_count} events</div>
+                </div>
+                <div class="threat-score" style="color:${color}">${t.score}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Agent Status Cards (right panel)
+    function renderAgentCards() {
+        const agents = state.agents || {};
+        const container = document.getElementById("agent-cards");
+
+        let html = "";
+        for (const [key, info] of Object.entries(AGENTS)) {
+            const h = agents[key] || {};
+            const status = h.status || "unknown";
+            const count = h.events_count || 0;
+            const errors = h.errors || 0;
+            const lastSeen = h.last_seen ? timeSince(h.last_seen) : "never";
+
+            html += `<div class="agent-card">
+                <div class="agent-card-dot ${status}"></div>
+                <div class="agent-card-name">${info.label}</div>
+                <div class="agent-card-count" title="Events: ${count}, Errors: ${errors}, Last: ${lastSeen}">${count} evts</div>
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Stats (right panel)
+    function renderStats() {
+        const evStats = (state.events || {}).stats || {};
+        const corrStats = (state.correlations || {}).stats || {};
+        const pbStats = (state.playbooks || {}).stats || {};
+        const logStats = state.logs || {};
+        const uptime = state.uptime || 0;
+
+        document.getElementById("stat-events").textContent = evStats.total_events || 0;
+        document.getElementById("stat-corrs").textContent = corrStats.total_correlations || 0;
+        document.getElementById("stat-uptime").textContent = formatDuration(uptime);
+
+        const panel = document.getElementById("stats-panel");
+        panel.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;">
+                <div>Buffer: <span style="color:var(--text)">${evStats.buffer_size || 0}</span></div>
+                <div>Online: <span style="color:var(--green)">${evStats.agents_online || 0}/${evStats.agents_total || 0}</span></div>
+                <div>Rules: <span style="color:var(--text)">${corrStats.active_rules || 0}</span></div>
+                <div>Tracked IPs: <span style="color:var(--text)">${corrStats.tracked_ips || 0}</span></div>
+                <div>Playbooks: <span style="color:var(--text)">${pbStats.total_playbooks || 0}</span></div>
+                <div>Executions: <span style="color:var(--text)">${pbStats.total_executions || 0}</span></div>
+                <div>Log files: <span style="color:var(--text)">${logStats.log_files || 0}</span></div>
+                <div>Log size: <span style="color:var(--text)">${logStats.total_size_mb || 0} MB</span></div>
+            </div>
+        `;
+    }
+
+    // ── Playbook runner ──────────────────────────────────────
+    window.runPlaybook = async function(name) {
+        const result = await apiCall("run_playbook", name, "");
+        if (result && result.error) {
+            console.error("[Playbook]", result.error);
+        }
+        refresh();
+    };
+
+    // ── Search ───────────────────────────────────────────────
+    async function doSearch() {
+        const query = document.getElementById("search-input").value.trim();
+        if (!query) return;
+        const result = await apiCall("search_logs", query, 100);
+        if (!result || !result.results) return;
+
+        // Show search results in the timeline
+        const container = document.getElementById("timeline-list");
+        if (!result.results.length) {
+            container.innerHTML = `<div class="empty-state">No results for "${esc(query)}"</div>`;
+            return;
+        }
+        let html = `<div style="padding:4px 8px;font-size:11px;color:var(--text-dim);border-bottom:1px solid var(--border);">Search results for "${esc(query)}": ${result.count} found</div>`;
+        result.results.slice(0, 100).forEach((ev, idx) => {
+            const ts = formatTime(ev.ts);
+            const agent = ev.source_agent || "unknown";
+            const agentInfo = AGENTS[agent] || { label: agent, short: "?" };
+            const sev = ev.severity || "info";
+            const ip = ev.ip || "-";
+            const desc = ev.event_type || "";
+            html += `<div class="event-row">
+                <div class="event-ts">${ts}</div>
+                <div class="event-agent ${agent}">${agentInfo.short}</div>
+                <div class="event-sev ${sev}">${sev}</div>
+                <div class="event-ip">${esc(ip)}</div>
+                <div class="event-desc">${esc(desc)}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ── Export ────────────────────────────────────────────────
+    async function doExport(fmt) {
+        const result = await apiCall("export_logs", fmt, 500);
+        if (!result || !result.data) return;
+
+        const blob = new Blob([result.data], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const ext = fmt === "csv" ? "csv" : fmt === "syslog" ? "log" : "json";
+        a.download = `siem_export_${new Date().toISOString().slice(0,10)}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ── Utility Functions ────────────────────────────────────
+    function formatTime(ts) {
+        if (!ts) return "--:--:--";
+        try {
+            const d = new Date(typeof ts === "number" ? ts * 1000 : ts);
+            return d.toLocaleTimeString("en-GB", { hour12: false });
+        } catch { return "--:--:--"; }
+    }
+
+    function formatDuration(secs) {
+        if (!secs || secs < 0) return "0s";
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = Math.floor(secs % 60);
+        if (h > 0) return `${h}h ${m}m`;
+        if (m > 0) return `${m}m ${s}s`;
+        return `${s}s`;
+    }
+
+    function timeSince(ts) {
+        const diff = Date.now() / 1000 - ts;
+        if (diff < 60) return Math.floor(diff) + "s ago";
+        if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+        return Math.floor(diff / 3600) + "h ago";
+    }
+
+    function esc(str) {
+        if (str == null) return "";
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // ── Event Listeners ──────────────────────────────────────
+    document.getElementById("btn-pause").addEventListener("click", function() {
+        paused = !paused;
+        this.textContent = paused ? "Paused" : "Live";
+        this.classList.toggle("active", !paused);
+    });
+
+    document.getElementById("filter-agent").addEventListener("change", () => { if (state) renderTimeline(); });
+    document.getElementById("filter-severity").addEventListener("change", () => { if (state) renderTimeline(); });
+
+    document.getElementById("btn-search").addEventListener("click", doSearch);
+    document.getElementById("search-input").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+
+    document.getElementById("btn-export-csv").addEventListener("click", () => doExport("csv"));
+    document.getElementById("btn-export-json").addEventListener("click", () => doExport("json"));
+    document.getElementById("btn-export-syslog").addEventListener("click", () => doExport("syslog"));
+
+    // ── Init ─────────────────────────────────────────────────
+    function waitForAPI() {
+        if (window.pywebview && window.pywebview.api) {
+            startRefresh();
+        } else {
+            setTimeout(waitForAPI, 200);
+        }
+    }
+    waitForAPI();
+
+})();
+</script>
+</body>
+</html>

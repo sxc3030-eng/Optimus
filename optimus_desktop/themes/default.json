@@ -1,0 +1,10 @@
+{
+  "name": "Optimus Dark",
+  "background": "#0a0a0f",
+  "accent": "#00ff88",
+  "text": "#e0e0e0",
+  "card_bg": "#1a1a2e",
+  "card_hover": "#252545",
+  "dock_bg": "rgba(10,10,15,0.95)",
+  "border": "#333355"
+}

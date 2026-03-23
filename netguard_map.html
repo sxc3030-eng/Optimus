@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NetGuard Pro — Carte Intelligence</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+.titlebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+.status-dot.off{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar gauche */
+.sidebar{width:280px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.stab{flex:1;padding:9px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:var(--text3);transition:.15s;border-bottom:2px solid transparent}
+.stab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--bluedim)22}
+.stab:hover{color:var(--text)}
+.sidebar-panel{flex:1;overflow-y:auto;display:none;flex-direction:column}
+.sidebar-panel.active{display:flex}
+
+/* Map area */
+.map-wrap{flex:1;position:relative;overflow:hidden;background:#07070d}
+#world-svg{width:100%;height:100%}
+
+/* Selection box */
+#sel-box{position:absolute;border:1px dashed var(--blue);background:rgba(77,159,255,0.08);pointer-events:none;display:none}
+
+/* IP Panel (right) */
+.ip-panel{width:320px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transform:translateX(320px);transition:.3s}
+.ip-panel.open{transform:translateX(0)}
+
+/* Cards */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:8px}
+.card-hdr{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card-title{font-size:12px;font-weight:600;color:var(--text)}
+.card-body{padding:12px}
+
+/* Buttons */
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.15s;font-weight:500;display:flex;align-items:center;gap:5px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2)}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-red{background:var(--reddim);border-color:#ff4d6a44;color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--greendim);border-color:#3dffb444;color:var(--green)}
+.btn-amber{background:var(--amberdim);border-color:#ffb34744;color:var(--amber)}
+
+/* Stats */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.stat{background:var(--bg4);border-radius:6px;padding:10px;text-align:center}
+.stat-val{font-size:18px;font-weight:700;font-family:'Geist Mono',monospace}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* IP list */
+.ip-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px;cursor:pointer;transition:.1s}
+.ip-item:hover{background:var(--bg4)}
+.ip-item.selected{background:var(--bluedim);border-left:2px solid var(--blue)}
+.ip-item.blocked{background:var(--reddim);border-left:2px solid var(--red)}
+.ip-badge{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;flex-shrink:0}
+
+/* ASN group */
+.asn-group{padding:8px 12px;border-bottom:1px solid var(--border)}
+.asn-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.asn-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin-bottom:4px}
+.asn-bar{height:100%;border-radius:2px;background:var(--red);transition:.3s}
+.asn-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+
+/* Tooltip */
+#tooltip{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:12px;pointer-events:none;z-index:200;display:none;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+
+/* Selection toolbar */
+#sel-toolbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;display:none;align-items:center;gap:10px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* Mode buttons */
+.mode-btn{padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border2);background:var(--bg4);color:var(--text3);transition:.15s}
+.mode-btn.active{background:var(--bluedim);color:var(--blue);border-color:var(--blue)}
+
+/* Info rows */
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--text3)}
+.info-val{font-family:'Geist Mono',monospace;color:var(--text);text-align:right;max-width:160px;word-break:break-all}
+
+.tag{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:700;display:inline-block}
+.tag-isp{background:#1a3a6e;color:#4d9fff}
+.tag-dc{background:#2a1a4d;color:#b47dff}
+.tag-gov{background:#3d1220;color:#ff4d6a}
+.tag-edu{background:#0d3326;color:#3dffb4}
+.tag-vpn{background:#3d2800;color:#ffb347}
+.tag-bot{background:#3d1220;color:#ff1a4d}
+
+.section-title{padding:10px 12px 4px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+
+/* Live stats in titlebar */
+.live-stat{display:flex;align-items:center;gap:4px;font-size:11px;font-family:'Geist Mono',monospace}
+.live-stat .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div id="tooltip">
+  <div style="font-family:'Geist Mono',monospace;color:var(--blue);font-size:13px;font-weight:600;margin-bottom:4px" id="tt-ip"></div>
+  <div style="color:var(--text2);font-size:12px;margin-bottom:2px" id="tt-loc"></div>
+  <div style="color:var(--text3);font-size:11px;margin-bottom:4px" id="tt-org"></div>
+  <span id="tt-status" style="font-size:10px;padding:2px 8px;border-radius:3px;font-weight:700"></span>
+</div>
+
+<div class="titlebar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg viewBox="0 0 200 200" width="28" height="28" style="flex-shrink:0"><defs><linearGradient id="ngG6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#b47dff"/></linearGradient></defs><path d="M100 18L162 42V100C162 140 132 163 100 178C68 163 38 140 38 100V42Z" fill="#16161d" stroke="url(#ngG6)" stroke-width="3"/><path d="M72 70V130M72 70L128 130M128 70V130" stroke="url(#ngG6)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <div>
+      <span style="font-size:13px;font-weight:600">
+        <span style="background:linear-gradient(90deg,#4d9fff,#b47dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Net</span>Guard Pro
+      </span>
+      <span style="font-size:11px;color:var(--text3);margin-left:6px">— Intelligence Réseau</span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="mode-btn active" id="mode-view" onclick="setMode('view')">👁 Vue</button>
+      <button class="mode-btn" id="mode-select" onclick="setMode('select')">⬚ Sélection</button>
+      <button class="mode-btn" onclick="fixMyLocation()" title="Corriger ma position sur la carte">📍 Ma position</button>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="status-dot" id="dot"></div>
+      <span style="font-size:11px" id="conn-status">Connexion…</span>
+    </div>
+    <div style="display:flex;gap:12px;font-size:11px;font-family:'Geist Mono',monospace">
+      <span style="color:var(--blue)"><span id="live-ips">0</span> IPs</span>
+      <span style="color:var(--red)"><span id="live-blocked">0</span> bloquées</span>
+      <span style="color:var(--amber)"><span id="live-countries">0</span> pays</span>
+      <span style="color:var(--green)"><span id="live-arcs">0</span> conn.</span>
+    </div>
+    <a href="netguard_dashboard.html" class="btn" style="text-decoration:none;font-size:11px;padding:4px 10px">← Dashboard</a>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR GAUCHE -->
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <div class="stab active" onclick="showSTab('stats',this)">Stats</div>
+      <div class="stab" onclick="showSTab('ips',this)">IPs</div>
+      <div class="stab" onclick="showSTab('asn',this)">ASN</div>
+      <div class="stab" onclick="showSTab('selection',this)">Sélection</div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div class="sidebar-panel active" id="stab-stats">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" style="color:var(--blue)" id="s-total">0</div><div class="stat-lbl">Connexions</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--red)" id="s-blocked">0</div><div class="stat-lbl">Bloquées</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--amber)" id="s-countries">0</div><div class="stat-lbl">Pays</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--purple)" id="s-asns">0</div><div class="stat-lbl">Réseaux ASN</div></div>
+      </div>
+      <div class="section-title">Activité par pays</div>
+      <div id="country-list" style="overflow-y:auto;flex:1"></div>
+    </div>
+
+    <!-- IPs TAB -->
+    <div class="sidebar-panel" id="stab-ips">
+      <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px">
+        <input id="ip-search" placeholder="Rechercher une IP…" style="flex:1;background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:11px;padding:5px 8px;border-radius:5px;font-family:'Geist Mono',monospace" oninput="filterIPs()">
+        <button class="btn btn-red" style="padding:4px 8px;font-size:10px" onclick="blockSelectedIPs()">Bloquer</button>
+      </div>
+      <div style="padding:6px 10px;border-bottom:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn" style="padding:2px 8px;font-size:10px" onclick="filterByStatus('all')">Toutes</button>
+        <button class="btn" style="padding:2px 8px;font-size:10px" onclick="filterByStatus('block')">Bloquées</button>
+        <button class="btn" style="padding:2px 8px;font-size:10px" onclick="filterByStatus('active')">Actives</button>
+      </div>
+      <div id="ip-list" style="overflow-y:auto;flex:1"></div>
+    </div>
+
+    <!-- ASN TAB -->
+    <div class="sidebar-panel" id="stab-asn">
+      <div style="padding:8px 10px;border-bottom:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Groupes d'IPs par réseau source (ASN)</div>
+        <button class="btn btn-red" style="width:100%;justify-content:center" onclick="blockTopASN()">🚫 Bloquer top 3 ASN suspects</button>
+      </div>
+      <div id="asn-list" style="overflow-y:auto;flex:1"></div>
+    </div>
+
+    <!-- SELECTION TAB -->
+    <div class="sidebar-panel" id="stab-selection">
+      <div style="padding:10px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+          Active le mode <strong style="color:var(--blue)">⬚ Sélection</strong> puis glisse sur la carte pour sélectionner une zone.
+        </div>
+        <div id="sel-count" style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:10px">0 IPs sélectionnées</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn btn-red" onclick="blockSelectedIPs()" style="justify-content:center">🚫 Bloquer la sélection</button>
+          <button class="btn btn-amber" onclick="lookupSelectedIPs()" style="justify-content:center">🔍 Analyser (WHOIS/ASN)</button>
+          <button class="btn" onclick="clearSelection()" style="justify-content:center">✕ Vider la sélection</button>
+        </div>
+      </div>
+      <div class="section-title">IPs sélectionnées</div>
+      <div id="sel-ip-list" style="overflow-y:auto;flex:1"></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap" id="map-wrap">
+    <svg id="world-svg"></svg>
+    <div id="sel-box"></div>
+
+    <!-- Toolbar sélection -->
+    <div id="sel-toolbar">
+      <span id="sel-toolbar-count" style="font-size:12px;color:var(--blue);font-weight:600">0 IPs</span>
+      <button class="btn btn-red" style="padding:4px 10px;font-size:11px" onclick="blockSelectedIPs()">🚫 Bloquer</button>
+      <button class="btn btn-amber" style="padding:4px 10px;font-size:11px" onclick="lookupSelectedIPs()">🔍 WHOIS/ASN</button>
+      <button class="btn" style="padding:4px 10px;font-size:11px" onclick="clearSelection()">✕</button>
+    </div>
+
+    <!-- Légende -->
+    <div style="position:absolute;bottom:14px;left:14px;background:var(--bg2)dd;border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;gap:14px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;box-shadow:0 0 6px var(--blue)"></span>Mon réseau</span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Permis</span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block"></span>Alerte</span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></span>Bloqué</span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:var(--blue);border:1px solid var(--blue);display:inline-block"></span>Sélectionné</span>
+    </div>
+
+    <!-- Boutons zoom -->
+    <div style="position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:6px">
+      <button id="btn-zoom-in" style="width:32px;height:32px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text2)'">+</button>
+      <button id="btn-zoom-reset" style="width:32px;height:32px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text2)'">⌂</button>
+      <button id="btn-zoom-out" style="width:32px;height:32px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text2)'">−</button>
+    </div>
+  </div>
+
+  <!-- IP PANEL DROIT -->
+  <div class="ip-panel" id="ip-panel">
+    <div class="card-hdr" style="padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg2)">
+      <span style="font-size:13px;font-weight:600" id="panel-ip-title">—</span>
+      <button class="btn" style="padding:3px 8px;font-size:11px" onclick="closeIPPanel()">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1" id="ip-panel-content"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const WS_URL = 'ws://localhost:8765';
+let ws, mapReady = false, projection, svg, g, path;
+let currentMode = 'view';
+let allPackets = [];
+let ipData = {}; // ip -> {hits, status, country, city, lat, lon, asn, org, type}
+let asnData = {}; // asn -> {name, org, country, ips: Set, hits, type}
+let selectedIPs = new Set();
+let blockedIPs = new Set();
+let dotElements = {}; // ip -> d3 element
+let lastPktCount = 0;
+
+// Selection box state
+let selStart = null, selRect = null;
+
+const FLAGS = {AF:'🇦🇫',AL:'🇦🇱',DZ:'🇩🇿',AR:'🇦🇷',AU:'🇦🇺',AT:'🇦🇹',BD:'🇧🇩',BY:'🇧🇾',BE:'🇧🇪',BR:'🇧🇷',BG:'🇧🇬',CA:'🇨🇦',CL:'🇨🇱',CN:'🇨🇳',CO:'🇨🇴',HR:'🇭🇷',CZ:'🇨🇿',DK:'🇩🇰',EG:'🇪🇬',EE:'🇪🇪',FI:'🇫🇮',FR:'🇫🇷',DE:'🇩🇪',GR:'🇬🇷',HK:'🇭🇰',HU:'🇭🇺',IN:'🇮🇳',ID:'🇮🇩',IR:'🇮🇷',IQ:'🇮🇶',IE:'🇮🇪',IL:'🇮🇱',IT:'🇮🇹',JP:'🇯🇵',KZ:'🇰🇿',KE:'🇰🇪',KP:'🇰🇵',KR:'🇰🇷',LV:'🇱🇻',LT:'🇱🇹',MY:'🇲🇾',MX:'🇲🇽',MA:'🇲🇦',NL:'🇳🇱',NZ:'🇳🇿',NG:'🇳🇬',NO:'🇳🇴',PK:'🇵🇰',PH:'🇵🇭',PL:'🇵🇱',PT:'🇵🇹',RO:'🇷🇴',RU:'🇷🇺',SA:'🇸🇦',SG:'🇸🇬',ZA:'🇿🇦',ES:'🇪🇸',SE:'🇸🇪',CH:'🇨🇭',TW:'🇹🇼',TH:'🇹🇭',TR:'🇹🇷',UA:'🇺🇦',AE:'🇦🇪',GB:'🇬🇧',US:'🇺🇸',VN:'🇻🇳',VE:'🇻🇪'};
+const COUNTRY_NAMES = {AF:'Afghanistan',AL:'Albanie',DZ:'Algérie',AR:'Argentine',AU:'Australie',AT:'Autriche',BD:'Bangladesh',BY:'Biélorussie',BE:'Belgique',BR:'Brésil',BG:'Bulgarie',CA:'Canada',CL:'Chili',CN:'Chine',CO:'Colombie',HR:'Croatie',CZ:'Tchéquie',DK:'Danemark',EG:'Égypte',EE:'Estonie',FI:'Finlande',FR:'France',DE:'Allemagne',GR:'Grèce',HK:'Hong Kong',HU:'Hongrie',IN:'Inde',ID:'Indonésie',IR:'Iran',IQ:'Irak',IE:'Irlande',IL:'Israël',IT:'Italie',JP:'Japon',KZ:'Kazakhstan',KE:'Kenya',KP:'Corée du Nord',KR:'Corée du Sud',LV:'Lettonie',LT:'Lituanie',MY:'Malaisie',MX:'Mexique',MA:'Maroc',NL:'Pays-Bas',NZ:'Nouvelle-Zélande',NG:'Nigeria',NO:'Norvège',PK:'Pakistan',PH:'Philippines',PL:'Pologne',PT:'Portugal',RO:'Roumanie',RU:'Russie',SA:'Arabie Saoudite',SG:'Singapour',ZA:'Afrique du Sud',ES:'Espagne',SE:'Suède',CH:'Suisse',TW:'Taïwan',TH:'Thaïlande',TR:'Turquie',UA:'Ukraine',AE:'Émirats arabes',GB:'Royaume-Uni',US:'États-Unis',VN:'Vietnam',VE:'Venezuela'};
+const COUNTRY_COORDS = {AF:[69.2,34.5],AL:[19.8,41.3],DZ:[3.0,36.8],AR:[-58.4,-34.6],AU:[149.1,-35.3],AT:[16.4,48.2],BD:[90.4,23.7],BY:[27.6,53.9],BE:[4.4,50.8],BR:[-47.9,-15.8],BG:[23.3,42.7],CA:[-75.7,45.4],CL:[-70.6,-33.4],CN:[116.4,39.9],CO:[-74.1,4.7],HR:[16.0,45.8],CZ:[14.4,50.1],DK:[12.6,55.7],EG:[31.2,30.0],EE:[24.7,59.4],FI:[24.9,60.2],FR:[2.35,48.85],DE:[13.4,52.5],GR:[23.7,37.97],HK:[114.2,22.3],HU:[19.0,47.5],IN:[77.2,28.6],ID:[106.8,-6.2],IR:[51.4,35.7],IQ:[44.4,33.3],IE:[-6.3,53.3],IL:[35.2,31.8],IT:[12.5,41.9],JP:[139.7,35.7],KZ:[71.4,51.1],KE:[36.8,-1.3],KP:[125.75,39.0],KR:[126.9,37.5],LV:[24.1,56.9],LT:[25.3,54.7],MY:[101.7,3.1],MX:[-99.1,19.4],MA:[-6.8,34.0],NL:[4.9,52.37],NZ:[174.8,-41.3],NG:[7.5,9.1],NO:[10.8,59.9],PK:[73.0,33.7],PH:[121.0,14.6],PL:[21.0,52.2],PT:[-9.1,38.7],RO:[26.1,44.4],RU:[37.6,55.75],SA:[46.7,24.7],SG:[103.8,1.35],ZA:[28.0,-26.2],ES:[-3.7,40.4],SE:[18.1,59.3],CH:[7.45,46.95],TW:[121.5,25.0],TH:[100.5,13.8],TR:[32.9,39.9],UA:[30.5,50.4],AE:[54.4,24.5],GB:[-0.12,51.5],US:[-98.0,39.5],VN:[105.8,21.0],VE:[-66.9,10.5]};
+
+// Classifier le type d'organisation
+function classifyOrg(org) {
+  if (!org) return {type:'unknown', label:'Inconnu', tag:'tag-isp'};
+  const o = org.toLowerCase();
+  if (o.includes('government') || o.includes('ministry') || o.includes('militar') || o.includes('police') || o.includes('army')) return {type:'gov', label:'Gouvernement', tag:'tag-gov'};
+  if (o.includes('university') || o.includes('college') || o.includes('school') || o.includes('education') || o.includes('académi')) return {type:'edu', label:'Éducation', tag:'tag-edu'};
+  if (o.includes('amazon') || o.includes('google') || o.includes('microsoft') || o.includes('alibaba') || o.includes('tencent') || o.includes('digitalocean') || o.includes('linode') || o.includes('vultr') || o.includes('ovh') || o.includes('hetzner') || o.includes('cloudflare')) return {type:'dc', label:'Datacenter', tag:'tag-dc'};
+  if (o.includes('vpn') || o.includes('proxy') || o.includes('tor') || o.includes('anonymous') || o.includes('privacy')) return {type:'vpn', label:'VPN/Proxy', tag:'tag-vpn'};
+  return {type:'isp', label:'FAI / Opérateur', tag:'tag-isp'};
+}
+
+// ── Init Map ──────────────────────────────────────────────────────────────
+async function initMap() {
+  const wrap = document.getElementById('map-wrap');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  svg = d3.select('#world-svg').attr('width', W).attr('height', H);
+  projection = d3.geoNaturalEarth1().scale(W/6.3).translate([W/2, H/2]);
+  path = d3.geoPath().projection(projection);
+  g = svg.append('g');
+
+  svg.insert('rect','g').attr('width',W).attr('height',H).attr('fill','#07070d');
+
+  // ── Zoom & Pan ────────────────────────────────────────────────────────
+  const zoom = d3.zoom()
+    .scaleExtent([0.5, 20])
+    .on('zoom', function(event) {
+      if (currentMode === 'select') return; // désactiver zoom en mode sélection
+      g.attr('transform', event.transform);
+      currentTransform = event.transform;
+      // Adapter la taille des points selon le zoom
+      const scale = event.transform.k;
+      g.selectAll('circle').attr('r', function() {
+        const baseR = parseFloat(d3.select(this).attr('data-r') || 3);
+        return Math.max(1, baseR / Math.sqrt(scale));
+      });
+    });
+
+  svg.call(zoom);
+
+  // Stocker le zoom pour pouvoir le reset
+  window._mapZoom = zoom;
+  window._mapSvg  = svg;
+  let currentTransform = d3.zoomIdentity;
+
+  // Boutons zoom
+  document.getElementById('btn-zoom-in') && document.getElementById('btn-zoom-in').addEventListener('click', () => {
+    svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+  });
+  document.getElementById('btn-zoom-out') && document.getElementById('btn-zoom-out').addEventListener('click', () => {
+    svg.transition().duration(300).call(zoom.scaleBy, 0.67);
+  });
+  document.getElementById('btn-zoom-reset') && document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+    svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+  });
+
+  try {
+    const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const countries = topojson.feature(world, world.objects.countries);
+    g.append('g').selectAll('path')
+      .data(countries.features).join('path')
+      .attr('d', path).attr('fill','#12121e').attr('stroke','#1e1e30').attr('stroke-width',0.6);
+    const grat = d3.geoGraticule()();
+    g.append('path').datum(grat).attr('d',path).attr('fill','none').attr('stroke','#ffffff04').attr('stroke-width',0.5);
+    mapReady = true;
+    document.getElementById('conn-status').textContent = 'Carte chargée…';
+
+    // Add "my location" marker
+    addMyLocationMarker();
+
+    window.addEventListener('resize', () => {
+      const nW = wrap.clientWidth, nH = wrap.clientHeight;
+      svg.attr('width',nW).attr('height',nH);
+      projection.scale(nW/6.3).translate([nW/2,nH/2]);
+      g.selectAll('path').attr('d',path);
+      redrawDots();
+      addMyLocationMarker();
+    });
+  } catch(e) { console.error(e); }
+
+  // Selection drag — seulement en mode sélection
+  svg.on('mousedown.sel', onSelStart)
+     .on('mousemove.sel', onSelMove)
+     .on('mouseup.sel',   onSelEnd);
+
+  // Try to get our real public IP location
+  fetchMyLocation();
+
+  connectWS();
+}
+
+let myCity = '';
+function addMyLocationMarker() {
+  if (!mapReady) return;
+  g.selectAll('.my-loc').remove();
+  const [mx, my] = projection(localCoords);
+  if (!mx || !my) return;
+  // Outer pulsing ring
+  g.append('circle').attr('class','my-loc')
+    .attr('cx',mx).attr('cy',my).attr('r',12)
+    .attr('fill','none').attr('stroke','#4d9fff').attr('stroke-width',1).attr('opacity',.25);
+  // Inner ring
+  g.append('circle').attr('class','my-loc')
+    .attr('cx',mx).attr('cy',my).attr('r',7)
+    .attr('fill','none').attr('stroke','#4d9fff').attr('stroke-width',1.5).attr('opacity',.5);
+  // Solid center
+  g.append('circle').attr('class','my-loc')
+    .attr('cx',mx).attr('cy',my).attr('r',4)
+    .attr('fill','#4d9fff').attr('opacity',.9)
+    .style('cursor','pointer')
+    .on('click', () => { if(myIP) showIPPanel(myIP); });
+  // Label
+  const label = myCity ? `Mon réseau (${myCity})` : 'Mon réseau';
+  g.append('text').attr('class','my-loc my-loc-label')
+    .attr('x',mx+10).attr('y',my+4)
+    .attr('fill','#4d9fff').attr('font-size','10px').attr('font-weight','600').attr('font-family','Outfit,sans-serif')
+    .text(label);
+}
+
+async function fetchMyLocation() {
+  // Try multiple free geo APIs (fallback chain)
+  // Check if user manually set location
+  const saved = localStorage.getItem('ng_my_location');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      if (s.lat && s.lon) {
+        localCoords = [s.lon, s.lat];
+        myIP = s.ip || 'Manuel';
+        myCity = s.city || '';
+        console.log(`[Map] Position manuelle chargée: ${s.city} (${s.lat}, ${s.lon})`);
+        addMyLocationMarker();
+        return;
+      }
+    } catch(_){}
+  }
+
+  const apis = [
+    // ipwho.is — illimité, HTTPS, assez précis
+    {url:'https://ipwho.is/', parse: d => d.success !== false ? {lat:d.latitude,lon:d.longitude,ip:d.ip,city:d.city,country:d.country_code} : null},
+    // ip-api.com — 45 req/min, très précis (HTTP only on free tier)
+    {url:'http://ip-api.com/json/?fields=status,query,city,country,countryCode,lat,lon', parse: d => d.status==='success' ? {lat:d.lat,lon:d.lon,ip:d.query,city:d.city,country:d.countryCode} : null},
+    // ipapi.co — 1000/jour gratuit
+    {url:'https://ipapi.co/json/', parse: d => d.latitude ? {lat:d.latitude,lon:d.longitude,ip:d.ip,city:d.city,country:d.country_code} : null},
+  ];
+  for (const api of apis) {
+    try {
+      const res = await fetch(api.url, {signal: AbortSignal.timeout(4000)});
+      const d = await res.json();
+      const result = api.parse(d);
+      if (result && result.lat && result.lon) {
+        localCoords = [result.lon, result.lat];
+        myIP = result.ip;
+        myCity = result.city || '';
+        console.log(`[Map] Mon réseau détecté: ${result.ip} — ${result.city}, ${result.country} (${result.lat}, ${result.lon}) via ${api.url}`);
+        addMyLocationMarker();
+        return; // Success, stop trying
+      }
+    } catch(_) { /* try next */ }
+  }
+  console.warn('[Map] Impossible de détecter la localisation — fallback FR');
+}
+
+// ── Selection box ─────────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-view').classList.toggle('active', mode==='view');
+  document.getElementById('mode-select').classList.toggle('active', mode==='select');
+  svg.style('cursor', mode==='select' ? 'crosshair' : 'grab');
+  // Activer/désactiver le zoom selon le mode
+  if (window._mapZoom && window._mapSvg) {
+    if (mode === 'select') {
+      window._mapSvg.on('.zoom', null); // désactiver zoom
+    } else {
+      window._mapSvg.call(window._mapZoom); // réactiver zoom
+    }
+  }
+  if (mode === 'select') showSTab('selection', document.querySelectorAll('.stab')[3]);
+}
+
+function onSelStart(event) {
+  if (currentMode !== 'select') return;
+  const [x, y] = d3.pointer(event, document.getElementById('map-wrap'));
+  selStart = {x, y};
+  selRect = {x1:x, y1:y, x2:x, y2:y};
+  const box = document.getElementById('sel-box');
+  box.style.display = 'block';
+  box.style.left = x+'px'; box.style.top = y+'px';
+  box.style.width = '0px'; box.style.height = '0px';
+}
+
+function onSelMove(event) {
+  if (currentMode !== 'select' || !selStart) return;
+  const [x, y] = d3.pointer(event, document.getElementById('map-wrap'));
+  selRect = {x1:Math.min(selStart.x,x), y1:Math.min(selStart.y,y), x2:Math.max(selStart.x,x), y2:Math.max(selStart.y,y)};
+  const box = document.getElementById('sel-box');
+  box.style.left = selRect.x1+'px'; box.style.top = selRect.y1+'px';
+  box.style.width = (selRect.x2-selRect.x1)+'px'; box.style.height = (selRect.y2-selRect.y1)+'px';
+}
+
+function onSelEnd(event) {
+  if (currentMode !== 'select' || !selStart) return;
+  selStart = null;
+  document.getElementById('sel-box').style.display = 'none';
+  if (!selRect || (selRect.x2-selRect.x1) < 5) return;
+
+  // Trouver les IPs dans la zone sélectionnée
+  selectedIPs = new Set();
+  Object.entries(ipData).forEach(([ip, data]) => {
+    if (data.lon == null || data.lat == null) return;
+    const [px, py] = projection([data.lon, data.lat]);
+    if (px >= selRect.x1 && px <= selRect.x2 && py >= selRect.y1 && py <= selRect.y2) {
+      selectedIPs.add(ip);
+    }
+  });
+
+  updateSelection();
+  selRect = null;
+}
+
+function updateSelection() {
+  const count = selectedIPs.size;
+  document.getElementById('sel-count').textContent = count + ' IPs sélectionnées';
+  document.getElementById('sel-toolbar-count').textContent = count + ' IPs';
+
+  const toolbar = document.getElementById('sel-toolbar');
+  toolbar.style.display = count > 0 ? 'flex' : 'none';
+
+  // Mettre à jour la couleur des points sélectionnés
+  redrawDots();
+  renderSelIPList();
+}
+
+function renderSelIPList() {
+  const el = document.getElementById('sel-ip-list');
+  if (!el) return;
+  el.innerHTML = Array.from(selectedIPs).map(ip => {
+    const d = ipData[ip] || {};
+    return `<div class="ip-item selected" onclick="showIPPanel('${ip}')">
+      <span style="font-family:'Geist Mono',monospace;flex:1;font-size:11px;color:var(--blue)">${ip}</span>
+      <span style="font-size:10px;color:var(--text3)">${d.city||d.country||'?'}</span>
+    </div>`;
+  }).join('') || '<div style="padding:12px;font-size:11px;color:var(--text3)">Aucune IP sélectionnée</div>';
+}
+
+function clearSelection() {
+  selectedIPs = new Set();
+  updateSelection();
+}
+
+// ── Block selected IPs ────────────────────────────────────────────────────
+function blockSelectedIPs() {
+  if (!selectedIPs.size) return;
+  selectedIPs.forEach(ip => {
+    sendCmd({cmd:'block_ip', ip, reason:'Blocage groupé depuis la carte'});
+    blockedIPs.add(ip);
+  });
+  showToast(`🚫 ${selectedIPs.size} IPs bloquées`, 'var(--red)');
+  redrawDots();
+}
+
+function blockTopASN() {
+  const sorted = Object.entries(asnData).sort((a,b) => b[1].hits - a[1].hits).slice(0,3);
+  let count = 0;
+  sorted.forEach(([asn, data]) => {
+    data.ips.forEach(ip => {
+      sendCmd({cmd:'block_ip', ip, reason:`Blocage ASN ${asn} — ${data.name}`});
+      blockedIPs.add(ip);
+      count++;
+    });
+  });
+  showToast(`🚫 ${count} IPs bloquées (top 3 ASN)`, 'var(--red)');
+  redrawDots();
+}
+
+// ── WHOIS/ASN lookup ──────────────────────────────────────────────────────
+async function lookupIP(ip) {
+  if (ipData[ip] && ipData[ip].org) return ipData[ip]; // Cached
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`, {signal: AbortSignal.timeout(4000)});
+    const d = await res.json();
+    const orgInfo = classifyOrg(d.org || d.asn);
+    const update = {
+      country: d.country_code || '',
+      city:    d.city || '',
+      lat:     d.latitude,
+      lon:     d.longitude,
+      asn:     d.asn || '',
+      org:     d.org || d.asn || 'Inconnu',
+      isp:     d.org || '',
+      ...orgInfo,
+    };
+    ipData[ip] = {...(ipData[ip]||{}), ...update};
+
+    // Ajouter à asnData
+    if (d.asn) {
+      if (!asnData[d.asn]) asnData[d.asn] = {name:d.org||d.asn, org:d.org||'', country:d.country_code||'', ips:new Set(), hits:0, ...classifyOrg(d.org)};
+      asnData[d.asn].ips.add(ip);
+      asnData[d.asn].hits += (ipData[ip].hits || 1);
+    }
+    renderASNList();
+    return ipData[ip];
+  } catch(e) { return ipData[ip] || {}; }
+}
+
+async function lookupSelectedIPs() {
+  if (!selectedIPs.size) return;
+  showToast(`🔍 Analyse de ${selectedIPs.size} IPs en cours…`, 'var(--blue)');
+  for (const ip of Array.from(selectedIPs).slice(0,10)) {
+    await lookupIP(ip);
+    await new Promise(r => setTimeout(r, 200)); // Rate limit ipapi.co
+  }
+  showToast('✓ Analyse terminée — voir onglet ASN', 'var(--green)');
+  renderASNList();
+  showSTab('asn', document.querySelectorAll('.stab')[2]);
+}
+
+// ── Render functions ──────────────────────────────────────────────────────
+function renderASNList() {
+  const el = document.getElementById('asn-list');
+  if (!el) return;
+  const sorted = Object.entries(asnData).sort((a,b) => b[1].hits - a[1].hits);
+  const maxHits = sorted.length ? sorted[0][1].hits : 1;
+  document.getElementById('s-asns').textContent = sorted.length;
+
+  el.innerHTML = sorted.map(([asn, data]) => {
+    const pct = Math.round(data.hits*100/maxHits);
+    const color = data.type==='gov' ? 'var(--red)' : data.type==='dc' ? 'var(--purple)' : data.type==='vpn' ? 'var(--amber)' : 'var(--blue)';
+    return `<div class="asn-group">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span class="tag ${data.tag}">${data.label}</span>
+        <span class="asn-name" style="flex:1">${data.name||asn}</span>
+        <button class="btn btn-red" style="padding:2px 6px;font-size:10px" onclick="blockASN('${asn}')">Bloquer</button>
+      </div>
+      <div class="asn-bar-wrap"><div class="asn-bar" style="width:${pct}%;background:${color}"></div></div>
+      <div class="asn-meta">
+        <span>${asn} • ${FLAGS[data.country]||''} ${COUNTRY_NAMES[data.country]||data.country||''}</span>
+        <span style="color:${color};font-weight:600">${data.hits} hits • ${data.ips.size} IPs</span>
+      </div>
+    </div>`;
+  }).join('') || '<div style="padding:14px;font-size:11px;color:var(--text3)">Lance une analyse WHOIS pour voir les ASN</div>';
+}
+
+function blockASN(asn) {
+  if (!asnData[asn]) return;
+  asnData[asn].ips.forEach(ip => {
+    sendCmd({cmd:'block_ip', ip, reason:`Blocage ASN ${asn}`});
+    blockedIPs.add(ip);
+  });
+  showToast(`🚫 ASN ${asn} bloqué — ${asnData[asn].ips.size} IPs`, 'var(--red)');
+  redrawDots();
+}
+
+function renderIPList(filter = 'all') {
+  const el = document.getElementById('ip-list');
+  if (!el) return;
+  const search = document.getElementById('ip-search').value.toLowerCase();
+  let ips = Object.entries(ipData)
+    .filter(([ip]) => !ip.startsWith('geo-'))
+    .filter(([ip]) => !search || ip.includes(search))
+    .filter(([ip, d]) => filter==='all' || (filter==='block' && blockedIPs.has(ip)) || (filter==='active' && !blockedIPs.has(ip)))
+    .sort((a,b) => b[1].hits - a[1].hits)
+    .slice(0, 80);
+
+  el.innerHTML = ips.map(([ip, d]) => {
+    const isBlocked = blockedIPs.has(ip);
+    const isSel = selectedIPs.has(ip);
+    const color = isBlocked ? 'var(--red)' : d.status==='warn' ? 'var(--amber)' : 'var(--text2)';
+    return `<div class="ip-item ${isBlocked?'blocked':''} ${isSel?'selected':''}" onclick="showIPPanel('${ip}')">
+      <div style="width:5px;height:5px;border-radius:50%;background:${isBlocked?'var(--red)':'var(--green)'};flex-shrink:0"></div>
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;color:${color};flex:1">${ip}</span>
+      <span style="font-size:10px;color:var(--text3)">${FLAGS[d.country]||''}</span>
+      <span style="font-size:10px;font-weight:600;color:var(--amber)">${d.hits||0}</span>
+    </div>`;
+  }).join('') || '<div style="padding:12px;font-size:11px;color:var(--text3)">Aucune IP</div>';
+}
+
+let currentIPFilter = 'all';
+function filterIPs() { renderIPList(currentIPFilter); }
+function filterByStatus(f) { currentIPFilter = f; renderIPList(f); }
+
+function renderCountryList() {
+  const el = document.getElementById('country-list');
+  if (!el) return;
+  const stats = {};
+  Object.entries(ipData).forEach(([ip,d]) => {
+    if (!d.country) return;
+    if (!stats[d.country]) stats[d.country] = {total:0, blocked:0};
+    stats[d.country].total += (d.hits||1);
+    if (blockedIPs.has(ip)) stats[d.country].blocked++;
+  });
+  const sorted = Object.entries(stats).sort((a,b)=>b[1].total-a[1].total);
+  document.getElementById('s-countries').textContent = sorted.length;
+  const max = sorted.length ? sorted[0][1].total : 1;
+  el.innerHTML = sorted.slice(0,15).map(([code,s]) => {
+    const pct = Math.round(s.total*100/max);
+    const color = s.blocked > s.total*.5 ? 'var(--red)' : s.blocked > 0 ? 'var(--amber)' : 'var(--green)';
+    return `<div class="ip-item">
+      <span style="font-size:14px">${FLAGS[code]||'🌍'}</span>
+      <span style="flex:1;font-size:12px;color:var(--text2)">${COUNTRY_NAMES[code]||code}</span>
+      <div style="width:40px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-right:6px">
+        <div style="width:${pct}%;height:100%;background:${color}"></div>
+      </div>
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;color:${color}">${s.total}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── IP Panel ──────────────────────────────────────────────────────────────
+async function showIPPanel(ip) {
+  const panel = document.getElementById('ip-panel');
+  panel.classList.add('open');
+  document.getElementById('panel-ip-title').textContent = ip;
+
+  const content = document.getElementById('ip-panel-content');
+  content.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">Chargement WHOIS…</div>';
+
+  const d = await lookupIP(ip);
+  const isBlocked = blockedIPs.has(ip);
+
+  content.innerHTML = `
+    <div style="padding:12px;display:flex;gap:8px">
+      <button class="btn btn-red" style="flex:1;justify-content:center" onclick="blockSingleIP('${ip}')">
+        ${isBlocked ? '✓ Déjà bloqué' : '🚫 Bloquer cette IP'}
+      </button>
+      <button class="btn btn-amber" style="flex:1;justify-content:center" onclick="lookupIP('${ip}').then(()=>showIPPanel('${ip}'))">↺ Rafraîchir</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Localisation</span></div>
+      <div class="card-body">
+        <div class="info-row"><span class="info-key">IP</span><span class="info-val" style="color:var(--blue)">${ip}</span></div>
+        <div class="info-row"><span class="info-key">Pays</span><span class="info-val">${FLAGS[d.country]||''} ${COUNTRY_NAMES[d.country]||d.country||'?'}</span></div>
+        <div class="info-row"><span class="info-key">Ville</span><span class="info-val">${d.city||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Coordonnées</span><span class="info-val">${d.lat!=null?d.lat.toFixed(4):'—'}, ${d.lon!=null?d.lon.toFixed(4):'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Réseau & Organisation</span><span class="tag ${d.tag||'tag-isp'}">${d.label||'FAI'}</span></div>
+      <div class="card-body">
+        <div class="info-row"><span class="info-key">ASN</span><span class="info-val" style="color:var(--purple)">${d.asn||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Organisation</span><span class="info-val">${d.org||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Type</span><span class="info-val">${d.label||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Activité détectée</span></div>
+      <div class="card-body">
+        <div class="info-row"><span class="info-key">Hits totaux</span><span class="info-val" style="color:var(--amber)">${d.hits||0}</span></div>
+        <div class="info-row"><span class="info-key">Statut</span><span class="info-val" style="color:${isBlocked?'var(--red)':'var(--green)'}">${isBlocked?'🚫 BLOQUÉ':'✓ Actif'}</span></div>
+        <div class="info-row"><span class="info-key">Dernière vue</span><span class="info-val">${d.lastSeen||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Raison</span><span class="info-val">${d.reason||'—'}</span></div>
+      </div>
+    </div>
+
+    <div style="padding:10px 12px;font-size:10px;color:var(--text3)">
+      Données via ipapi.co — gratuit, sans compte requis
+    </div>`;
+
+  renderASNList();
+}
+
+function blockSingleIP(ip) {
+  sendCmd({cmd:'block_ip', ip, reason:'Blocage manuel depuis la carte'});
+  blockedIPs.add(ip);
+  showToast(`🚫 ${ip} bloqué`, 'var(--red)');
+  showIPPanel(ip);
+  redrawDots();
+}
+
+function closeIPPanel() {
+  document.getElementById('ip-panel').classList.remove('open');
+}
+
+// ── Dots on map ───────────────────────────────────────────────────────────
+// Keep track of dot order for max 50 rule
+let dotOrder = []; // ordered list of IPs with dots
+
+function addOrUpdateDot(ip, data) {
+  if (!mapReady || data.lon == null || data.lat == null) return;
+  const [px, py] = projection([data.lon, data.lat]);
+  if (!px || !py) return;
+
+  const color = blockedIPs.has(ip) ? '#ff4d6a' : selectedIPs.has(ip) ? '#4d9fff' : data.status==='block' ? '#ff4d6a' : data.status==='warn' ? '#ffb347' : '#3dffb4';
+  const r = blockedIPs.has(ip) ? 4 : selectedIPs.has(ip) ? 4 : 3;
+
+  // Ripple animé — toujours affiché
+  g.append('circle').attr('cx',px).attr('cy',py).attr('r',r)
+    .attr('fill','none').attr('stroke',color).attr('stroke-width',1.5).attr('opacity',.8)
+    .transition().duration(900).attr('r',r+12).attr('opacity',0).remove();
+
+  // Si le point existe déjà, juste mettre à jour la couleur
+  if (dotElements[ip]) {
+    dotElements[ip].attr('fill', color).attr('opacity', .85);
+    // Déplacer en fin de liste (plus récent)
+    dotOrder = dotOrder.filter(x => x !== ip);
+    dotOrder.push(ip);
+    return;
+  }
+
+  // Nouveau point — vérifier la limite de 50
+  if (dotOrder.length >= 200) {
+    const oldest = dotOrder.shift();
+    if (dotElements[oldest] && !blockedIPs.has(oldest) && !selectedIPs.has(oldest)) {
+      dotElements[oldest].transition().duration(800).attr('opacity', 0).remove();
+      delete dotElements[oldest];
+    }
+  }
+
+  // Créer le nouveau point persistant
+  const dot = g.append('circle')
+    .attr('cx', px).attr('cy', py)
+    .attr('r', r)
+    .attr('data-r', r)
+    .attr('fill', color)
+    .attr('opacity', 0)
+    .style('cursor', 'pointer')
+    .on('mouseover', function(event) { showTooltip(event, ip, data); })
+    .on('mousemove', function(event) {
+      const tt = document.getElementById('tooltip');
+      tt.style.left = (event.clientX+12)+'px';
+      tt.style.top  = (event.clientY-10)+'px';
+    })
+    .on('mouseout', () => { document.getElementById('tooltip').style.display='none'; })
+    .on('click', function() {
+      if (currentMode === 'select') {
+        if (selectedIPs.has(ip)) selectedIPs.delete(ip); else selectedIPs.add(ip);
+        updateSelection();
+      } else {
+        showIPPanel(ip);
+      }
+    });
+
+  // Fade in
+  dot.transition().duration(400).attr('opacity', .9);
+
+  dotElements[ip] = dot;
+  dotOrder.push(ip);
+}
+
+function redrawDots() {
+  Object.entries(ipData).forEach(([ip, data]) => {
+    if (dotElements[ip]) {
+      const color = blockedIPs.has(ip) ? '#ff4d6a' : selectedIPs.has(ip) ? '#4d9fff' : data.status==='block' ? '#ff4d6a' : '#3dffb4';
+      dotElements[ip].attr('fill', color);
+    }
+  });
+}
+
+// ── Interaction arcs (source → destination) ──────────────────────────────
+let arcElements = []; // track arc SVG elements for cleanup
+const MAX_ARCS = 40;
+let myIP = null; // our local public IP position (center of arcs)
+
+function drawArc(srcCoords, dstCoords, color, status) {
+  if (!mapReady || !srcCoords || !dstCoords) return;
+  const [sx, sy] = projection(srcCoords);
+  const [dx, dy] = projection(dstCoords);
+  if (!sx || !sy || !dx || !dy) return;
+
+  // Curved arc via quadratic bezier
+  const mx = (sx + dx) / 2;
+  const my = (sy + dy) / 2 - Math.abs(dx - sx) * 0.3; // curve upward
+  const pathData = `M${sx},${sy} Q${mx},${my} ${dx},${dy}`;
+
+  const arc = g.append('path')
+    .attr('d', pathData)
+    .attr('fill', 'none')
+    .attr('stroke', color)
+    .attr('stroke-width', status === 'block' ? 1.5 : 1)
+    .attr('opacity', 0)
+    .attr('stroke-dasharray', status === 'block' ? '4,3' : 'none')
+    .style('pointer-events', 'none');
+
+  arc.transition().duration(400).attr('opacity', 0.5)
+    .transition().delay(1500).duration(1000).attr('opacity', 0).remove();
+
+  // Animated dot along the arc
+  const dot = g.append('circle')
+    .attr('cx', sx).attr('cy', sy).attr('r', 2)
+    .attr('fill', color).attr('opacity', 0.9)
+    .style('pointer-events', 'none');
+
+  dot.transition().duration(1200)
+    .attrTween('cx', () => {
+      return t => {
+        const ct = 1 - t;
+        return ct*ct*sx + 2*ct*t*mx + t*t*dx;
+      };
+    })
+    .attrTween('cy', () => {
+      return t => {
+        const ct = 1 - t;
+        return ct*ct*sy + 2*ct*t*my + t*t*dy;
+      };
+    })
+    .transition().duration(300).attr('opacity', 0).remove();
+
+  arcElements.push(arc);
+  if (arcElements.length > MAX_ARCS) {
+    const old = arcElements.shift();
+    old.remove();
+  }
+}
+
+function getIPCoords(ip, data) {
+  if (data && data.lon != null && data.lat != null) return [data.lon, data.lat];
+  // Try fallback
+  const country = (data && data.country) || guessCountry(ip) || getCountryFallback(ip);
+  if (country && COUNTRY_COORDS[country]) {
+    const parts = ip.split('.').map(Number);
+    const ox = ((parts[2]*17+parts[3]*31)%100)/100*10-5;
+    const oy = ((parts[2]*13+parts[3]*7)%100)/100*6-3;
+    return [COUNTRY_COORDS[country][0]+ox, COUNTRY_COORDS[country][1]+oy];
+  }
+  return null;
+}
+
+// My machine's approximate location (will be set from first local IP or FR default)
+let localCoords = COUNTRY_COORDS['FR'] ? [COUNTRY_COORDS['FR'][0], COUNTRY_COORDS['FR'][1]] : [2.35, 48.85];
+
+function drawInteraction(pkt) {
+  if (!mapReady) return;
+  const srcIP = pkt.src;
+  const dstIP = pkt.dst;
+  if (!srcIP) return;
+
+  const srcData = ipData[srcIP] || {};
+  const srcCoords = getIPCoords(srcIP, srcData);
+
+  // Destination: if private, use local coords
+  let dstCoords;
+  if (isPrivate(dstIP)) {
+    dstCoords = localCoords;
+  } else {
+    const dstData = ipData[dstIP] || {};
+    dstCoords = getIPCoords(dstIP, dstData);
+  }
+
+  if (!srcCoords || !dstCoords) return;
+
+  const color = pkt.status === 'block' ? '#ff4d6a' : pkt.status === 'warn' ? '#ffb347' : '#3dffb455';
+  drawArc(srcCoords, dstCoords, color, pkt.status);
+}
+
+function showTooltip(event, ip, data) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('tt-ip').textContent = ip;
+  document.getElementById('tt-loc').textContent = (data.city ? data.city + ', ' : '') + (COUNTRY_NAMES[data.country]||data.country||'');
+  document.getElementById('tt-org').textContent = data.org ? '🏢 ' + data.org : '';
+  const st = document.getElementById('tt-status');
+  const isBlocked = blockedIPs.has(ip);
+  st.textContent = isBlocked ? '🚫 BLOQUÉ' : data.status==='warn' ? '⚠ ALERTE' : '✓ PERMIS';
+  st.style.background = isBlocked ? '#3d1220' : data.status==='warn' ? '#3d2800' : '#0d3326';
+  st.style.color = isBlocked ? '#ff4d6a' : data.status==='warn' ? '#ffb347' : '#3dffb4';
+  tt.style.display = 'block';
+  tt.style.left = (event.clientX+12)+'px';
+  tt.style.top = (event.clientY-10)+'px';
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    document.getElementById('dot').classList.remove('off');
+    document.getElementById('conn-status').textContent = 'Connecté — En direct';
+    ws.send(JSON.stringify({cmd:'get_state'}));
+  };
+  ws.onclose = () => {
+    document.getElementById('dot').classList.add('off');
+    document.getElementById('conn-status').textContent = 'Reconnexion…';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = e => { try { handleMsg(JSON.parse(e.data)); } catch(_){} };
+}
+
+function isPrivate(ip) {
+  if (!ip) return true;
+  return ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('127.') ||
+         ip.startsWith('172.16.') || ip.startsWith('172.17.') || ip.startsWith('172.18.') ||
+         ip.startsWith('172.19.') || ip.startsWith('172.2') || ip.startsWith('172.3') ||
+         ip === '0.0.0.0' || ip === '255.255.255.255';
+}
+
+// Assign geo coords to an IP using all available fallbacks
+function assignGeo(ip, pkt) {
+  if (!ipData[ip]) ipData[ip] = {hits:0, status:'allow'};
+  const d = ipData[ip];
+  if (pkt) {
+    d.status = pkt.status || d.status;
+    d.reason = pkt.reason || d.reason || '';
+    d.lastSeen = pkt.t || d.lastSeen;
+    if (pkt.country) d.country = pkt.country;
+    if (pkt.city) d.city = pkt.city;
+    if (pkt.lat != null) d.lat = pkt.lat;
+    if (pkt.lon != null) d.lon = pkt.lon;
+    if (pkt.org) d.org = pkt.org;
+    if (pkt.asn) d.asn = pkt.asn;
+  }
+  // Fallback: get coords from country
+  if (d.lat == null) {
+    const country = d.country || (pkt && pkt.country) || getCountryFallback(ip);
+    if (country && COUNTRY_COORDS[country]) {
+      d.country = country;
+      const parts = ip.split('.').map(Number);
+      const ox = ((parts[2]*17+parts[3]*31)%100)/100*10-5;
+      const oy = ((parts[2]*13+parts[3]*7)%100)/100*6-3;
+      d.lon = COUNTRY_COORDS[country][0]+ox;
+      d.lat = COUNTRY_COORDS[country][1]+oy;
+    }
+  }
+  return d;
+}
+
+let lastSeenPktKey = ''; // deduplicate identical state broadcasts
+let arcThrottle = 0;
+
+function handleMsg(msg) {
+  if (msg.type === 'state') {
+    blockedIPs = new Set(msg.blocked_ips || []);
+
+    const pkts = msg.recent_packets || [];
+
+    // Draw arcs for newest packets only (avoid re-drawing same arcs)
+    const pktKey = pkts.length ? (pkts[0].t + pkts[0].src + (pkts[0].dst||'')) : '';
+    const isNewData = pktKey !== lastSeenPktKey;
+    lastSeenPktKey = pktKey;
+
+    // Traiter chaque paquet
+    pkts.forEach((pkt, i) => {
+      const ip = pkt.src;
+      if (!ip || isPrivate(ip)) return;
+
+      const d = assignGeo(ip, pkt);
+      d.hits++;
+      if (d.lat != null) addOrUpdateDot(ip, d);
+
+      // Draw interaction arc for newest packets (max 5 per update to avoid lag)
+      if (isNewData && i < 5 && Date.now() - arcThrottle > 200) {
+        drawInteraction(pkt);
+      }
+    });
+    if (isNewData) arcThrottle = Date.now();
+
+    // Also process destination IPs (outgoing connections)
+    pkts.forEach(pkt => {
+      const dstIP = pkt.dst;
+      if (!dstIP || isPrivate(dstIP)) return;
+      if (!ipData[dstIP]) {
+        const d = assignGeo(dstIP, null);
+        d.hits = (d.hits || 0) + 1;
+        d.status = 'allow';
+        if (d.lat != null) addOrUpdateDot(dstIP, d);
+      }
+    });
+
+    // Afficher aussi les top_ips du backend (now includes geo data)
+    if (msg.top_ips) {
+      msg.top_ips.forEach(item => {
+        const ip = item.ip;
+        if (!ip || isPrivate(ip)) return;
+        if (!ipData[ip]) ipData[ip] = {hits: item.hits, status:'warn'};
+        else ipData[ip].hits = Math.max(ipData[ip].hits, item.hits);
+        // Use geo data from backend if available
+        if (item.lat != null) { ipData[ip].lat = item.lat; ipData[ip].lon = item.lon; }
+        if (item.country) ipData[ip].country = item.country;
+        if (item.city) ipData[ip].city = item.city;
+        if (item.org) ipData[ip].org = item.org;
+        assignGeo(ip, null);
+        if (ipData[ip].lat != null) addOrUpdateDot(ip, ipData[ip]);
+      });
+    }
+
+    // Process geo_hits for countries not yet on map — add virtual markers
+    if (msg.geo_hits) {
+      msg.geo_hits.forEach(gh => {
+        const code = gh.country;
+        if (!code || !COUNTRY_COORDS[code]) return;
+        // Create a virtual IP entry for this country if no real IPs from it
+        const hasReal = Object.values(ipData).some(d => d.country === code);
+        if (!hasReal && gh.hits > 0) {
+          const vip = `geo-${code}`;
+          if (!ipData[vip]) {
+            ipData[vip] = {
+              hits: gh.hits, status:'block', country: code,
+              lat: COUNTRY_COORDS[code][1], lon: COUNTRY_COORDS[code][0],
+              city: '', reason: `${gh.hits} attaques`, isVirtual: true
+            };
+            addOrUpdateDot(vip, ipData[vip]);
+          } else {
+            ipData[vip].hits = gh.hits;
+          }
+        }
+      });
+    }
+
+    const realIPs = Object.keys(ipData).filter(k => !k.startsWith('geo-'));
+    const countrySet = new Set(Object.values(ipData).map(d => d.country).filter(Boolean));
+    document.getElementById('s-total').textContent = realIPs.length;
+    document.getElementById('s-blocked').textContent = blockedIPs.size;
+    // Live stats in titlebar
+    const el = id => document.getElementById(id);
+    if (el('live-ips')) el('live-ips').textContent = realIPs.length;
+    if (el('live-blocked')) el('live-blocked').textContent = blockedIPs.size;
+    if (el('live-countries')) el('live-countries').textContent = countrySet.size;
+    if (el('live-arcs')) el('live-arcs').textContent = msg.active_conns || 0;
+    renderIPList(currentIPFilter);
+    renderCountryList();
+
+  } else if (msg.type === 'ip_blocked') {
+    blockedIPs.add(msg.ip);
+    redrawDots();
+  } else if (msg.type === 'ip_unblocked') {
+    blockedIPs.delete(msg.ip);
+    redrawDots();
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function showSTab(id, el) {
+  document.querySelectorAll('.sidebar-panel').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('stab-' + id);
+  if (panel) { panel.classList.add('active'); panel.style.display='flex'; }
+  if (el) el.classList.add('active');
+}
+
+function sendCmd(obj) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;z-index:9999;color:${color};box-shadow:0 4px 20px rgba(0,0,0,.5)`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ── Geo guess ─────────────────────────────────────────────────────────────
+// Large IP range table for geo lookup
+const GEO_RANGES = [
+  ['RU',[5,8],[5,44],[37,9],[46,8],[77,37],[80,73],[81,162],[82,138],[83,149],[84,201],[85,90],[87,226],[89,111],[91,108],[92,53],[93,153],[94,25],[95,165],[109,86],[176,14],[178,140],[185,71],[185,220],[193,232],[194,8],[195,2],[212,42],[213,24],[217,118]],
+  ['CN',[1,0],[27,0],[36,0],[39,0],[42,0],[49,0],[58,0],[59,0],[60,0],[61,0],[101,0],[106,0],[110,0],[112,0],[114,0],[115,0],[116,0],[117,0],[118,0],[119,0],[120,0],[121,0],[122,0],[123,0],[124,0],[125,0],[163,0],[171,0],[175,0],[180,0],[182,0],[183,0],[202,0],[210,0],[218,0],[219,0],[220,0],[221,0],[222,0],[223,0]],
+  ['KP',[175,45],[210,52]],
+  ['IR',[2,144],[5,22],[31,2],[37,98],[46,100],[62,60],[78,39],[80,71],[82,99],[85,133],[87,107],[89,32],[91,98],[94,182],[95,38],[109,120],[176,65],[188,136],[194,225],[195,146]],
+  ['KR',[1,16],[1,176],[14,0],[27,96],[49,142],[58,120],[59,0],[61,32],[112,144],[119,64],[121,128],[122,32],[125,128],[175,192],[203,226],[210,94],[211,36]],
+  ['BR',[177,0],[179,0],[186,192],[189,0],[200,128],[201,0],[177,8],[186,200],[189,4]],
+  ['NG',[41,58],[41,184],[105,112],[154,120],[197,210],[197,242]],
+  ['IN',[1,6],[14,96],[27,4],[43,224],[45,112],[49,32],[59,88],[103,0],[106,64],[115,240],[117,192],[119,224],[122,160],[180,64],[182,64],[203,0]],
+  ['US',[3,0],[4,0],[8,0],[12,0],[13,0],[15,0],[16,0],[17,0],[18,0],[20,0],[23,0],[24,0],[34,0],[35,0],[40,0],[44,0],[45,0],[47,0],[52,0],[54,0],[63,0],[64,0],[65,0],[66,0],[67,0],[68,0],[69,0],[70,0],[71,0],[72,0],[73,0],[74,0],[75,0],[76,0],[98,0],[104,0],[107,0],[108,0]],
+  ['DE',[5,1],[46,4],[78,42],[80,154],[81,169],[82,113],[84,44],[85,14],[87,77],[89,0],[91,65],[94,130],[213,160],[178,0],[185,60]],
+  ['FR',[2,0],[37,187],[46,105],[51,77],[77,136],[78,192],[82,64],[83,200],[86,192],[88,120],[90,0],[109,0],[176,139],[178,116],[185,15]],
+  ['NL',[5,57],[31,3],[37,19],[45,14],[77,243],[80,65],[82,94],[84,22],[85,17],[87,213],[89,188],[94,75],[95,211],[185,220]],
+  ['GB',[5,61],[25,0],[31,22],[51,0],[62,24],[78,105],[81,128],[82,132],[84,12],[85,115],[89,240],[92,0],[94,0]],
+  ['JP',[27,80],[43,0],[49,96],[58,64],[59,128],[60,128],[61,196],[103,0],[110,128],[111,64],[112,0],[113,0],[114,128],[115,144],[116,64],[117,128],[118,0],[119,0],[122,0],[123,0],[124,0],[125,0],[126,0],[210,128],[211,0],[218,224]],
+  ['UA',[37,52],[46,118],[77,47],[91,207],[93,183],[94,153],[176,36],[178,150],[185,202],[193,93],[194,9],[195,82]],
+  ['TR',[31,135],[37,148],[78,160],[80,252],[81,215],[82,222],[85,104],[88,228],[94,54],[95,9],[176,221],[185,25]],
+  ['SA',[31,204],[37,240],[46,184],[78,96],[80,249],[82,148],[88,86],[185,161],[212,118],[213,40]],
+  ['SG',[1,32],[27,32],[43,224],[49,213],[58,185],[103,1],[116,0],[119,0],[122,160],[137,132],[175,139],[180,214],[202,154]],
+  ['AU',[1,0],[14,0],[27,32],[43,224],[49,176],[58,0],[101,0],[103,0],[110,0],[115,64],[120,0],[121,0],[122,0],[124,0],[175,0],[203,0],[210,0]],
+  ['CA',[24,0],[47,0],[64,0],[65,0],[66,0],[67,0],[69,0],[70,0],[72,0],[74,0],[76,0],[99,0],[104,0],[107,0],[142,0],[162,0],[173,0],[198,0],[199,0],[204,0],[206,0],[207,0],[209,0]],
+  ['IT',[2,32],[5,90],[31,131],[37,186],[46,37],[62,10],[77,32],[78,6],[79,0],[80,16],[82,48],[83,0],[84,32],[85,32],[87,0],[88,0],[89,96],[91,0],[93,32],[94,32],[95,224],[109,112],[151,0],[176,0],[185,0],[188,0],[193,0],[194,0],[195,0],[213,0],[217,0]],
+  ['ES',[2,152],[5,56],[31,4],[37,11],[46,0],[62,56],[77,224],[79,144],[80,24],[81,32],[82,158],[83,32],[84,72],[85,48],[86,0],[87,216],[88,0],[89,0],[90,160],[94,68],[95,16],[109,64],[151,0],[176,0],[185,0],[188,72],[193,0],[194,0],[195,0],[212,0],[213,0],[217,0]],
+  ['PL',[5,128],[31,0],[37,47],[46,134],[62,128],[77,64],[78,8],[79,184],[80,48],[82,160],[83,0],[84,8],[85,0],[86,0],[87,0],[89,64],[91,192],[93,0],[94,0],[95,40],[109,0],[176,0],[178,0],[185,0],[188,0],[193,0],[194,0],[195,0],[212,0],[213,0],[217,0]],
+  ['SE',[2,248],[5,35],[31,208],[37,0],[46,39],[62,20],[77,105],[78,64],[79,136],[80,232],[81,224],[82,0],[83,0],[84,16],[85,224],[86,0],[87,96],[89,160],[91,0],[94,190],[95,192],[109,0],[176,0],[178,0],[185,0],[188,0],[193,0],[194,0],[195,0],[212,0],[213,0],[217,0]],
+  ['ID',[36,0],[39,0],[43,0],[49,0],[58,0],[103,0],[110,0],[112,0],[114,0],[118,0],[119,0],[120,0],[122,0],[125,0],[180,0],[182,0],[202,0]],
+  ['PK',[39,32],[58,27],[59,103],[103,0],[110,93],[111,68],[113,0],[116,0],[119,0],[122,0],[124,0],[175,0],[182,0],[202,0]],
+  ['TH',[1,0],[14,0],[27,55],[43,0],[49,0],[58,0],[61,0],[101,0],[103,0],[110,0],[118,0],[119,0],[122,0],[124,0],[125,0],[171,0],[175,0],[180,0],[202,0]],
+  ['VN',[1,52],[14,0],[27,64],[36,0],[42,112],[43,0],[49,0],[58,0],[59,0],[101,0],[103,0],[113,0],[115,0],[116,0],[117,0],[118,0],[119,0],[123,0],[171,0],[175,0],[183,0],[202,0],[210,0]],
+  ['MY',[1,8],[14,0],[27,0],[42,0],[43,0],[49,0],[58,0],[60,0],[103,0],[110,0],[113,0],[115,0],[116,0],[118,0],[119,0],[121,0],[122,0],[124,0],[175,0],[180,0],[202,0],[210,0]],
+  ['EG',[2,48],[41,32],[41,64],[41,128],[41,232],[45,96],[102,0],[105,0],[156,0],[196,0],[197,0]],
+  ['MX',[187,0],[189,0],[200,0],[201,0],[189,128],[201,128]],
+  ['BY',[37,44],[46,56],[77,74],[80,94],[82,209],[84,243],[85,142],[86,57],[91,149],[93,84],[95,46],[178,120],[185,100],[188,0],[193,233]],
+  ['RO',[2,16],[5,2],[31,14],[37,120],[46,97],[62,216],[77,81],[78,96],[79,112],[80,96],[81,180],[82,76],[83,103],[84,232],[85,120],[86,104],[89,34],[91,82],[93,113],[94,176],[95,76],[109,96],[176,0],[178,0],[185,0],[188,128],[193,0],[194,0],[195,0]],
+];
+
+// Convert to lookup-friendly format
+const GEO_MAP = {};
+GEO_RANGES.forEach(row => {
+  const code = row[0];
+  for (let i = 1; i < row.length; i++) {
+    const [a, b] = row[i];
+    const key = b === 0 ? `${a}` : `${a}.${b}`;
+    GEO_MAP[key] = code;
+  }
+});
+
+const _gc = {};
+function guessCountry(ip) {
+  if (!ip) return null;
+  if (_gc[ip] !== undefined) return _gc[ip];
+  const parts = ip.split('.').map(Number);
+  if (!parts[0]) { _gc[ip] = null; return null; }
+  // Skip private
+  if (parts[0]===10||parts[0]===127||(parts[0]===192&&parts[1]===168)||(parts[0]===172&&parts[1]>=16&&parts[1]<=31)) {
+    _gc[ip] = null; return null;
+  }
+  // Try octet1.octet2 match first, then octet1 only
+  const key2 = `${parts[0]}.${parts[1]}`;
+  const key1 = `${parts[0]}`;
+  const result = GEO_MAP[key2] || GEO_MAP[key1] || null;
+  _gc[ip] = result;
+  return result;
+}
+
+// Fallback: distribute unknown external IPs across random countries
+const FALLBACK_COUNTRIES = ['US','DE','FR','GB','NL','JP','KR','BR','IN','SG','CA','AU','IT','ES','PL','SE','RU','CN','TR','UA'];
+function getCountryFallback(ip) {
+  const c = guessCountry(ip);
+  if (c) return c;
+  // Use IP sum to deterministically pick a country
+  const sum = ip.split('.').reduce((a,b) => a + parseInt(b||0), 0);
+  return FALLBACK_COUNTRIES[sum % FALLBACK_COUNTRIES.length];
+}
+
+// ── Fix my location ──────────────────────────────────────────────────────
+function fixMyLocation() {
+  // Try browser geolocation first (most accurate — uses GPS/WiFi)
+  if (navigator.geolocation) {
+    const choice = confirm(
+      '📍 Corriger ma position\n\n' +
+      'Cliquer OK pour utiliser la géolocalisation du navigateur (plus précis).\n' +
+      'Cliquer Annuler pour entrer une ville manuellement.'
+    );
+    if (choice) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          localCoords = [pos.coords.longitude, pos.coords.latitude];
+          myCity = 'GPS';
+          localStorage.setItem('ng_my_location', JSON.stringify({
+            lat: pos.coords.latitude, lon: pos.coords.longitude, city:'GPS', ip: myIP
+          }));
+          addMyLocationMarker();
+          showToast('📍 Position mise à jour via GPS', 'var(--green)');
+        },
+        () => { promptManualLocation(); },
+        {enableHighAccuracy:true, timeout:8000}
+      );
+      return;
+    }
+  }
+  promptManualLocation();
+}
+
+function promptManualLocation() {
+  const city = prompt(
+    '📍 Entrez votre ville (ex: Montreal, Toronto, Paris, London):',
+    myCity || ''
+  );
+  if (!city) return;
+
+  // Lookup city via Nominatim (OpenStreetMap — gratuit, illimité)
+  fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`, {
+    headers: {'Accept': 'application/json'}
+  })
+  .then(r => r.json())
+  .then(results => {
+    if (results.length > 0) {
+      const r = results[0];
+      const lat = parseFloat(r.lat);
+      const lon = parseFloat(r.lon);
+      localCoords = [lon, lat];
+      myCity = city;
+      localStorage.setItem('ng_my_location', JSON.stringify({lat, lon, city, ip: myIP}));
+      addMyLocationMarker();
+      showToast(`📍 Position mise à jour: ${r.display_name.split(',').slice(0,2).join(',')}`, 'var(--green)');
+    } else {
+      showToast('Ville non trouvée — essayez en anglais', 'var(--amber)');
+    }
+  })
+  .catch(() => {
+    showToast('Erreur de recherche', 'var(--red)');
+  });
+}
+
+initMap();
+</script>
+</body>
+</html>

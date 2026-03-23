@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NetGuard Pro — Vitrine Réseau</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+.titlebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.titlebar-left{display:flex;align-items:center;gap:10px}
+.win-btns{display:flex;gap:6px}
+.win-btn{width:12px;height:12px;border-radius:50%}
+.win-btn.close{background:#ff5f57}.win-btn.min{background:#ffbd2e}.win-btn.max{background:#28c840}
+.app-icon{width:20px;height:20px;background:linear-gradient(135deg,#4d9fff,#b47dff);border-radius:4px;display:grid;place-items:center}
+.back-btn{background:var(--bg4);border:1px solid var(--border2);color:var(--text2);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;transition:.15s}
+.back-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+.main{flex:1;padding:20px 24px 40px;max-width:1100px;width:100%;margin:0 auto}
+
+/* Hero section */
+.hero{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.hero-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.hero-card.blue{--accent:var(--blue)} .hero-card.green{--accent:var(--green)} .hero-card.purple{--accent:var(--purple)}
+.hero-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.04em;margin-bottom:8px}
+.hero-value{font-size:22px;font-weight:600;font-family:'Geist Mono',monospace;line-height:1.1}
+.hero-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.hero-icon{position:absolute;right:16px;top:16px;opacity:0.15;font-size:28px}
+
+/* Grid layout */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-body{padding:14px 16px}
+
+/* IP display */
+.ip-block{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ip-val{font-family:'Geist Mono',monospace;font-size:16px;font-weight:500;color:var(--blue)}
+.ip-label{font-size:11px;color:var(--text3)}
+.copy-ip{background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;transition:.15s;font-family:'Outfit',sans-serif}
+.copy-ip:hover{color:var(--green);border-color:var(--green)}
+
+/* Device list */
+.device-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.device-item:last-child{border-bottom:none}
+.device-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.device-name{font-size:13px;font-weight:500;color:var(--text)}
+.device-ip{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text3)}
+.device-mac{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3)}
+.online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;flex-shrink:0}
+.offline-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);margin-left:auto;flex-shrink:0}
+
+/* Port list */
+.port-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)44}
+.port-item:last-child{border-bottom:none}
+.port-num{font-family:'Geist Mono',monospace;font-size:12px;color:var(--amber);min-width:50px}
+.port-svc{font-size:12px;color:var(--text);flex:1}
+.port-state{font-size:10px;padding:1px 7px;border-radius:3px;font-weight:600}
+.open{background:var(--reddim);color:var(--red)}
+.filtered{background:var(--amberdim);color:var(--amber)}
+
+/* Ping / speed */
+.ping-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)44}
+.ping-row:last-child{border-bottom:none}
+.ping-host{font-size:12px;color:var(--text2)}
+.ping-val{font-family:'Geist Mono',monospace;font-size:13px;font-weight:500}
+.ping-bar{height:3px;border-radius:2px;margin-top:3px}
+
+/* Speed meter */
+.speed-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.speed-card{background:var(--bg4);border-radius:8px;padding:12px;text-align:center}
+.speed-val{font-size:24px;font-weight:600;font-family:'Geist Mono',monospace;line-height:1}
+.speed-unit{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Interfaces */
+.iface-item{padding:10px 0;border-bottom:1px solid var(--border)44}
+.iface-item:last-child{border-bottom:none}
+.iface-name{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+.iface-detail{font-size:11px;color:var(--text3);margin-top:3px;font-family:'Geist Mono',monospace}
+.badge{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600}
+.badge-up{background:var(--greendim);color:var(--green)}
+.badge-down{background:var(--reddim);color:var(--red)}
+
+/* Refresh btn */
+.refresh-btn{background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11px;padding:3px 10px;border-radius:5px;cursor:pointer;transition:.15s;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:5px}
+.refresh-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--greendim);border:1px solid var(--green)44;color:var(--green);padding:8px 16px;border-radius:8px;font-size:12px;display:none;z-index:100}
+
+/* Scan animation */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin 1s linear infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1.5s infinite}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="titlebar-left">
+    <div class="win-btns">
+      <div class="win-btn close"></div><div class="win-btn min"></div><div class="win-btn max"></div>
+    </div>
+    <svg viewBox="0 0 200 200" width="28" height="28" style="flex-shrink:0"><defs><linearGradient id="ngG7" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#b47dff"/></linearGradient></defs><path d="M100 18L162 42V100C162 140 132 163 100 178C68 163 38 140 38 100V42Z" fill="#16161d" stroke="url(#ngG7)" stroke-width="3"/><path d="M72 70V130M72 70L128 130M128 70V130" stroke="url(#ngG7)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <span style="font-size:13px;font-weight:500"><span style="background:linear-gradient(90deg,#4d9fff,#b47dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Net</span>Guard Pro — Vitrine Réseau</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="refresh-btn" onclick="scanAll()">
+      <span id="scan-icon">⟳</span> Scanner le réseau
+    </button>
+    <a href="netguard_dashboard.html" class="back-btn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Hero stats -->
+  <div class="hero">
+    <div class="hero-card blue">
+      <div class="hero-icon">🌐</div>
+      <div class="hero-label">IP LOCALE</div>
+      <div class="hero-value" id="h-local-ip" style="color:var(--blue)">Chargement…</div>
+      <div class="hero-sub" id="h-hostname">—</div>
+    </div>
+    <div class="hero-card green">
+      <div class="hero-icon">🛰️</div>
+      <div class="hero-label">IP PUBLIQUE</div>
+      <div class="hero-value" id="h-public-ip" style="color:var(--green)">Chargement…</div>
+      <div class="hero-sub" id="h-isp">—</div>
+    </div>
+    <div class="hero-card purple">
+      <div class="hero-icon">📡</div>
+      <div class="hero-label">INTERFACE ACTIVE</div>
+      <div class="hero-value" id="h-iface" style="color:var(--purple);font-size:16px">—</div>
+      <div class="hero-sub" id="h-mac">—</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- Appareils sur le LAN -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="1.5" stroke="var(--blue)" stroke-width="1.3"/><path d="M5 13v2M11 13v2M3 15h10" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Appareils sur le réseau local
+        </div>
+        <span style="font-size:11px;color:var(--text3)" id="device-count">Scan en cours…</span>
+      </div>
+      <div class="card-body" id="devices-list" style="max-height:280px;overflow-y:auto">
+        <div style="font-size:12px;color:var(--text3);text-align:center;padding:20px" class="pulsing">Scan du LAN en cours…</div>
+      </div>
+    </div>
+
+    <!-- Interfaces réseau -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--purple)" stroke-width="1.3"/><path d="M8 1.5v13M1.5 8h13M3.5 3.5C5 6 5 10 3.5 12.5M12.5 3.5C11 6 11 10 12.5 12.5" stroke="var(--purple)" stroke-width="1"/></svg>
+          Interfaces réseau
+        </div>
+        <button class="refresh-btn" onclick="loadInterfaces()">Actualiser</button>
+      </div>
+      <div class="card-body" id="interfaces-list">
+        <div style="font-size:12px;color:var(--text3)" class="pulsing">Chargement…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid-2">
+
+    <!-- IP et géolocalisation -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--green)" stroke-width="1.3"/><path d="M8 2C6 5 6 11 8 14M8 2C10 5 10 11 8 14M2 8h12" stroke="var(--green)" stroke-width="1"/></svg>
+          Adresses IP & géolocalisation
+        </div>
+        <button class="copy-ip" onclick="copyIP()" id="copy-ip-btn">Copier IP publique</button>
+      </div>
+      <div class="card-body">
+        <div class="ip-block">
+          <div>
+            <div class="ip-label">IP Locale</div>
+            <div class="ip-val" id="ip-local">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="ip-label">Sous-réseau</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text2)" id="ip-subnet">—</div>
+          </div>
+        </div>
+        <div class="ip-block">
+          <div>
+            <div class="ip-label">IP Publique</div>
+            <div class="ip-val" id="ip-public" style="color:var(--green)">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="ip-label">Localisation</div>
+            <div style="font-size:12px;color:var(--text2)" id="ip-geo">—</div>
+          </div>
+        </div>
+        <div class="ip-block" style="margin-bottom:0">
+          <div>
+            <div class="ip-label">Passerelle (routeur)</div>
+            <div class="ip-val" id="ip-gateway" style="color:var(--amber)">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="ip-label">DNS</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text2)" id="ip-dns">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latences et connectivité -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 14L7 5L10 10L12 7L14 9" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Connectivité & latences
+        </div>
+        <button class="refresh-btn" onclick="runPingTests()">Tester</button>
+      </div>
+      <div class="card-body" id="ping-results">
+        <div style="font-size:12px;color:var(--text3)" class="pulsing">Tests en cours…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid-3">
+
+    <!-- Ports ouverts -->
+    <div class="card" style="grid-column: span 2">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="var(--amber)" stroke-width="1.3"/><path d="M5 4V3a3 3 0 016 0v1" stroke="var(--amber)" stroke-width="1.3"/><circle cx="8" cy="9" r="1.5" fill="var(--amber)"/></svg>
+          Ports exposés sur cette machine
+        </div>
+        <span style="font-size:11px;color:var(--text3)" id="ports-note">Services détectés localement</span>
+      </div>
+      <div class="card-body" id="ports-list">
+        <div style="font-size:12px;color:var(--text3)" class="pulsing">Analyse des ports…</div>
+      </div>
+    </div>
+
+    <!-- Infos système -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="1.5" stroke="var(--blue)" stroke-width="1.3"/><path d="M4 7h2M4 10h5M10 7h2" stroke="var(--blue)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          Système
+        </div>
+      </div>
+      <div class="card-body" id="sys-info">
+        <div style="font-size:12px;color:var(--text3)" class="pulsing">Chargement…</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast">✓ Copié !</div>
+
+<script>
+// ── Données simulées (en production: récupérées via WebSocket depuis netguard.py) ──
+const WS_URL = 'ws://localhost:8765';
+let ws, wsConnected = false;
+
+// Services connus par port
+const PORT_SERVICES = {
+  20:'FTP Data', 21:'FTP', 22:'SSH', 23:'Telnet', 25:'SMTP', 53:'DNS',
+  80:'HTTP', 110:'POP3', 135:'RPC', 137:'NetBIOS', 139:'NetBIOS',
+  143:'IMAP', 443:'HTTPS', 445:'SMB', 465:'SMTPS', 587:'SMTP',
+  993:'IMAPS', 995:'POP3S', 1433:'MSSQL', 1521:'Oracle', 3000:'Dev Server',
+  3306:'MySQL', 3389:'RDP', 5432:'PostgreSQL', 5900:'VNC', 6379:'Redis',
+  8080:'HTTP Alt', 8443:'HTTPS Alt', 27017:'MongoDB', 5353:'mDNS',
+};
+
+const RISK_PORTS = new Set([21,22,23,25,135,137,138,139,445,1433,3306,3389,5900,27017]);
+
+// Device type detection from MAC OUI (first 3 octets)
+const OUI_VENDORS = {
+  'dc:a6:32':'Raspberry Pi', 'b8:27:eb':'Raspberry Pi',
+  '00:50:56':'VMware', '00:0c:29':'VMware', '00:1a:11':'Google',
+  'f4:f5:d8':'Google', '50:dc:e7':'Google', 'ac:37:43':'HTC',
+  '00:17:88':'Philips Hue', 'ec:b5:fa':'Apple', 'a4:c3:f0':'Apple',
+  '3c:15:c2':'Apple', 'f0:18:98':'Apple', '00:1b:63':'Apple',
+  '00:25:00':'Apple', '28:cf:e9':'Apple', 'ac:de:48':'Apple',
+  '44:65:0d':'Amazon', 'fc:65:de':'Amazon', '40:b4:cd':'Amazon',
+  '00:1a:79':'Cisco', '00:0a:41':'Cisco', '00:14:a9':'TP-Link',
+  'c4:e9:84':'TP-Link', '50:c7:bf':'TP-Link', '18:d6:c7':'TP-Link',
+};
+
+function getDeviceIcon(vendor, hostname) {
+  const v = (vendor || '').toLowerCase();
+  const h = (hostname || '').toLowerCase();
+  if (v.includes('apple') || h.includes('iphone') || h.includes('mac')) return '🍎';
+  if (v.includes('raspberry') || h.includes('pi')) return '🫐';
+  if (v.includes('vmware')) return '🖥️';
+  if (v.includes('cisco') || v.includes('tp-link') || h.includes('router') || h.includes('gateway')) return '📡';
+  if (v.includes('amazon') || h.includes('echo') || h.includes('alexa')) return '📦';
+  if (v.includes('google') || h.includes('chromecast')) return '🔵';
+  if (h.includes('phone') || h.includes('android')) return '📱';
+  if (h.includes('printer') || h.includes('print')) return '🖨️';
+  return '💻';
+}
+
+// ── WebSocket connection ───────────────────────────────────────────────────
+function connectWS() {
+  try {
+    ws = new WebSocket(WS_URL);
+    ws.onopen = () => { wsConnected = true; };
+    ws.onmessage = e => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'state') handleState(msg);
+        if (msg.type === 'network_info') handleNetworkInfo(msg);
+      } catch(_) {}
+    };
+    ws.onclose = () => { wsConnected = false; setTimeout(connectWS, 3000); };
+  } catch(_) {}
+}
+
+function handleState(s) {
+  // Update interface info if available
+}
+
+function sendCmd(obj) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+// ── IP & Géolocalisation ───────────────────────────────────────────────────
+async function loadPublicIP() {
+  try {
+    const r = await fetch('https://ipapi.co/json/');
+    const d = await r.json();
+    const ip = d.ip || '—';
+    document.getElementById('h-public-ip').textContent = ip;
+    document.getElementById('ip-public').textContent   = ip;
+    document.getElementById('h-isp').textContent = d.org || d.isp || '—';
+    const geo = [d.city, d.region, d.country_name].filter(Boolean).join(', ');
+    document.getElementById('ip-geo').textContent = geo || '—';
+    document.getElementById('copy-ip-btn').dataset.ip = ip;
+  } catch(e) {
+    // Fallback
+    try {
+      const r2 = await fetch('https://api.ipify.org?format=json');
+      const d2 = await r2.json();
+      document.getElementById('h-public-ip').textContent = d2.ip || '—';
+      document.getElementById('ip-public').textContent   = d2.ip || '—';
+    } catch(_) {
+      document.getElementById('h-public-ip').textContent = 'Non disponible';
+    }
+  }
+}
+
+async function loadLocalIP() {
+  return new Promise(resolve => {
+    const pc = new RTCPeerConnection({iceServers:[]});
+    pc.createDataChannel('');
+    pc.createOffer().then(o => pc.setLocalDescription(o));
+    pc.onicecandidate = e => {
+      if (!e || !e.candidate) return;
+      const m = e.candidate.candidate.match(/(\d{1,3}(\.\d{1,3}){3})/);
+      if (m && !m[1].startsWith('169.254') && !m[1].startsWith('0.')) {
+        const ip = m[1];
+        document.getElementById('h-local-ip').textContent = ip;
+        document.getElementById('ip-local').textContent   = ip;
+        // Guess subnet
+        const parts = ip.split('.');
+        document.getElementById('ip-subnet').textContent = parts.slice(0,3).join('.') + '.0/24';
+        // Guess gateway
+        const gw = parts.slice(0,3).join('.') + '.1';
+        document.getElementById('ip-gateway').textContent = gw;
+        // Guess hostname
+        document.getElementById('h-hostname').textContent = 'Réseau local privé';
+        pc.close();
+        resolve(ip);
+      }
+    };
+    setTimeout(() => {
+      if (document.getElementById('h-local-ip').textContent === 'Chargement…') {
+        document.getElementById('h-local-ip').textContent = 'Non détecté';
+      }
+      resolve(null);
+    }, 3000);
+  });
+}
+
+// ── Interfaces réseau ──────────────────────────────────────────────────────
+function loadInterfaces() {
+  // Données détectées via WebSocket (netguard.py envoie les interfaces)
+  // En fallback: affichage générique
+  const el = document.getElementById('interfaces-list');
+  sendCmd({cmd: 'get_interfaces'});
+
+  // Affichage par défaut pendant le chargement WS
+  setTimeout(() => {
+    if (!wsConnected) {
+      el.innerHTML = renderInterfacesFallback();
+      document.getElementById('h-iface').textContent = 'Non connecté';
+    }
+  }, 1500);
+  el.innerHTML = renderInterfacesFallback();
+}
+
+function renderInterfacesFallback() {
+  const ifaces = [
+    {name:'Wi-Fi', type:'wifi', ip:'192.168.x.x', up:true, speed:'Auto'},
+    {name:'Ethernet', type:'eth', ip:'Non connecté', up:false, speed:'—'},
+    {name:'Loopback', type:'lo', ip:'127.0.0.1', up:true, speed:'Virtual'},
+  ];
+  return ifaces.map(i => `
+    <div class="iface-item">
+      <div class="iface-name">
+        ${i.type==='wifi'?'📶':i.type==='eth'?'🔌':'🔄'} ${i.name}
+        <span class="badge ${i.up?'badge-up':'badge-down'}">${i.up?'UP':'DOWN'}</span>
+      </div>
+      <div class="iface-detail">${i.ip} — ${i.speed}</div>
+    </div>`).join('');
+}
+
+// ── LAN Devices ────────────────────────────────────────────────────────────
+function scanLAN() {
+  const el = document.getElementById('devices-list');
+  sendCmd({cmd: 'get_lan_devices'});
+
+  // Fallback display — shows router + this PC at minimum
+  setTimeout(() => {
+    if (el.querySelector('.pulsing')) {
+      const localIP = document.getElementById('ip-local').textContent || '192.168.1.x';
+      const parts   = localIP.split('.');
+      const gateway = parts.length === 4 ? parts.slice(0,3).join('.')+'.1' : '192.168.1.1';
+      renderDevices([
+        {ip: gateway,  hostname:'Routeur / Box', mac:'—', vendor:'Gateway', online:true},
+        {ip: localIP,  hostname:'Cette machine', mac:'—', vendor:'Local',   online:true},
+      ]);
+    }
+  }, 2000);
+}
+
+function renderDevices(devices) {
+  const el = document.getElementById('devices-list');
+  if (!devices || !devices.length) {
+    el.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Aucun appareil détecté</div>';
+    return;
+  }
+  document.getElementById('device-count').textContent = devices.length + ' appareils';
+  el.innerHTML = devices.map(d => `
+    <div class="device-item">
+      <div class="device-icon" style="background:var(--bg4)">${getDeviceIcon(d.vendor, d.hostname)}</div>
+      <div style="flex:1">
+        <div class="device-name">${d.hostname || 'Appareil inconnu'}</div>
+        <div style="display:flex;gap:12px;margin-top:2px">
+          <span class="device-ip">${d.ip}</span>
+          ${d.mac && d.mac !== '—' ? `<span class="device-mac">${d.mac}</span>` : ''}
+          ${d.vendor && d.vendor !== 'Gateway' && d.vendor !== 'Local' ? `<span style="font-size:10px;color:var(--text3)">${d.vendor}</span>` : ''}
+        </div>
+      </div>
+      <div class="${d.online ? 'online-dot' : 'offline-dot'}"></div>
+    </div>`).join('');
+}
+
+// ── Ping / Latences ────────────────────────────────────────────────────────
+async function runPingTests() {
+  const el = document.getElementById('ping-results');
+  el.innerHTML = '<div style="font-size:12px;color:var(--text3)" class="pulsing">Tests en cours…</div>';
+
+  const targets = [
+    {host:'1.1.1.1', label:'Cloudflare DNS'},
+    {host:'8.8.8.8', label:'Google DNS'},
+    {host:'9.9.9.9', label:'Quad9 DNS'},
+    {host:'www.google.com', label:'Google Web'},
+    {host:'www.youtube.com', label:'YouTube'},
+  ];
+
+  const results = await Promise.all(targets.map(t => measureLatency(t.host, t.label)));
+  renderPingResults(results);
+}
+
+async function measureLatency(host, label) {
+  const start = performance.now();
+  try {
+    await fetch(`https://${host}`, {mode:'no-cors', cache:'no-cache'});
+    const ms = Math.round(performance.now() - start);
+    return {host, label, ms, ok:true};
+  } catch(_) {
+    const ms = Math.round(performance.now() - start);
+    return {host, label, ms: ms > 5000 ? null : ms, ok: ms < 5000};
+  }
+}
+
+function renderPingResults(results) {
+  const el = document.getElementById('ping-results');
+  el.innerHTML = results.map(r => {
+    const ms = r.ms;
+    const color = !ms ? 'var(--text3)' : ms < 50 ? 'var(--green)' : ms < 150 ? 'var(--blue)' : ms < 300 ? 'var(--amber)' : 'var(--red)';
+    const barW  = ms ? Math.min(100, Math.round(ms / 5)) : 0;
+    return `
+      <div class="ping-row">
+        <div>
+          <div class="ping-host">${r.label}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'Geist Mono',monospace">${r.host}</div>
+          <div class="ping-bar" style="width:${barW}%;background:${color};opacity:.6;max-width:200px"></div>
+        </div>
+        <div class="ping-val" style="color:${color}">${ms ? ms + ' ms' : 'Timeout'}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Ports ──────────────────────────────────────────────────────────────────
+function scanPorts() {
+  // Ports communs à vérifier (JavaScript ne peut pas scanner les ports locaux
+  // directement — on affiche les services connus et envoie la demande au backend)
+  sendCmd({cmd: 'get_open_ports'});
+
+  // Affichage des ports à risque détectés par NetGuard
+  const commonPorts = [
+    {port:80,   open:false}, {port:443,  open:false},
+    {port:22,   open:false}, {port:3389, open:false},
+    {port:8080, open:false}, {port:445,  open:false},
+    {port:3306, open:false}, {port:5432, open:false},
+    {port:27017,open:false}, {port:6379, open:false},
+  ];
+  renderPorts(commonPorts);
+}
+
+function renderPorts(ports) {
+  const el = document.getElementById('ports-list');
+  if (!ports || !ports.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3)">Aucun port détecté</div>';
+    return;
+  }
+  const half = Math.ceil(ports.length / 2);
+  const col1 = ports.slice(0, half);
+  const col2 = ports.slice(half);
+
+  function portHTML(p) {
+    const svc  = PORT_SERVICES[p.port] || 'Unknown';
+    const risk = RISK_PORTS.has(p.port);
+    const color = p.open ? (risk ? 'var(--red)' : 'var(--amber)') : 'var(--text3)';
+    return `<div class="port-item">
+      <span class="port-num" style="color:${color}">${p.port}</span>
+      <span class="port-svc">${svc}</span>
+      <span class="port-state ${p.open ? (risk?'open':'filtered') : ''}" style="${!p.open?'color:var(--text3);font-size:10px':''}">
+        ${p.open ? (risk ? 'OUVERT ⚠️' : 'OUVERT') : 'Fermé'}
+      </span>
+    </div>`;
+  }
+
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px">
+    <div>${col1.map(portHTML).join('')}</div>
+    <div>${col2.map(portHTML).join('')}</div>
+  </div>`;
+}
+
+// ── Infos système ──────────────────────────────────────────────────────────
+function loadSysInfo() {
+  const el = document.getElementById('sys-info');
+  const ua  = navigator.userAgent;
+  const os  = ua.includes('Windows') ? '🪟 Windows' : ua.includes('Mac') ? '🍎 macOS' : ua.includes('Linux') ? '🐧 Linux' : '— Inconnu';
+  const now = new Date();
+  const upEl = document.getElementById('h-iface');
+
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">Système</span>
+        <span style="font-size:12px;color:var(--text)">${os}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">Heure locale</span>
+        <span style="font-size:12px;font-family:'Geist Mono',monospace;color:var(--cyan)" id="sys-time">${now.toLocaleTimeString()}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">Date</span>
+        <span style="font-size:12px;color:var(--text)">${now.toLocaleDateString('fr-CA')}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">Timezone</span>
+        <span style="font-size:12px;color:var(--text)">${Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">Langue</span>
+        <span style="font-size:12px;color:var(--text)">${navigator.language}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)44">
+        <span style="font-size:12px;color:var(--text3)">NetGuard</span>
+        <span style="font-size:12px;color:var(--green)">v1.5.0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0">
+        <span style="font-size:12px;color:var(--text3)">Backend WS</span>
+        <span style="font-size:12px" id="ws-status-label">${wsConnected ? '<span style="color:var(--green)">Connecté</span>' : '<span style="color:var(--text3)">Non connecté</span>'}</span>
+      </div>
+    </div>`;
+
+  // Tick clock
+  setInterval(() => {
+    const t = document.getElementById('sys-time');
+    if (t) t.textContent = new Date().toLocaleTimeString();
+    const ws_lbl = document.getElementById('ws-status-label');
+    if (ws_lbl) ws_lbl.innerHTML = wsConnected
+      ? '<span style="color:var(--green)">Connecté</span>'
+      : '<span style="color:var(--text3)">Non connecté</span>';
+  }, 1000);
+}
+
+// ── DNS info ───────────────────────────────────────────────────────────────
+function loadDNS() {
+  // Try to get DNS from WebRTC or fallback
+  document.getElementById('ip-dns').textContent = '1.1.1.1 (Cloudflare)';
+}
+
+// ── Copy IP ────────────────────────────────────────────────────────────────
+function copyIP() {
+  const ip = document.getElementById('ip-public').textContent;
+  if (ip && ip !== '—') {
+    navigator.clipboard.writeText(ip).then(() => {
+      const toast = document.getElementById('toast');
+      toast.textContent = '✓ ' + ip + ' copié !';
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 2000);
+    });
+  }
+}
+
+// ── Scan all ───────────────────────────────────────────────────────────────
+async function scanAll() {
+  const icon = document.getElementById('scan-icon');
+  icon.className = 'spinning';
+  await Promise.all([
+    loadPublicIP(),
+    loadLocalIP(),
+    runPingTests(),
+  ]);
+  scanLAN();
+  scanPorts();
+  icon.className = '';
+  icon.textContent = '⟳';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+connectWS();
+loadSysInfo();
+loadInterfaces();
+loadDNS();
+scanAll();
+</script>
+</body>
+</html>

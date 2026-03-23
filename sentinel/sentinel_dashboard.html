@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelOS v1.0 — Centre de Commandement</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   SENTINELOS — COMMAND CENTER THEME
+   Dark cybersecurity dashboard with cyan accent
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg-deep: #060a13;
+  --bg-dark: #0a0e17;
+  --bg-card: #111827;
+  --bg-card2: #151d2e;
+  --bg-hover: #1a2540;
+  --border: #1e293b;
+  --border-light: #2a3a55;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #00d4ff;
+  --accent2: #0ea5e9;
+  --accent-glow: rgba(0, 212, 255, 0.15);
+  --green: #22c55e;
+  --green-dim: rgba(34, 197, 94, 0.15);
+  --red: #ef4444;
+  --red-dim: rgba(239, 68, 68, 0.15);
+  --orange: #f59e0b;
+  --orange-dim: rgba(245, 158, 11, 0.15);
+  --purple: #a855f7;
+  --netguard: #4d9fff;
+  --cleanguard: #ffb347;
+  --mailshield: #3dffb4;
+  --vpnguard: #00d4ff;
+  --honeypot: #ff6b6b;
+  --fim: #a855f7;
+  --strikeback: #ff3d3d;
+  --recorder: #60a5fa;
+  --yellow: #f59e0b;
+  --sidebar-w: 240px;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  display: flex;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--bg-dark); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; height: 100vh; z-index: 10;
+}
+.sidebar-logo { padding: 20px 16px; text-align: center; border-bottom: 1px solid var(--border); }
+.sidebar-logo h1 {
+  font-size: 1.3rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #38bdf8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px;
+}
+.sidebar-logo .version { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+.nav-section {
+  font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted);
+  padding: 12px 12px 6px; letter-spacing: 1.5px; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; color: var(--text-dim);
+  font-size: 0.85rem; transition: all 0.15s; margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--accent-glow); color: var(--accent); font-weight: 600; }
+.nav-item .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+.nav-item .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+.status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.offline { background: var(--red); }
+.status-dot.unknown { background: var(--text-muted); }
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); text-align: center; }
+.threat-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+}
+.threat-badge.safe { background: var(--green-dim); color: var(--green); }
+.threat-badge.warning { background: var(--orange-dim); color: var(--orange); }
+.threat-badge.danger { background: var(--red-dim); color: var(--red); }
+
+/* ═══ MAIN ═══ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  padding: 14px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; background: var(--bg-dark);
+}
+.topbar-title { font-size: 1.1rem; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: var(--text-dim); }
+.connection-status { display: flex; align-items: center; gap: 6px; }
+.connection-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.disconnected { background: var(--red); }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* ═══ LAUNCH BAR ═══ */
+.launch-bar {
+  display: flex; gap: 8px; padding: 10px 24px; background: var(--bg-dark);
+  border-bottom: 1px solid var(--border); overflow-x: auto; flex-wrap: wrap;
+}
+.launch-chip {
+  display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+  border-radius: 20px; border: 1px solid var(--border); cursor: pointer;
+  font-size: 0.78rem; font-weight: 600; background: var(--bg-card);
+  transition: all 0.2s; white-space: nowrap; user-select: none;
+}
+.launch-chip:hover { border-color: var(--accent); background: var(--bg-hover); }
+.launch-chip .chip-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.launch-chip .chip-dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.launch-chip .chip-dot.off { background: var(--text-muted); }
+.launch-chip.running { border-color: var(--green); background: rgba(34,197,94,0.08); }
+.launch-chip .chip-action {
+  padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.15s;
+}
+.launch-chip .chip-action.start-btn { background: var(--green-dim); color: var(--green); }
+.launch-chip .chip-action.start-btn:hover { background: var(--green); color: #000; }
+.launch-chip .chip-action.stop-btn { background: var(--red-dim); color: var(--red); }
+.launch-chip .chip-action.stop-btn:hover { background: var(--red); color: #fff; }
+.launch-chip .chip-action.open-btn { background: var(--accent-glow); color: var(--accent); }
+.launch-chip .chip-action.open-btn:hover { background: var(--accent); color: #000; }
+.tab-page { display: none; }
+.tab-page.active { display: block; }
+
+/* Language selector */
+.lang-switch {
+  display: flex; gap: 2px; background: var(--bg-card); border-radius: 6px; padding: 2px;
+  border: 1px solid var(--border);
+}
+.lang-btn {
+  padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer;
+  font-size: 0.75rem; font-weight: 600; background: transparent; color: var(--text-dim);
+  transition: all 0.15s;
+}
+.lang-btn.active { background: var(--accent); color: #000; }
+.lang-btn:hover:not(.active) { color: var(--text); }
+
+/* ═══ CARDS & GRIDS ═══ */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+}
+.card-title {
+  font-size: 0.85rem; font-weight: 600; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* ═══ OVERVIEW ═══ */
+.overview-top { display: grid; grid-template-columns: 260px 1fr; gap: 20px; margin-bottom: 20px; }
+.threat-gauge { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.gauge-circle { position: relative; width: 170px; height: 170px; }
+.gauge-circle svg { transform: rotate(-90deg); width: 170px; height: 170px; }
+.gauge-bg { fill: none; stroke: var(--border); stroke-width: 12; }
+.gauge-fill { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke 0.5s; }
+.gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+.gauge-score { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+.gauge-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.gauge-grade { font-size: 1rem; font-weight: 600; margin-top: 10px; padding: 4px 20px; border-radius: 20px; }
+/* Agent mosaic — compact combined view */
+.agent-mosaic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.agent-tile {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden;
+}
+.agent-tile:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.agent-tile.online { border-left: 3px solid var(--green); }
+.agent-tile.offline { border-left: 3px solid var(--text-muted); opacity: 0.7; }
+.agent-tile .tile-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.agent-tile .tile-icon { font-size: 1.5rem; }
+.agent-tile .tile-name { font-size: 0.8rem; font-weight: 700; }
+.agent-tile .tile-status { font-size: 0.6rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.agent-tile .tile-stats { display: flex; gap: 8px; font-size: 0.65rem; color: var(--text-muted); }
+.agent-tile .tile-stat-val { font-weight: 700; color: var(--text); }
+/* Stats bar */
+.stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.stat-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+/* Mini graph bars */
+.mini-bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 50px; padding: 4px 0; }
+.mini-bar { flex: 1; min-width: 4px; border-radius: 2px 2px 0 0; transition: height 0.3s; }
+/* Activity graph */
+.activity-graph { display: flex; align-items: flex-end; gap: 2px; height: 80px; padding: 8px 0; }
+.activity-bar { flex: 1; min-width: 3px; border-radius: 2px 2px 0 0; opacity: 0.8; transition: height 0.4s; }
+.activity-bar:hover { opacity: 1; }
+/* Two-column layout */
+.overview-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+/* Agent badges for overview (legacy compat) */
+.agent-card-mini {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s;
+}
+.agent-card-mini:hover { border-color: var(--accent); background: var(--bg-hover); }
+.agent-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+}
+.agent-info { flex: 1; min-width: 0; }
+.agent-info h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+.agent-info .desc { font-size: 0.72rem; color: var(--text-muted); }
+.agent-status-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+.agent-status-badge.online { background: var(--green-dim); color: var(--green); }
+.agent-status-badge.offline { background: var(--red-dim); color: var(--red); }
+
+/* ═══ AGENTS TAB ═══ */
+.agent-card-full { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.agent-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.agent-card-header h3 { font-size: 1rem; font-weight: 600; }
+.agent-card-header .port { font-size: 0.75rem; color: var(--text-muted); }
+.agent-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
+.metric { text-align: center; padding: 8px; background: var(--bg-card2); border-radius: var(--radius-sm); }
+.metric-value { font-size: 1.1rem; font-weight: 600; }
+.metric-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+.agent-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ═══ TIMELINE ═══ */
+.timeline-container { max-height: calc(100vh - 200px); overflow-y: auto; }
+.timeline-event { display: flex; gap: 12px; padding: 12px 16px; border-left: 3px solid var(--border); margin-left: 8px; margin-bottom: 4px; transition: background 0.15s; }
+.timeline-event:hover { background: var(--bg-card2); }
+.timeline-event.severity-warning { border-left-color: var(--orange); }
+.timeline-event.severity-critical { border-left-color: var(--red); }
+.timeline-event.severity-info { border-left-color: var(--accent); }
+.timeline-time { font-size: 0.7rem; color: var(--text-muted); min-width: 70px; flex-shrink: 0; }
+.timeline-source { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0; }
+.timeline-content { flex: 1; font-size: 0.82rem; min-width: 0; }
+.timeline-channel { font-size: 0.68rem; color: var(--text-muted); font-family: monospace; }
+.factor-list { list-style: none; padding: 0; }
+.factor-list li { padding: 6px 12px; font-size: 0.82rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+.factor-list li::before { content: "\26A0"; font-size: 0.75rem; }
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-card2); color: var(--text); font-size: 0.8rem; cursor: pointer;
+  transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-green { background: var(--green-dim); color: var(--green); border-color: rgba(34,197,94,0.3); }
+.btn-red { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.btn-orange { background: var(--orange-dim); color: var(--orange); border-color: rgba(245,158,11,0.3); }
+.btn-sm { padding: 5px 12px; font-size: 0.75rem; }
+
+/* ═══ SETTINGS ═══ */
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.setting-label { font-size: 0.85rem; }
+.setting-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; transition: 0.2s; }
+.toggle .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+.toggle input:checked + .slider { background: var(--accent); }
+.toggle input:checked + .slider::before { transform: translateX(20px); }
+
+/* ═══ CHAT ═══ */
+.chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); }
+.chat-agent-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.chat-agent-tab {
+  padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; border: 1px solid var(--border);
+  background: var(--bg-card); transition: all 0.15s;
+}
+.chat-agent-tab:hover { background: var(--bg-hover); }
+.chat-agent-tab.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.chat-bubble {
+  max-width: 80%; padding: 12px 16px; border-radius: 16px;
+  font-size: 0.85rem; line-height: 1.5; animation: bubbleIn 0.2s ease;
+}
+@keyframes bubbleIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.chat-bubble.agent {
+  align-self: flex-start; background: var(--bg-card2); border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.chat-bubble.user {
+  align-self: flex-end; background: var(--accent-glow); border: 1px solid rgba(0,212,255,0.3);
+  border-bottom-right-radius: 4px; color: var(--accent);
+}
+.chat-bubble .bubble-header {
+  font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; opacity: 0.7;
+}
+.chat-bubble .bubble-time { font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: right; }
+.chat-suggestions {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+.chat-suggestion {
+  padding: 5px 12px; border-radius: 16px; font-size: 0.72rem; cursor: pointer;
+  background: var(--bg-hover); border: 1px solid var(--border); color: var(--text-dim);
+  transition: all 0.15s;
+}
+.chat-suggestion:hover { border-color: var(--accent); color: var(--accent); }
+.chat-input-row {
+  display: flex; gap: 8px; padding: 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.chat-input {
+  flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-card2); color: var(--text); font-size: 0.85rem; outline: none;
+}
+.chat-input:focus { border-color: var(--accent); }
+.chat-send {
+  padding: 10px 20px; border: none; border-radius: 20px;
+  background: var(--accent); color: #000; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; transition: background 0.15s;
+}
+.chat-send:hover { background: var(--accent2); }
+
+/* ═══ HELP ═══ */
+.help-section { margin-bottom: 20px; }
+.help-section h3 { font-size: 0.95rem; margin-bottom: 10px; color: var(--accent); }
+.help-section p, .help-section li { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
+.help-section ul { padding-left: 20px; }
+
+/* ═══ NOTIF ═══ */
+.notif-bar { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.notif { padding: 12px 20px; border-radius: var(--radius-sm); font-size: 0.82rem; animation: notifIn 0.3s ease; max-width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.notif.success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+.notif.error { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.notif.info { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+@keyframes notifIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (max-width: 1100px) {
+  .grid-4, .stats-row { grid-template-columns: 1fr 1fr; }
+  .agent-metrics { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+  .overview-header, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ═══ NEW TABS: Honeypot, FIM, SOAR, Intel, Alerts ═══ */
+.config-form { display: flex; flex-direction: column; gap: 12px; }
+.config-row { display: flex; align-items: center; gap: 12px; }
+.config-row label { min-width: 120px; font-size: 0.82rem; color: var(--text-dim); }
+.config-input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-card2); color: var(--text); font-size: 0.82rem; outline: none;
+}
+.config-input:focus { border-color: var(--accent); }
+.playbook-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  border-bottom: 1px solid var(--border); transition: background 0.15s;
+}
+.playbook-item:hover { background: var(--bg-card2); }
+.playbook-item .playbook-name { flex: 1; font-size: 0.85rem; font-weight: 600; }
+.playbook-item .playbook-desc { font-size: 0.72rem; color: var(--text-muted); }
+.intel-feed { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.intel-feed .feed-name { font-size: 0.82rem; font-weight: 600; flex: 1; }
+.intel-feed .feed-count { font-size: 0.75rem; color: var(--accent); }
+.honeypot-trap {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.honeypot-trap .trap-name { font-size: 0.82rem; font-weight: 600; flex: 1; }
+.honeypot-trap .trap-hits { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+.fim-entry { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.fim-entry .fim-path { font-family: monospace; font-size: 0.78rem; flex: 1; color: var(--text-dim); }
+.fim-entry .fim-status { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.log-entry { padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 0.78rem; font-family: monospace; color: var(--text-dim); }
+.log-entry .log-time { color: var(--text-muted); margin-right: 8px; }
+.log-entry .log-action { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h1>SentinelOS</h1>
+    <div class="version" id="sidebar-version">Centre de Commandement v1.0</div>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <!-- Filled by renderSidebar() -->
+  </nav>
+  <div class="sidebar-footer">
+    <div class="threat-badge safe" id="sidebar-threat-badge">Score: 0</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">--</div>
+    <div class="topbar-right">
+      <div class="lang-switch">
+        <button class="lang-btn active" id="lang-fr" onclick="setLanguage('fr')">FR</button>
+        <button class="lang-btn" id="lang-en" onclick="setLanguage('en')">EN</button>
+      </div>
+      <div class="connection-status">
+        <span class="dot disconnected" id="ws-dot"></span>
+        <span id="ws-label">...</span>
+      </div>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- ═══ LAUNCH BAR — clickable agent chips ═══ -->
+  <!-- launch bar removed -->
+
+  <div class="content" id="content-area">
+    <!-- All tabs rendered by JS -->
+  </div>
+</div>
+
+<div class="notif-bar" id="notif-bar"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════════
+// i18n — TRANSLATIONS
+// ═══════════════════════════════════════════════════════════
+
+const TR = {
+fr: {
+  // Sidebar
+  "sidebar.version": "Centre de Commandement v1.0",
+  "nav.main": "Principal",
+  "nav.overview": "Vue d'ensemble",
+  "nav.agents": "Agents",
+  "nav.threats": "Menaces",
+  "nav.chat": "Chat Agents",
+  "nav.agents_section": "Agents",
+  "nav.system": "Systeme",
+  "nav.settings": "Parametres",
+  "nav.help": "Aide & Guide",
+  // Topbar
+  "topbar.overview": "Vue d'ensemble",
+  "topbar.agents": "Gestion des Agents",
+  "topbar.threats": "Menaces & Alertes",
+  "topbar.chat": "Chat Agents",
+  "topbar.settings": "Parametres",
+  "topbar.help": "Aide & Guide",
+  // Connection
+  "ws.connected": "Cortex connecte",
+  "ws.disconnected": "Deconnecte",
+  "ws.connecting": "Connexion...",
+  // Status
+  "status.online": "En ligne",
+  "status.offline": "Hors ligne",
+  "status.connected": "Connecte",
+  "status.disconnected": "Deconnecte",
+  "status.starting": "Demarrage...",
+  "status.stopped": "Arrete",
+  "status.active": "Actif",
+  "status.inactive": "Inactif",
+  "status.yes": "Oui",
+  "status.no": "Non",
+  // Actions
+  "action.start": "Demarrer",
+  "action.stop": "Arreter",
+  "action.restart": "Redemarrer",
+  "action.details": "Details",
+  "action.connect": "Connecter",
+  "action.disconnect": "Deconnecter",
+  "action.refresh": "Actualiser",
+  "action.send": "Envoyer",
+  "action.sync": "Synchroniser",
+  "action.quick_scan": "Scan rapide",
+  "action.open_dashboard": "Dashboard complet",
+  "action.dedicated": "Dashboard dedie",
+  // Launch bar
+  "launch.title": "Lancement rapide",
+  "launch.open": "Ouvrir",
+  "launch.running": "Actif",
+  "launch.stopped": "Arrete",
+  // Threats
+  "threat.label": "MENACE",
+  "threat.grade": "Grade",
+  "threat.detected": "Menaces detectees",
+  "threat.factors": "Facteurs de risque",
+  "threat.none": "Aucun facteur de risque detecte",
+  "threat.blocked": "Paquets bloques",
+  "threat.score_label": "Score de menace (0-100)",
+  "threat.level": "Niveau de menace global",
+  "threat.alert_timeline": "Timeline des alertes",
+  "threat.no_alert": "Aucune alerte pour le moment.",
+  "threat.type": "Menace",
+  "threat.unknown_ip": "IP inconnue",
+  "threat.latest": "Dernieres menaces",
+  // Overview
+  "overview.timeline": "Timeline en temps reel",
+  "overview.resources": "Ressources systeme",
+  "overview.health": "Sante systeme",
+  "overview.vpn_status": "Statut VPN",
+  "overview.waiting": "En attente des evenements...",
+  "overview.no_events": "Aucun evenement pour le moment.",
+  "overview.agents_status": "Agents actifs",
+  "overview.activity": "Activite reseau (30 min)",
+  "overview.events_min": "Evenements/min",
+  "overview.packets_sec": "Paquets/s",
+  "overview.active_threats": "Menaces actives",
+  "overview.agents_online": "Agents en ligne",
+  "overview.total_events": "Evenements total",
+  "overview.traps_hit": "Pieges declenches",
+  "overview.recording": "Enregistrement",
+  "overview.counter_actions": "Contre-attaques",
+  // New agents
+  "nav.strikeback": "StrikeBack",
+  "nav.recorder": "Enregistreur",
+  "topbar.strikeback": "StrikeBack — Defense active",
+  "topbar.recorder": "RecordAgent — Enregistrement",
+  "agent.strikeback.desc": "Defense active & contre-attaque",
+  "agent.recorder.desc": "Enregistrement forensique",
+  // Agents
+  "agents.process": "Processus",
+  "agents.websocket": "WebSocket",
+  "agents.uptime": "Uptime",
+  "agents.packets_analyzed": "Paquets analyses",
+  "agents.packets_blocked": "Paquets bloques",
+  "agents.active_conns": "Connexions actives",
+  "agents.dpi": "Inspection DPI",
+  "agents.suricata": "Suricata IDS",
+  "agents.health_score": "Score sante",
+  "agents.grade": "Grade",
+  "agents.realtime": "Protection temps reel",
+  "agents.scan_threats": "Menaces scan",
+  "agents.quarantine": "En quarantaine",
+  "agents.scan_progress": "Scan en cours",
+  "agents.vpn_status": "Statut VPN",
+  "agents.active_profile": "Profil actif",
+  "agents.public_ip": "IP publique",
+  "agents.kill_switch": "Kill Switch",
+  "agents.dns_protected": "DNS Protege",
+  "agents.traffic": "Trafic RX / TX",
+  "agents.emails": "Emails analyses",
+  "agents.phishing": "Phishing bloques",
+  // Agent descriptions
+  "agent.netguard.desc": "Surveillance reseau & Firewall",
+  "agent.cleanguard.desc": "Antivirus & Nettoyage systeme",
+  "agent.mailshield.desc": "Protection email & Anti-phishing",
+  "agent.vpnguard.desc": "VPN WireGuard & Tunnel chiffre",
+  "agent.netguard.title": "NetGuard Pro — Surveillance Reseau",
+  "agent.cleanguard.title": "CleanGuard Pro — Antivirus & Nettoyage",
+  "agent.mailshield.title": "MailShield Pro — Protection Email",
+  "agent.vpnguard.title": "VPN Guard Pro — Tunnel VPN",
+  // Settings
+  "settings.title": "Parametres SentinelOS",
+  "settings.autostart": "Demarrage automatique des agents",
+  "settings.autostart_desc": "Lancer tous les agents au demarrage du Cortex",
+  "settings.poll": "Intervalle de mise a jour (secondes)",
+  "settings.poll_desc": "Frequence du polling d'etat des agents",
+  "settings.startup": "Demarrage avec Windows",
+  "settings.startup_desc": "Lancer SentinelOS automatiquement au demarrage",
+  "settings.language": "Langue / Language",
+  "settings.language_desc": "Choisir la langue de l'interface",
+  "settings.saved": "Parametre sauvegarde",
+  "settings.diagnostics": "Diagnostics",
+  // Chat
+  "chat.title": "Chat Agents",
+  "chat.placeholder": "Posez une question a l'agent...",
+  "chat.greeting": "Bonjour ! Je suis {agent}. Comment puis-je vous aider ?",
+  "chat.no_agent": "Selectionnez un agent pour demarrer la conversation.",
+  // Chat suggestions per agent
+  "chat.suggest.netguard.1": "Etat du reseau ?",
+  "chat.suggest.netguard.2": "Menaces actives ?",
+  "chat.suggest.netguard.3": "Comment bloquer une IP ?",
+  "chat.suggest.netguard.4": "Activer le DPI ?",
+  "chat.suggest.cleanguard.1": "Lancer un scan",
+  "chat.suggest.cleanguard.2": "Etat de sante ?",
+  "chat.suggest.cleanguard.3": "Vider la quarantaine ?",
+  "chat.suggest.cleanguard.4": "Protection temps reel ?",
+  "chat.suggest.mailshield.1": "Emails suspects ?",
+  "chat.suggest.mailshield.2": "Synchroniser les emails",
+  "chat.suggest.mailshield.3": "Anti-phishing actif ?",
+  "chat.suggest.mailshield.4": "Configurer le filtrage",
+  "chat.suggest.vpnguard.1": "Connecter le VPN",
+  "chat.suggest.vpnguard.2": "Mon IP publique ?",
+  "chat.suggest.vpnguard.3": "Verifier fuite DNS",
+  "chat.suggest.vpnguard.4": "Activer Kill Switch",
+  // Help
+  "help.title": "Guide SentinelOS",
+  "help.what": "Qu'est-ce que SentinelOS ?",
+  "help.what_desc": "SentinelOS est un systeme de cybersecurite unifie qui orchestre 4 agents de protection independants via un cerveau central (Cortex). Il offre une vision globale de la securite de votre systeme.",
+  "help.agents_title": "Les 4 Agents",
+  "help.agents.netguard": "NetGuard Pro — Surveillance reseau, firewall, detection d'intrusion (IDS), analyse DPI, geo-blocage, honeypot",
+  "help.agents.cleanguard": "CleanGuard Pro — Antivirus, nettoyage systeme, scan malware, protection temps reel, quarantaine",
+  "help.agents.mailshield": "MailShield Pro — Protection email, anti-phishing, analyse des pieces jointes, chiffrement",
+  "help.agents.vpnguard": "VPN Guard Pro — VPN WireGuard, kill switch, protection DNS, split tunnel, gestion des profils",
+  "help.cortex_title": "Le Cortex",
+  "help.cortex_desc": "Le Cortex est le cerveau central qui :",
+  "help.cortex.1": "Lance et supervise les 4 agents automatiquement",
+  "help.cortex.2": "Se connecte a chaque agent via WebSocket",
+  "help.cortex.3": "Correle les menaces detectees par chaque agent",
+  "help.cortex.4": "Calcule un score de menace global (0-100)",
+  "help.cortex.5": "Affiche une timeline unifiee de tous les evenements",
+  "help.cortex.6": "Permet de controler chaque agent depuis un seul endroit",
+  "help.score_title": "Score de menace",
+  "help.score.a": "Grade A (0-10) — Excellent, aucune menace",
+  "help.score.b": "Grade B (11-25) — Bon, menaces mineures",
+  "help.score.c": "Grade C (26-50) — Attention, menaces moderees",
+  "help.score.d": "Grade D (51-75) — Danger, menaces importantes",
+  "help.score.f": "Grade F (76-100) — Critique, intervention immediate requise",
+  "help.arch_title": "Architecture",
+  "help.arch_desc": "SentinelOS Phase 1 tourne entierement sur Windows. Chaque agent est un processus independant avec son propre dashboard specialise. Le Cortex se connecte a eux comme un client WebSocket.",
+  "help.ports": "Ports : Cortex (8900) | NetGuard (8765) | CleanGuard (8810) | MailShield (8801) | VPN Guard (8820)",
+  // Advanced Defense nav
+  "nav.advanced": "Defense avancee",
+  "nav.honeypot": "HoneyPot",
+  "nav.fim": "Integrite fichiers",
+  "nav.soar": "Playbooks SOAR",
+  "nav.intel": "Threat Intel",
+  "nav.alerts": "Config Alertes",
+  // Topbar titles
+  "topbar.honeypot": "HoneyPot — Pieges & Leurres",
+  "topbar.fim": "Moniteur d'integrite des fichiers",
+  "topbar.soar": "Playbooks SOAR — Automatisation",
+  "topbar.intel": "Renseignement sur les menaces",
+  "topbar.alerts": "Configuration des alertes",
+  // Honeypot
+  "honeypot.title": "Tableau de bord HoneyPot",
+  "honeypot.traps": "Fichiers pieges",
+  "honeypot.services": "Services leurres",
+  "honeypot.connections": "Connexions detectees",
+  "honeypot.alerts": "Alertes HoneyPot",
+  "honeypot.no_alerts": "Aucune alerte HoneyPot.",
+  "honeypot.status": "Statut HoneyPot",
+  "honeypot.active_traps": "Pieges actifs",
+  "honeypot.total_hits": "Acces detectes",
+  "honeypot.last_alert": "Derniere alerte",
+  "honeypot.trap_name": "Nom du piege",
+  "honeypot.trap_path": "Chemin",
+  "honeypot.trap_hits": "Acces",
+  "honeypot.service_name": "Service",
+  "honeypot.service_port": "Port",
+  "honeypot.service_conns": "Connexions",
+  "honeypot.no_traps": "Aucun piege configure.",
+  "honeypot.no_services": "Aucun service leurre actif.",
+  // FIM
+  "fim.title": "Moniteur d'integrite des fichiers",
+  "fim.baseline": "Fichiers de reference",
+  "fim.changes": "Modifications detectees",
+  "fim.monitored": "Chemins surveilles",
+  "fim.status": "Statut FIM",
+  "fim.total_files": "Fichiers surveilles",
+  "fim.total_changes": "Modifications",
+  "fim.last_scan": "Dernier scan",
+  "fim.no_changes": "Aucune modification detectee.",
+  "fim.no_paths": "Aucun chemin surveille.",
+  "fim.change_type.modified": "Modifie",
+  "fim.change_type.added": "Ajoute",
+  "fim.change_type.deleted": "Supprime",
+  // SOAR
+  "soar.title": "Playbooks SOAR",
+  "soar.playbooks": "Liste des playbooks",
+  "soar.execution_log": "Journal d'execution",
+  "soar.no_playbooks": "Aucun playbook configure.",
+  "soar.no_logs": "Aucune execution enregistree.",
+  "soar.enabled": "Active",
+  "soar.disabled": "Desactive",
+  "soar.last_run": "Derniere execution",
+  "soar.trigger": "Declencheur",
+  "soar.actions": "Actions",
+  "soar.refresh_log": "Actualiser le journal",
+  // Threat Intel
+  "intel.title": "Renseignement sur les menaces",
+  "intel.feeds": "Flux de renseignements",
+  "intel.check_ip": "Verifier une IP",
+  "intel.ip_placeholder": "Entrez une adresse IP...",
+  "intel.check": "Verifier",
+  "intel.last_update": "Derniere mise a jour",
+  "intel.total_iocs": "IOCs totaux",
+  "intel.malicious_ips": "IPs malveillantes",
+  "intel.update_feeds": "Mettre a jour les flux",
+  "intel.no_feeds": "Aucun flux configure.",
+  "intel.ip_result": "Resultat de la verification",
+  "intel.ip_clean": "IP propre — aucune menace connue",
+  "intel.ip_malicious": "IP malveillante detectee !",
+  "intel.feed_name": "Nom du flux",
+  "intel.feed_entries": "Entrees",
+  // Alerts config
+  "alerts.title": "Configuration des alertes",
+  "alerts.telegram": "Configuration Telegram",
+  "alerts.discord": "Configuration Discord",
+  "alerts.bot_token": "Token du bot",
+  "alerts.chat_id": "Chat ID",
+  "alerts.webhook_url": "URL du Webhook",
+  "alerts.enabled": "Active",
+  "alerts.test": "Tester",
+  "alerts.test_telegram": "Tester Telegram",
+  "alerts.test_discord": "Tester Discord",
+  "alerts.save": "Sauvegarder",
+  "alerts.saved": "Configuration des alertes sauvegardee",
+  "alerts.test_sent": "Message de test envoye !",
+  "alerts.test_failed": "Echec de l'envoi du test",
+  "alerts.severity_filter": "Filtrer par severite",
+  "alerts.severity_all": "Toutes",
+  "alerts.severity_warning": "Avertissement+",
+  "alerts.severity_critical": "Critique seulement",
+},
+en: {
+  "sidebar.version": "Command Center v1.0",
+  "nav.main": "Main",
+  "nav.overview": "Overview",
+  "nav.agents": "Agents",
+  "nav.threats": "Threats",
+  "nav.chat": "Agent Chat",
+  "nav.agents_section": "Agents",
+  "nav.system": "System",
+  "nav.settings": "Settings",
+  "nav.help": "Help & Guide",
+  "topbar.overview": "Overview",
+  "topbar.agents": "Agent Management",
+  "topbar.threats": "Threats & Alerts",
+  "topbar.chat": "Agent Chat",
+  "topbar.settings": "Settings",
+  "topbar.help": "Help & Guide",
+  "ws.connected": "Cortex connected",
+  "ws.disconnected": "Disconnected",
+  "ws.connecting": "Connecting...",
+  "status.online": "Online",
+  "status.offline": "Offline",
+  "status.connected": "Connected",
+  "status.disconnected": "Disconnected",
+  "status.starting": "Starting...",
+  "status.stopped": "Stopped",
+  "status.active": "Active",
+  "status.inactive": "Inactive",
+  "status.yes": "Yes",
+  "status.no": "No",
+  "action.start": "Start",
+  "action.stop": "Stop",
+  "action.restart": "Restart",
+  "action.details": "Details",
+  "action.connect": "Connect",
+  "action.disconnect": "Disconnect",
+  "action.refresh": "Refresh",
+  "action.send": "Send",
+  "action.sync": "Sync",
+  "action.quick_scan": "Quick scan",
+  "action.open_dashboard": "Full dashboard",
+  "action.dedicated": "Dedicated dashboard",
+  // Launch bar
+  "launch.title": "Quick launch",
+  "launch.open": "Open",
+  "launch.running": "Running",
+  "launch.stopped": "Stopped",
+  "threat.label": "THREAT",
+  "threat.grade": "Grade",
+  "threat.detected": "Threats detected",
+  "threat.factors": "Risk factors",
+  "threat.none": "No risk factors detected",
+  "threat.blocked": "Packets blocked",
+  "threat.score_label": "Threat score (0-100)",
+  "threat.level": "Global threat level",
+  "threat.alert_timeline": "Alert timeline",
+  "threat.no_alert": "No alerts at this time.",
+  "threat.type": "Threat",
+  "threat.unknown_ip": "Unknown IP",
+  "threat.latest": "Latest threats",
+  "overview.timeline": "Real-time timeline",
+  "overview.resources": "System resources",
+  "overview.health": "System health",
+  "overview.vpn_status": "VPN Status",
+  "overview.waiting": "Waiting for events...",
+  "overview.no_events": "No events at this time.",
+  "overview.agents_status": "Active agents",
+  "overview.activity": "Network activity (30 min)",
+  "overview.events_min": "Events/min",
+  "overview.packets_sec": "Packets/s",
+  "overview.active_threats": "Active threats",
+  "overview.agents_online": "Agents online",
+  "overview.total_events": "Total events",
+  "overview.traps_hit": "Traps triggered",
+  "overview.recording": "Recording",
+  "overview.counter_actions": "Counter actions",
+  // New agents
+  "nav.strikeback": "StrikeBack",
+  "nav.recorder": "Recorder",
+  "topbar.strikeback": "StrikeBack — Active Defense",
+  "topbar.recorder": "RecordAgent — Forensic Recording",
+  "agent.strikeback.desc": "Active defense & counter-attack",
+  "agent.recorder.desc": "Forensic recording",
+  "agents.process": "Process",
+  "agents.websocket": "WebSocket",
+  "agents.uptime": "Uptime",
+  "agents.packets_analyzed": "Packets analyzed",
+  "agents.packets_blocked": "Packets blocked",
+  "agents.active_conns": "Active connections",
+  "agents.dpi": "DPI Inspection",
+  "agents.suricata": "Suricata IDS",
+  "agents.health_score": "Health score",
+  "agents.grade": "Grade",
+  "agents.realtime": "Real-time protection",
+  "agents.scan_threats": "Scan threats",
+  "agents.quarantine": "Quarantined",
+  "agents.scan_progress": "Scan in progress",
+  "agents.vpn_status": "VPN Status",
+  "agents.active_profile": "Active profile",
+  "agents.public_ip": "Public IP",
+  "agents.kill_switch": "Kill Switch",
+  "agents.dns_protected": "DNS Protected",
+  "agents.traffic": "Traffic RX / TX",
+  "agents.emails": "Emails analyzed",
+  "agents.phishing": "Phishing blocked",
+  "agent.netguard.desc": "Network surveillance & Firewall",
+  "agent.cleanguard.desc": "Antivirus & System cleanup",
+  "agent.mailshield.desc": "Email protection & Anti-phishing",
+  "agent.vpnguard.desc": "WireGuard VPN & Encrypted tunnel",
+  "agent.netguard.title": "NetGuard Pro — Network Surveillance",
+  "agent.cleanguard.title": "CleanGuard Pro — Antivirus & Cleanup",
+  "agent.mailshield.title": "MailShield Pro — Email Protection",
+  "agent.vpnguard.title": "VPN Guard Pro — VPN Tunnel",
+  "settings.title": "SentinelOS Settings",
+  "settings.autostart": "Auto-start agents",
+  "settings.autostart_desc": "Launch all agents when Cortex starts",
+  "settings.poll": "Update interval (seconds)",
+  "settings.poll_desc": "Agent state polling frequency",
+  "settings.startup": "Start with Windows",
+  "settings.startup_desc": "Launch SentinelOS automatically at Windows startup",
+  "settings.language": "Language / Langue",
+  "settings.language_desc": "Choose interface language",
+  "settings.saved": "Setting saved",
+  "settings.diagnostics": "Diagnostics",
+  "chat.title": "Agent Chat",
+  "chat.placeholder": "Ask the agent a question...",
+  "chat.greeting": "Hello! I'm {agent}. How can I help you?",
+  "chat.no_agent": "Select an agent to start the conversation.",
+  "chat.suggest.netguard.1": "Network status?",
+  "chat.suggest.netguard.2": "Active threats?",
+  "chat.suggest.netguard.3": "How to block an IP?",
+  "chat.suggest.netguard.4": "Enable DPI?",
+  "chat.suggest.cleanguard.1": "Run a scan",
+  "chat.suggest.cleanguard.2": "Health status?",
+  "chat.suggest.cleanguard.3": "Clear quarantine?",
+  "chat.suggest.cleanguard.4": "Real-time protection?",
+  "chat.suggest.mailshield.1": "Suspicious emails?",
+  "chat.suggest.mailshield.2": "Sync emails",
+  "chat.suggest.mailshield.3": "Anti-phishing active?",
+  "chat.suggest.mailshield.4": "Configure filtering",
+  "chat.suggest.vpnguard.1": "Connect VPN",
+  "chat.suggest.vpnguard.2": "My public IP?",
+  "chat.suggest.vpnguard.3": "Check DNS leak",
+  "chat.suggest.vpnguard.4": "Enable Kill Switch",
+  "help.title": "SentinelOS Guide",
+  "help.what": "What is SentinelOS?",
+  "help.what_desc": "SentinelOS is a unified cybersecurity system that orchestrates 4 independent protection agents via a central brain (Cortex). It provides a global view of your system's security.",
+  "help.agents_title": "The 4 Agents",
+  "help.agents.netguard": "NetGuard Pro — Network surveillance, firewall, intrusion detection (IDS), DPI analysis, geo-blocking, honeypot",
+  "help.agents.cleanguard": "CleanGuard Pro — Antivirus, system cleanup, malware scanning, real-time protection, quarantine",
+  "help.agents.mailshield": "MailShield Pro — Email protection, anti-phishing, attachment analysis, encryption",
+  "help.agents.vpnguard": "VPN Guard Pro — WireGuard VPN, kill switch, DNS protection, split tunnel, profile management",
+  "help.cortex_title": "The Cortex",
+  "help.cortex_desc": "The Cortex is the central brain that:",
+  "help.cortex.1": "Launches and supervises all 4 agents automatically",
+  "help.cortex.2": "Connects to each agent via WebSocket",
+  "help.cortex.3": "Correlates threats detected by each agent",
+  "help.cortex.4": "Calculates a global threat score (0-100)",
+  "help.cortex.5": "Displays a unified timeline of all events",
+  "help.cortex.6": "Allows controlling each agent from a single place",
+  "help.score_title": "Threat Score",
+  "help.score.a": "Grade A (0-10) — Excellent, no threats",
+  "help.score.b": "Grade B (11-25) — Good, minor threats",
+  "help.score.c": "Grade C (26-50) — Caution, moderate threats",
+  "help.score.d": "Grade D (51-75) — Danger, significant threats",
+  "help.score.f": "Grade F (76-100) — Critical, immediate action required",
+  "help.arch_title": "Architecture",
+  "help.arch_desc": "SentinelOS Phase 1 runs entirely on Windows. Each agent is an independent process with its own specialized dashboard. The Cortex connects to them as a WebSocket client.",
+  "help.ports": "Ports: Cortex (8900) | NetGuard (8765) | CleanGuard (8810) | MailShield (8801) | VPN Guard (8820)",
+  // Advanced Defense nav
+  "nav.advanced": "Advanced defense",
+  "nav.honeypot": "HoneyPot",
+  "nav.fim": "File Integrity",
+  "nav.soar": "SOAR Playbooks",
+  "nav.intel": "Threat Intel",
+  "nav.alerts": "Alert Config",
+  // Topbar titles
+  "topbar.honeypot": "HoneyPot — Traps & Decoys",
+  "topbar.fim": "File Integrity Monitor",
+  "topbar.soar": "SOAR Playbooks — Automation",
+  "topbar.intel": "Threat Intelligence",
+  "topbar.alerts": "Alert Configuration",
+  // Honeypot
+  "honeypot.title": "HoneyPot Dashboard",
+  "honeypot.traps": "Trap files",
+  "honeypot.services": "Decoy services",
+  "honeypot.connections": "Detected connections",
+  "honeypot.alerts": "HoneyPot Alerts",
+  "honeypot.no_alerts": "No HoneyPot alerts.",
+  "honeypot.status": "HoneyPot Status",
+  "honeypot.active_traps": "Active traps",
+  "honeypot.total_hits": "Detected accesses",
+  "honeypot.last_alert": "Last alert",
+  "honeypot.trap_name": "Trap name",
+  "honeypot.trap_path": "Path",
+  "honeypot.trap_hits": "Hits",
+  "honeypot.service_name": "Service",
+  "honeypot.service_port": "Port",
+  "honeypot.service_conns": "Connections",
+  "honeypot.no_traps": "No traps configured.",
+  "honeypot.no_services": "No active decoy services.",
+  // FIM
+  "fim.title": "File Integrity Monitor",
+  "fim.baseline": "Baseline files",
+  "fim.changes": "Changes detected",
+  "fim.monitored": "Monitored paths",
+  "fim.status": "FIM Status",
+  "fim.total_files": "Monitored files",
+  "fim.total_changes": "Changes",
+  "fim.last_scan": "Last scan",
+  "fim.no_changes": "No changes detected.",
+  "fim.no_paths": "No monitored paths.",
+  "fim.change_type.modified": "Modified",
+  "fim.change_type.added": "Added",
+  "fim.change_type.deleted": "Deleted",
+  // SOAR
+  "soar.title": "SOAR Playbooks",
+  "soar.playbooks": "Playbook list",
+  "soar.execution_log": "Execution log",
+  "soar.no_playbooks": "No playbooks configured.",
+  "soar.no_logs": "No executions recorded.",
+  "soar.enabled": "Enabled",
+  "soar.disabled": "Disabled",
+  "soar.last_run": "Last run",
+  "soar.trigger": "Trigger",
+  "soar.actions": "Actions",
+  "soar.refresh_log": "Refresh log",
+  // Threat Intel
+  "intel.title": "Threat Intelligence",
+  "intel.feeds": "Intelligence feeds",
+  "intel.check_ip": "Check an IP",
+  "intel.ip_placeholder": "Enter an IP address...",
+  "intel.check": "Check",
+  "intel.last_update": "Last update",
+  "intel.total_iocs": "Total IOCs",
+  "intel.malicious_ips": "Malicious IPs",
+  "intel.update_feeds": "Update feeds",
+  "intel.no_feeds": "No feeds configured.",
+  "intel.ip_result": "Check result",
+  "intel.ip_clean": "Clean IP — no known threats",
+  "intel.ip_malicious": "Malicious IP detected!",
+  "intel.feed_name": "Feed name",
+  "intel.feed_entries": "Entries",
+  // Alerts config
+  "alerts.title": "Alert Configuration",
+  "alerts.telegram": "Telegram Configuration",
+  "alerts.discord": "Discord Configuration",
+  "alerts.bot_token": "Bot Token",
+  "alerts.chat_id": "Chat ID",
+  "alerts.webhook_url": "Webhook URL",
+  "alerts.enabled": "Enabled",
+  "alerts.test": "Test",
+  "alerts.test_telegram": "Test Telegram",
+  "alerts.test_discord": "Test Discord",
+  "alerts.save": "Save",
+  "alerts.saved": "Alert configuration saved",
+  "alerts.test_sent": "Test message sent!",
+  "alerts.test_failed": "Test send failed",
+  "alerts.severity_filter": "Filter by severity",
+  "alerts.severity_all": "All",
+  "alerts.severity_warning": "Warning+",
+  "alerts.severity_critical": "Critical only",
+}
+};
+
+let currentLang = localStorage.getItem('sentinel_lang') || 'fr';
+function t(key) { return TR[currentLang]?.[key] || TR['fr']?.[key] || key; }
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('sentinel_lang', lang);
+  document.getElementById('lang-fr').classList.toggle('active', lang === 'fr');
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+let globalState = null;
+let ws = null;
+let wsConnected = false;
+let currentTab = 'overview';
+const WS_PORT = 8900;
+const AGENT_KEYS = ['netguard', 'cleanguard', 'mailshield', 'vpnguard'];
+const AGENT_ICONS = { netguard: '\u{1F4E1}', cleanguard: '\u{1F9F9}', mailshield: '\u{1F4E7}', vpnguard: '\u{1F512}' };
+const AGENT_COLORS = { netguard: '#4d9fff', cleanguard: '#ffb347', mailshield: '#3dffb4', vpnguard: '#00d4ff' };
+
+// Chat state
+let chatAgent = 'netguard';
+let chatHistory = { netguard: [], cleanguard: [], mailshield: [], vpnguard: [] };
+
+// ═══════════════════════════════════════════════════════════
+// CONNECTION (pywebview + WebSocket)
+// ═══════════════════════════════════════════════════════════
+
+function isPywebview() { return !!(window.pywebview && window.pywebview.api); }
+
+function sendCmd(cmdObj) {
+  if (isPywebview()) {
+    const cmd = cmdObj.cmd;
+    const api = window.pywebview.api;
+    if (cmd === 'get_state' && api.get_global_state) api.get_global_state().then(r => handleMsg(JSON.parse(r)));
+    else if (cmd === 'get_agent_state' && api.get_agent_state) api.get_agent_state(cmdObj.agent).then(r => handleMsg(JSON.parse(r)));
+    else if (cmd === 'start_agent') api.start_agent(cmdObj.agent).then(r => handleResult(r));
+    else if (cmd === 'stop_agent') api.stop_agent(cmdObj.agent).then(r => handleResult(r));
+    else if (cmd === 'restart_agent') api.restart_agent(cmdObj.agent).then(r => handleResult(r));
+    else if (cmd === 'open_agent_window' && api.open_agent_window) api.open_agent_window(cmdObj.agent).then(r => handleResult(r));
+    else if (cmd === 'send_agent_command') api.send_agent_command(cmdObj.agent, cmdObj.agent_cmd, JSON.stringify(cmdObj.params||{})).then(r => handleResult(r));
+    else if (cmd === 'get_threat_level') api.get_threat_level().then(r => handleMsg(JSON.parse(r)));
+    else if (cmd === 'get_timeline') api.get_timeline(cmdObj.limit||100).then(r => handleMsg({type:'timeline',events:JSON.parse(r)}));
+    else if (cmd === 'get_alerts') api.get_alerts(cmdObj.limit||50).then(r => handleMsg({type:'alerts',alerts:JSON.parse(r)}));
+    else if (cmd === 'get_settings') api.get_settings().then(r => handleMsg({type:'settings',...JSON.parse(r)}));
+    else if (cmd === 'save_settings') api.save_settings(JSON.stringify(cmdObj.settings||{})).then(r => handleResult(r));
+    else if (cmd === 'get_diagnostics') api.get_diagnostics().then(r => handleMsg({type:'diagnostics',...JSON.parse(r)}));
+    else if (cmd === 'chat_message') {
+      if (api.chat_message) api.chat_message(cmdObj.agent, cmdObj.message, currentLang).then(r => handleMsg(JSON.parse(r)));
+    }
+    else if (cmd === 'chat_advice') {
+      if (api.chat_advice) api.chat_advice(cmdObj.agent, currentLang).then(r => handleMsg(JSON.parse(r)));
+    }
+    else if (cmd === 'get_playbooks' && api.get_playbooks) api.get_playbooks(currentLang).then(r => handleMsg({type:'playbooks',playbooks:JSON.parse(r)}));
+    else if (cmd === 'toggle_playbook' && api.toggle_playbook) api.toggle_playbook(cmdObj.playbook_id).then(r => handleResult(r));
+    else if (cmd === 'get_playbook_log' && api.get_playbook_log) api.get_playbook_log(cmdObj.limit||50).then(r => handleMsg({type:'playbook_log',log:JSON.parse(r)}));
+    else if (cmd === 'get_threat_intel' && api.get_threat_intel_stats) api.get_threat_intel_stats().then(r => handleMsg({type:'threat_intel',...JSON.parse(r)}));
+    else if (cmd === 'check_ip' && api.check_ip_reputation) api.check_ip_reputation(cmdObj.ip).then(r => handleMsg({type:'ip_check_result',...JSON.parse(r)}));
+    else if (cmd === 'update_threat_feeds' && api.update_threat_feeds) api.update_threat_feeds().then(r => handleResult(r));
+    else if (cmd === 'get_alert_config' && api.get_alert_config) api.get_alert_config().then(r => handleMsg({type:'alert_config',...JSON.parse(r)}));
+    else if (cmd === 'update_alert_config' && api.update_alert_config) api.update_alert_config(JSON.stringify(cmdObj.config||{})).then(r => handleResult(r));
+    else if (cmd === 'test_telegram' && api.test_telegram) api.test_telegram().then(r => handleResult(r));
+    else if (cmd === 'test_discord' && api.test_discord) api.test_discord().then(r => handleResult(r));
+    else if (cmd === 'get_alert_log' && api.get_alert_log) api.get_alert_log(cmdObj.limit||50).then(r => handleMsg({type:'alert_log',log:JSON.parse(r)}));
+    else if (cmd === 'strikeback_isolate') sendCmd({cmd:'send_agent_command', agent:'strikeback', agent_cmd:'isolate_ip', params:{ip:cmdObj.ip}});
+    else if (cmd === 'recorder_start_incident') sendCmd({cmd:'send_agent_command', agent:'recorder', agent_cmd:'start_incident', params:{}});
+    else if (cmd === 'recorder_stop_incident') sendCmd({cmd:'send_agent_command', agent:'recorder', agent_cmd:'stop_incident', params:{}});
+    else if (cmd === 'recorder_generate_report') sendCmd({cmd:'send_agent_command', agent:'recorder', agent_cmd:'generate_report', params:{}});
+  } else if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify(cmdObj));
+  }
+}
+
+function handleResult(r) {
+  try {
+    const data = typeof r === 'string' ? JSON.parse(r) : r;
+    if (data.error) showNotif(data.error, 'error');
+    else if (data.success) { showNotif(t('settings.saved'), 'success'); setTimeout(() => sendCmd({cmd:'get_state'}), 500); }
+  } catch(e) {}
+}
+
+let wsReconnectTimer = null;
+let wsRetryDelay = 5000;
+const WS_MAX_RETRY = 30000;
+
+function connectWS() {
+  if (isPywebview()) { setConnectionStatus(true); sendCmd({cmd:'get_state'}); return; }
+  if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+  if (ws && (ws.readyState === 0 || ws.readyState === 1)) return; // already connecting/open
+  try {
+    ws = new WebSocket(`ws://localhost:${WS_PORT}`);
+    ws.onopen = () => {
+      setConnectionStatus(true);
+      wsRetryDelay = 5000; // reset backoff
+      sendCmd({cmd:'get_state'});
+    };
+    ws.onmessage = (e) => { try { handleMsg(JSON.parse(e.data)); } catch(err) {} };
+    ws.onclose = () => {
+      setConnectionStatus(false);
+      // Reconnect with backoff — only if not pywebview
+      if (!isPywebview()) {
+        wsReconnectTimer = setTimeout(connectWS, wsRetryDelay);
+        wsRetryDelay = Math.min(wsRetryDelay + 5000, WS_MAX_RETRY);
+      }
+    };
+    ws.onerror = () => {};
+  } catch(e) {}
+}
+
+function setConnectionStatus(connected) {
+  wsConnected = connected;
+  document.getElementById('ws-dot').className = 'dot ' + (connected ? 'connected' : 'disconnected');
+  document.getElementById('ws-label').textContent = connected ? t('ws.connected') : t('ws.disconnected');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MESSAGE HANDLER
+// ═══════════════════════════════════════════════════════════
+
+function handleMsg(msg) {
+  if (!msg) return;
+  const tp = msg.type;
+  if (tp === 'global_state') { globalState = msg; renderAll(); }
+  else if (tp === 'diagnostics') renderDiagnostics(msg);
+  else if (tp === 'settings') applySettings(msg);
+  else if (tp === 'chat_response') handleChatResponse(msg);
+  else if (tp === 'playbooks') applyPlaybooks(msg);
+  else if (tp === 'playbook_log') applyPlaybookLog(msg);
+  else if (tp === 'threat_intel') applyThreatIntel(msg);
+  else if (tp === 'ip_check_result') applyIPCheckResult(msg);
+  else if (tp === 'alert_config') applyAlertConfig(msg);
+  else if (tp === 'alert_test_result') {
+    showNotif(msg.success ? t('alerts.test_sent') : t('alerts.test_failed'), msg.success ? 'success' : 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ALL — called on state update or language change
+// ═══════════════════════════════════════════════════════════
+
+function renderAll() {
+  renderSidebar();
+  updateTopbar();
+  renderLaunchBar();
+  if (globalState) {
+    renderOverview(globalState);
+    renderAgentsList(globalState);
+    renderThreats(globalState);
+    renderAgentDetails(globalState);
+    updateSidebarDots(globalState);
+  }
+  renderSettingsPage();
+  renderHelpPage();
+  renderChatPage();
+  renderHoneypot();
+  renderFIM();
+  renderSOAR();
+  renderThreatIntel();
+  renderAlertConfig();
+  renderStrikeBack();
+  renderRecorder();
+  setConnectionStatus(wsConnected);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LAUNCH BAR — clickable chips to start/stop/open agents
+// ═══════════════════════════════════════════════════════════
+
+const ALL_AGENTS = [
+  { key: 'netguard',   name: 'NetGuard',    icon: '\u{1F6E1}', color: '#4d9fff', port: 8765 },
+  { key: 'cleanguard', name: 'CleanGuard',  icon: '\u{1F9F9}', color: '#ffb347', port: 8810 },
+  { key: 'mailshield', name: 'MailShield',  icon: '\u{1F4E7}', color: '#3dffb4', port: 8801 },
+  { key: 'vpnguard',   name: 'VPN Guard',   icon: '\u{1F512}', color: '#00d4ff', port: 8820 },
+  { key: 'honeypot',   name: 'HoneyPot',    icon: '\u{1F36F}', color: '#ff6b6b', port: 8830 },
+  { key: 'fim',        name: 'FIM',          icon: '\u{1F4C1}', color: '#a855f7', port: 8840 },
+  { key: 'strikeback', name: 'StrikeBack',  icon: '\u{2694}',  color: '#ff3d3d', port: 8850 },
+  { key: 'recorder',   name: 'RecordAgent', icon: '\u{23FA}',  color: '#60a5fa', port: 8860 },
+];
+
+function renderLaunchBar() {
+  const bar = document.getElementById('launch-bar');
+  if (!bar) return;
+
+  const agents = globalState ? (globalState.agents || {}) : {};
+
+  bar.innerHTML = ALL_AGENTS.map(ag => {
+    const state = agents[ag.key];
+    const proc = state ? (state.process || {}) : {};
+    const running = proc.running || false;
+    const connected = state ? state.connected : false;
+    const statusClass = running ? 'running' : '';
+    const statusLabel = running ? t('launch.running') : t('launch.stopped');
+    const dotColor = connected ? 'var(--green)' : running ? 'var(--yellow, #f59e0b)' : 'var(--text-dim)';
+
+    return `<div class="launch-chip ${statusClass}" style="--chip-color:${ag.color}" title="${ag.name} — ${statusLabel}">
+      <span style="color:${dotColor};font-size:10px">\u25CF</span>
+      <span style="color:${ag.color}">${ag.icon}</span>
+      ${running
+        ? `<span class="chip-action stop-btn" title="${t('action.stop')}" onclick="event.stopPropagation();agentAction('stop','${ag.key}')">&#9632;</span>`
+        : `<span class="chip-action start-btn" title="${t('action.start')}" onclick="event.stopPropagation();agentAction('start','${ag.key}')">&#9654;</span>`
+      }
+      <span class="chip-action open-btn" title="${t('launch.open')}" onclick="event.stopPropagation();launchOpen('${ag.key}',${ag.port})">&#128279;</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+
+function renderSidebar() {
+  document.getElementById('sidebar-version').textContent = t('sidebar.version');
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = `
+    <div class="nav-section">${t('nav.main')}</div>
+    <div class="nav-item ${currentTab==='overview'?'active':''}" data-tab="overview">
+      <span class="nav-icon">&#128202;</span><span>${t('nav.overview')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='agents'?'active':''}" data-tab="agents">
+      <span class="nav-icon">&#129302;</span><span>${t('nav.agents')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='threats'?'active':''}" data-tab="threats">
+      <span class="nav-icon">&#9889;</span><span>${t('nav.threats')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='chat'?'active':''}" data-tab="chat">
+      <span class="nav-icon">&#128172;</span><span>${t('nav.chat')}</span>
+    </div>
+    <div class="nav-section">${t('nav.agents_section')}</div>
+    ${AGENT_KEYS.map(k => `
+      <div class="nav-item ${currentTab==='agent-'+k?'active':''}" data-tab="agent-${k}">
+        <span class="nav-icon">${AGENT_ICONS[k]}</span><span>${k.charAt(0).toUpperCase()+k.slice(1)}</span>
+        <span class="status-dot unknown" id="dot-${k}"></span>
+      </div>
+    `).join('')}
+    <div class="nav-section">${t('nav.advanced')}</div>
+    <div class="nav-item ${currentTab==='honeypot'?'active':''}" data-tab="honeypot">
+      <span class="nav-icon">\u{1F36F}</span><span>${t('nav.honeypot')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='fim'?'active':''}" data-tab="fim">
+      <span class="nav-icon">\u{1F4C1}</span><span>${t('nav.fim')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='soar'?'active':''}" data-tab="soar">
+      <span class="nav-icon">&#9654;</span><span>${t('nav.soar')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='intel'?'active':''}" data-tab="intel">
+      <span class="nav-icon">\u{1F310}</span><span>${t('nav.intel')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='alerts'?'active':''}" data-tab="alerts">
+      <span class="nav-icon">\u{1F514}</span><span>${t('nav.alerts')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='strikeback'?'active':''}" data-tab="strikeback">
+      <span class="nav-icon">\u{2694}</span><span>${t('nav.strikeback')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='recorder'?'active':''}" data-tab="recorder">
+      <span class="nav-icon">\u{23FA}</span><span>${t('nav.recorder')}</span>
+    </div>
+    <div class="nav-section">${t('nav.system')}</div>
+    <div class="nav-item ${currentTab==='settings'?'active':''}" data-tab="settings">
+      <span class="nav-icon">&#9881;</span><span>${t('nav.settings')}</span>
+    </div>
+    <div class="nav-item ${currentTab==='help'?'active':''}" data-tab="help">
+      <span class="nav-icon">&#10067;</span><span>${t('nav.help')}</span>
+    </div>
+  `;
+  nav.querySelectorAll('.nav-item[data-tab]').forEach(el => {
+    el.addEventListener('click', () => {
+      const tab = el.dataset.tab;
+      // Main agents: open in independent window
+      if (tab.startsWith('agent-')) {
+        const key = tab.replace('agent-', '');
+        openAgentDashboard(key);
+      } else {
+        switchTab(tab);
+      }
+    });
+  });
+}
+
+function updateTopbar() {
+  const titles = {
+    'overview': t('topbar.overview'), 'agents': t('topbar.agents'), 'threats': t('topbar.threats'),
+    'chat': t('topbar.chat'), 'settings': t('topbar.settings'), 'help': t('topbar.help'),
+    'honeypot': t('topbar.honeypot'), 'fim': t('topbar.fim'), 'soar': t('topbar.soar'),
+    'intel': t('topbar.intel'), 'alerts': t('topbar.alerts'),
+    'strikeback': t('topbar.strikeback'), 'recorder': t('topbar.recorder'),
+  };
+  AGENT_KEYS.forEach(k => { titles['agent-'+k] = k.charAt(0).toUpperCase()+k.slice(1)+' Pro'; });
+  document.getElementById('topbar-title').textContent = titles[currentTab] || currentTab;
+}
+
+function switchTab(tabId) {
+  currentTab = tabId;
+  renderSidebar();
+  updateTopbar();
+  // Show correct tab
+  const content = document.getElementById('content-area');
+  content.querySelectorAll('.tab-page').forEach(el => {
+    el.classList.toggle('active', el.id === 'tab-' + tabId);
+  });
+  if (tabId === 'settings') { sendCmd({cmd:'get_settings'}); sendCmd({cmd:'get_diagnostics'}); }
+  if (tabId === 'chat') renderChatPage();
+  if (tabId === 'soar') { sendCmd({cmd:'get_playbooks'}); sendCmd({cmd:'get_playbook_log'}); }
+  if (tabId === 'intel') sendCmd({cmd:'get_threat_intel'});
+  if (tabId === 'alerts') sendCmd({cmd:'get_alert_config'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — OVERVIEW
+// ═══════════════════════════════════════════════════════════
+
+// Activity history for graphs
+let activityHistory = [];
+const MAX_ACTIVITY = 30;
+
+function renderOverview(state) {
+  let el = document.getElementById('tab-overview');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-overview';
+    el.className = 'tab-page' + (currentTab==='overview'?' active':'');
+    content.appendChild(el);
+  }
+
+  const threat = state.threat_level || {};
+  const score = threat.score || 0;
+  const grade = threat.grade || 'A';
+  const agents = state.agents || {};
+  const ng = agents.netguard?.state || {};
+  const cg = agents.cleanguard?.state || {};
+  const vg = agents.vpnguard?.state || {};
+  const ms = agents.mailshield?.state || {};
+  const hp = agents.honeypot?.state || {};
+  const fm = agents.fim?.state || {};
+  const sb = agents.strikeback?.state || {};
+  const rc = agents.recorder?.state || {};
+  const sys = state.system || {};
+  const timeline = state.timeline || [];
+  const color = getScoreColor(score);
+
+  // Track activity history for graph
+  const evtCount = timeline.length;
+  activityHistory.push({ ts: Date.now(), events: evtCount, threats: ng.threats_count||0 });
+  if (activityHistory.length > MAX_ACTIVITY) activityHistory.shift();
+
+  // Count online agents
+  const onlineCount = ALL_AGENTS.filter(a => agents[a.key]?.connected).length;
+
+  el.innerHTML = `
+    <!-- TOP ROW: Threat gauge + Agent mosaic -->
+    <div class="overview-top">
+      <div class="card threat-gauge">
+        <div class="gauge-circle">
+          <svg viewBox="0 0 170 170">
+            <circle class="gauge-bg" cx="85" cy="85" r="72"/>
+            <circle class="gauge-fill" cx="85" cy="85" r="72"
+              stroke-dasharray="452" stroke-dashoffset="${452 - (score/100)*452}" stroke="${color}"/>
+          </svg>
+          <div class="gauge-text">
+            <div class="gauge-score" style="color:${color}">${score}</div>
+            <div class="gauge-label">${t('threat.label')}</div>
+          </div>
+        </div>
+        <div class="gauge-grade" style="background:${color}22;color:${color}">${t('threat.grade')} ${grade}</div>
+      </div>
+      <div>
+        <div class="card-title">\u{1F916} ${t('overview.agents_status')} (${onlineCount}/${ALL_AGENTS.length})</div>
+        <div class="agent-mosaic" id="agent-mosaic"></div>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${ng.threats_count||0}</div><div class="stat-label">${t('overview.active_threats')}</div></div>
+      <div class="stat-card"><div class="stat-value">${onlineCount}</div><div class="stat-label">${t('overview.agents_online')}</div></div>
+      <div class="stat-card"><div class="stat-value">${formatNum(ng.packets_blocked||0)}</div><div class="stat-label">${t('threat.blocked')}</div></div>
+      <div class="stat-card"><div class="stat-value">${hp.traps_triggered||0}</div><div class="stat-label">${t('overview.traps_hit')}</div></div>
+      <div class="stat-card"><div class="stat-value">${sb.stats?.total_attackers||0}</div><div class="stat-label">${t('overview.counter_actions')}</div></div>
+      <div class="stat-card"><div class="stat-value">${rc.recording?.events_recorded||0}</div><div class="stat-label">${t('overview.recording')}</div></div>
+    </div>
+
+    <!-- Resources -->
+    <div class="overview-cols">
+      <div class="card">
+        <div class="card-title">\u{1F4BB} ${t('overview.resources')}</div>
+        <div class="grid-3">
+          <div class="metric">
+            <div class="metric-value" style="color:${sys.cpu_percent>80?'var(--red)':sys.cpu_percent>50?'var(--orange)':'var(--green)'}">${sys.cpu_percent||0}%</div>
+            <div class="metric-label">CPU</div>
+            <div style="margin-top:6px;height:4px;background:var(--border);border-radius:2px">
+              <div style="height:100%;width:${sys.cpu_percent||0}%;background:${sys.cpu_percent>80?'var(--red)':sys.cpu_percent>50?'var(--orange)':'var(--green)'};border-radius:2px;transition:width 0.5s"></div>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-value" style="color:${sys.ram_percent>80?'var(--red)':sys.ram_percent>50?'var(--orange)':'var(--green)'}">${sys.ram_percent||0}%</div>
+            <div class="metric-label">RAM</div>
+            <div style="margin-top:6px;height:4px;background:var(--border);border-radius:2px">
+              <div style="height:100%;width:${sys.ram_percent||0}%;background:${sys.ram_percent>80?'var(--red)':sys.ram_percent>50?'var(--orange)':'var(--green)'};border-radius:2px;transition:width 0.5s"></div>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-value" style="color:${sys.disk_percent>90?'var(--red)':sys.disk_percent>70?'var(--orange)':'var(--green)'}">${sys.disk_percent||0}%</div>
+            <div class="metric-label">Disk</div>
+            <div style="margin-top:6px;height:4px;background:var(--border);border-radius:2px">
+              <div style="height:100%;width:${sys.disk_percent||0}%;background:${sys.disk_percent>90?'var(--red)':sys.disk_percent>70?'var(--orange)':'var(--green)'};border-radius:2px;transition:width 0.5s"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-3" style="margin-top:12px">
+          <div class="metric"><div class="metric-value">${vg.connected?'\u{2705}':'\u{274C}'}</div><div class="metric-label">${t('overview.vpn_status')}</div></div>
+          <div class="metric"><div class="metric-value">${cg.health_grade||'--'}</div><div class="metric-label">${t('overview.health')}</div></div>
+          <div class="metric"><div class="metric-value">${evtCount}</div><div class="metric-label">${t('overview.total_events')}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="card">
+      <div class="card-title">\u{26A1} ${t('overview.timeline')}</div>
+      <div class="timeline-container" style="max-height:300px" id="overview-timeline"></div>
+    </div>
+  `;
+  // Populate agent mosaic
+  var mosaicEl = document.getElementById('agent-mosaic');
+  if (mosaicEl) {
+    var mosaicHtml = '';
+    ALL_AGENTS.forEach(function(a) {
+      var ag = agents[a.key] || {};
+      var on = ag.connected;
+      var tabTarget = (['netguard','cleanguard','mailshield','vpnguard'].indexOf(a.key) >= 0) ? 'agent-' + a.key : a.key;
+      mosaicHtml += '<div class="agent-tile' + (on ? ' online' : '') + '" style="border-color:' + a.color + '40" onclick="switchTab(\'' + tabTarget + '\')">'
+        + '<div class="tile-top"><span class="tile-icon" style="color:' + a.color + '">' + a.icon + '</span>'
+        + '<span class="tile-name">' + a.name + '</span></div>'
+        + '<div class="tile-status" style="color:' + (on ? 'var(--green)' : 'var(--text-dim)') + '">' + (on ? '● ' + t('status.online') : '○ ' + t('status.offline')) + '</div>'
+        + '</div>';
+    });
+    mosaicEl.innerHTML = mosaicHtml;
+  }
+
+  renderTimelineEvents(document.getElementById('overview-timeline'), timeline.slice(-25));
+}
+
+function getScoreColor(score) {
+  if (score <= 10) return '#22c55e';
+  if (score <= 25) return '#84cc16';
+  if (score <= 50) return '#f59e0b';
+  if (score <= 75) return '#f97316';
+  return '#ef4444';
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — AGENTS LIST
+// ═══════════════════════════════════════════════════════════
+
+function renderAgentsList(state) {
+  let el = document.getElementById('tab-agents');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-agents';
+    el.className = 'tab-page' + (currentTab==='agents'?' active':'');
+    content.appendChild(el);
+  }
+
+  const agents = state.agents || {};
+  el.innerHTML = AGENT_KEYS.map(k => {
+    const a = agents[k]; if (!a) return '';
+    const proc = a.process || {};
+    const online = a.connected;
+    const running = proc.running;
+    const color = AGENT_COLORS[k];
+    return `<div class="agent-card-full">
+      <div class="agent-card-header">
+        <div class="agent-icon" style="background:${color}22;color:${color};font-size:1.5rem">${AGENT_ICONS[k]}</div>
+        <div><h3 style="color:${color}">${a.name||k}</h3><span class="port">Port ${a.port} ${proc.pid?'| PID '+proc.pid:''}</span></div>
+        <span class="agent-status-badge ${online?'online':'offline'}" style="margin-left:auto">
+          ${online?t('status.connected'):running?t('status.starting'):t('status.stopped')}
+        </span>
+      </div>
+      <div class="agent-metrics">
+        <div class="metric"><div class="metric-value" style="color:${running?'var(--green)':'var(--red)'}">${running?t('status.active'):t('status.inactive')}</div><div class="metric-label">${t('agents.process')}</div></div>
+        <div class="metric"><div class="metric-value">${online?t('status.yes'):t('status.no')}</div><div class="metric-label">${t('agents.websocket')}</div></div>
+        <div class="metric"><div class="metric-value">${proc.cpu||0}%</div><div class="metric-label">CPU</div></div>
+        <div class="metric"><div class="metric-value">${proc.mem_mb||0} MB</div><div class="metric-label">RAM</div></div>
+        <div class="metric"><div class="metric-value">${formatUptime(proc.uptime||0)}</div><div class="metric-label">${t('agents.uptime')}</div></div>
+      </div>
+      <div class="agent-actions">
+        ${running
+          ? `<button class="btn btn-red btn-sm" onclick="agentAction('stop','${k}')">&#9632; ${t('action.stop')}</button>
+             <button class="btn btn-orange btn-sm" onclick="agentAction('restart','${k}')">&#128260; ${t('action.restart')}</button>`
+          : `<button class="btn btn-green btn-sm" onclick="agentAction('start','${k}')">&#9654; ${t('action.start')}</button>`
+        }
+        <button class="btn btn-sm" onclick="switchTab('agent-${k}')">&#128269; ${t('action.details')}</button>
+        <button class="btn btn-sm" onclick="openAgentDashboard('${k}',${a.port})">&#127760; ${t('action.dedicated')}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — THREATS
+// ═══════════════════════════════════════════════════════════
+
+function renderThreats(state) {
+  let el = document.getElementById('tab-threats');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-threats';
+    el.className = 'tab-page' + (currentTab==='threats'?' active':'');
+    content.appendChild(el);
+  }
+  const threat = state.threat_level || {};
+  const score = threat.score || 0;
+  const factors = threat.factors || [];
+  const timeline = state.timeline || [];
+  const alerts = timeline.filter(e => e.severity === 'warning' || e.severity === 'critical');
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">&#128201; ${t('threat.level')}</div>
+      <div class="grid-2">
+        <div><div style="font-size:3rem;font-weight:700;color:${getScoreColor(score)}">${score}</div>
+        <div style="font-size:0.85rem;color:var(--text-muted)">${t('threat.score_label')}</div></div>
+        <div><div class="card-title" style="margin-top:0">${t('threat.factors')}</div>
+        <ul class="factor-list">${factors.length?factors.map(f=>`<li>${f}</li>`).join(''):`<li style="color:var(--green)">${t('threat.none')}</li>`}</ul></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#128337; ${t('threat.alert_timeline')}</div>
+      <div class="timeline-container" id="threats-timeline" style="max-height:calc(100vh - 400px)"></div>
+    </div>`;
+  renderTimelineEvents(document.getElementById('threats-timeline'), alerts.length ? alerts : timeline.slice(-30));
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — AGENT DETAILS
+// ═══════════════════════════════════════════════════════════
+
+function renderAgentDetails(state) {
+  const agents = state.agents || {};
+  for (const k of AGENT_KEYS) {
+    let el = document.getElementById('tab-agent-'+k);
+    if (!el) {
+      const content = document.getElementById('content-area');
+      el = document.createElement('div'); el.id = 'tab-agent-'+k;
+      el.className = 'tab-page' + (currentTab==='agent-'+k?' active':'');
+      content.appendChild(el);
+    }
+    const a = agents[k];
+    if (!a) continue;
+    const s = a.state || {};
+    const online = a.connected;
+    const color = AGENT_COLORS[k];
+    let detail = '';
+    if (!online) {
+      detail = `<p style="color:var(--text-muted);padding:20px">${a.name} ${t('status.disconnected')}.
+        <button class="btn btn-green btn-sm" onclick="agentAction('start','${k}')">${t('action.start')}</button></p>`;
+    } else if (k === 'netguard') detail = renderNetGuardDetail(s, color);
+    else if (k === 'cleanguard') detail = renderCleanGuardDetail(s, color);
+    else if (k === 'mailshield') detail = renderMailShieldDetail(s, color);
+    else if (k === 'vpnguard') detail = renderVPNGuardDetail(s, color);
+    el.innerHTML = `<div class="card"><div class="card-title" style="color:${color}">${AGENT_ICONS[k]} ${t('agent.'+k+'.title')}</div><div>${detail}</div></div>`;
+  }
+}
+
+function renderNetGuardDetail(s, c) {
+  return `<div class="grid-3" style="margin-bottom:16px">
+    <div class="metric"><div class="metric-value" style="color:${c}">${formatNum(s.packets_total||0)}</div><div class="metric-label">${t('agents.packets_analyzed')}</div></div>
+    <div class="metric"><div class="metric-value" style="color:var(--red)">${formatNum(s.packets_blocked||0)}</div><div class="metric-label">${t('agents.packets_blocked')}</div></div>
+    <div class="metric"><div class="metric-value" style="color:var(--orange)">${s.threats_count||0}</div><div class="metric-label">${t('threat.detected')}</div></div>
+    <div class="metric"><div class="metric-value">${s.active_conns||0}</div><div class="metric-label">${t('agents.active_conns')}</div></div>
+    <div class="metric"><div class="metric-value">${s.dpi_enabled?t('status.active'):t('status.inactive')}</div><div class="metric-label">${t('agents.dpi')}</div></div>
+    <div class="metric"><div class="metric-value">${s.suricata_enabled?t('status.active'):t('status.inactive')}</div><div class="metric-label">${t('agents.suricata')}</div></div>
+  </div>
+  ${s.threats?.length?`<div class="card-title">${t('threat.latest')}</div>${s.threats.slice(-5).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:0.82rem"><strong style="color:var(--red)">${x.type||t('threat.type')}</strong> — ${x.ip||x.src||t('threat.unknown_ip')} <span style="color:var(--text-muted);font-size:0.72rem">${formatTime(x.ts)}</span></div>`).join('')}`:''}
+  <div style="margin-top:12px"><button class="btn btn-sm" onclick="openAgentDashboard('netguard',8765)">${t('action.open_dashboard')}</button></div>`;
+}
+
+function renderCleanGuardDetail(s, c) {
+  return `<div class="grid-3" style="margin-bottom:16px">
+    <div class="metric"><div class="metric-value" style="color:${c}">${s.health_score||0}/100</div><div class="metric-label">${t('agents.health_score')}</div></div>
+    <div class="metric"><div class="metric-value">${s.health_grade||'--'}</div><div class="metric-label">${t('agents.grade')}</div></div>
+    <div class="metric"><div class="metric-value" style="color:${s.realtime_protection?'var(--green)':'var(--red)'}">${s.realtime_protection?t('status.active'):t('status.inactive')}</div><div class="metric-label">${t('agents.realtime')}</div></div>
+    <div class="metric"><div class="metric-value" style="color:var(--orange)">${s.scan_threats_count||0}</div><div class="metric-label">${t('agents.scan_threats')}</div></div>
+    <div class="metric"><div class="metric-value">${s.quarantine_count||0}</div><div class="metric-label">${t('agents.quarantine')}</div></div>
+    <div class="metric"><div class="metric-value">${s.scan_active?(s.scan_progress*100).toFixed(0)+'%':t('status.inactive')}</div><div class="metric-label">${t('agents.scan_progress')}</div></div>
+  </div>
+  <div style="margin-top:12px"><button class="btn btn-sm" onclick="sendAgentCmd('cleanguard','quick_scan')">${t('action.quick_scan')}</button>
+  <button class="btn btn-sm" onclick="openAgentDashboard('cleanguard',8810)">${t('action.open_dashboard')}</button></div>`;
+}
+
+function renderMailShieldDetail(s, c) {
+  return `<div class="grid-3" style="margin-bottom:16px">
+    <div class="metric"><div class="metric-value" style="color:${c}">${t('status.active')}</div><div class="metric-label">Status</div></div>
+    <div class="metric"><div class="metric-value">--</div><div class="metric-label">${t('agents.emails')}</div></div>
+    <div class="metric"><div class="metric-value">--</div><div class="metric-label">${t('agents.phishing')}</div></div>
+  </div>
+  <div style="margin-top:12px"><button class="btn btn-sm" onclick="sendAgentCmd('mailshield','sync')">${t('action.sync')}</button>
+  <button class="btn btn-sm" onclick="openAgentDashboard('mailshield',8801)">${t('action.open_dashboard')}</button></div>`;
+}
+
+function renderVPNGuardDetail(s, c) {
+  const con = s.connected||false;
+  return `<div class="grid-3" style="margin-bottom:16px">
+    <div class="metric"><div class="metric-value" style="color:${con?'var(--green)':'var(--red)'}">${con?t('status.connected'):t('status.disconnected')}</div><div class="metric-label">${t('agents.vpn_status')}</div></div>
+    <div class="metric"><div class="metric-value">${s.active_profile_name||s.active_profile||'--'}</div><div class="metric-label">${t('agents.active_profile')}</div></div>
+    <div class="metric"><div class="metric-value">${s.public_ip||'--'}</div><div class="metric-label">${t('agents.public_ip')}</div></div>
+    <div class="metric"><div class="metric-value">${s.kill_switch_enabled?t('status.active'):t('status.inactive')}</div><div class="metric-label">${t('agents.kill_switch')}</div></div>
+    <div class="metric"><div class="metric-value">${s.dns_protected?t('status.yes'):t('status.no')}</div><div class="metric-label">${t('agents.dns_protected')}</div></div>
+    <div class="metric"><div class="metric-value">${formatBytes(s.bytes_rx||0)} / ${formatBytes(s.bytes_tx||0)}</div><div class="metric-label">${t('agents.traffic')}</div></div>
+  </div>
+  <div style="margin-top:12px">
+    ${con?`<button class="btn btn-red btn-sm" onclick="sendAgentCmd('vpnguard','quick_disconnect')">${t('action.disconnect')}</button>`
+        :`<button class="btn btn-green btn-sm" onclick="sendAgentCmd('vpnguard','quick_connect')">${t('action.connect')}</button>`}
+    <button class="btn btn-sm" onclick="openAgentDashboard('vpnguard',8820)">${t('action.open_dashboard')}</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — TIMELINE
+// ═══════════════════════════════════════════════════════════
+
+function renderTimelineEvents(container, events) {
+  if (!container) return;
+  if (!events?.length) { container.innerHTML = `<div style="color:var(--text-muted);font-size:0.82rem;padding:20px;text-align:center">${t('overview.no_events')}</div>`; return; }
+  container.innerHTML = [...events].reverse().map(e => {
+    const color = AGENT_COLORS[e.source] || 'var(--accent)';
+    const data = e.data || {};
+    let desc = e.channel || '';
+    if (data.count !== undefined) desc += ` (${data.count})`;
+    if (data.agent) desc += ` [${data.agent}]`;
+    if (data.connected !== undefined) desc += data.connected ? ` ${t('status.connected')}` : ` ${t('status.disconnected')}`;
+    return `<div class="timeline-event severity-${e.severity||'info'}">
+      <span class="timeline-time">${formatTime(e.ts)}</span>
+      <span class="timeline-source" style="background:${color}22;color:${color}">${e.source||'?'}</span>
+      <div class="timeline-content">${desc}<div class="timeline-channel">${e.channel||''}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function updateSidebarDots(state) {
+  const agents = state.agents || {};
+  AGENT_KEYS.forEach(k => {
+    const dot = document.getElementById(`dot-${k}`);
+    if (dot) dot.className = 'status-dot ' + (agents[k]?.connected ? 'online' : 'offline');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — SETTINGS
+// ═══════════════════════════════════════════════════════════
+
+function renderSettingsPage() {
+  let el = document.getElementById('tab-settings');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-settings';
+    el.className = 'tab-page' + (currentTab==='settings'?' active':'');
+    content.appendChild(el);
+  }
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">&#9881; ${t('settings.title')}</div>
+      <div class="setting-row">
+        <div><div class="setting-label">${t('settings.autostart')}</div><div class="setting-desc">${t('settings.autostart_desc')}</div></div>
+        <label class="toggle"><input type="checkbox" id="set-auto-start" checked onchange="saveSetting('auto_start_agents',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">${t('settings.poll')}</div><div class="setting-desc">${t('settings.poll_desc')}</div></div>
+        <select id="set-poll-interval" style="background:var(--bg-card2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px"
+          onchange="saveSetting('state_poll_interval',parseInt(this.value))">
+          <option value="2">2s</option><option value="5" selected>5s</option><option value="10">10s</option><option value="30">30s</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">${t('settings.startup')}</div><div class="setting-desc">${t('settings.startup_desc')}</div></div>
+        <label class="toggle"><input type="checkbox" id="set-startup" onchange="saveSetting('startup_enabled',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">${t('settings.language')}</div><div class="setting-desc">${t('settings.language_desc')}</div></div>
+        <div class="lang-switch">
+          <button class="lang-btn ${currentLang==='fr'?'active':''}" onclick="setLanguage('fr')">FR</button>
+          <button class="lang-btn ${currentLang==='en'?'active':''}" onclick="setLanguage('en')">EN</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#128640; ${t('settings.diagnostics')}</div>
+      <div id="diagnostics-content" style="font-family:monospace;font-size:0.78rem;color:var(--text-dim);white-space:pre-wrap">...</div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="sendCmd({cmd:'get_diagnostics'})">&#128260; ${t('action.refresh')}</button>
+    </div>`;
+}
+
+function renderDiagnostics(data) {
+  const el = document.getElementById('diagnostics-content');
+  if (!el) return;
+  let txt = `Cortex v${data.cortex_version||'?'}\nPython: ${data.python_version||'?'}\nOS: ${data.os||'?'}\nPort: ${data.cortex_port||'?'}\nUptime: ${formatUptime(data.uptime_s||0)}\n\n`;
+  for (const [k,a] of Object.entries(data.agents||{})) {
+    const p = a.process||{};
+    txt += `--- ${a.name||k} ---\n  Port: ${a.port} | ${t('status.connected')}: ${a.connected?t('status.yes'):t('status.no')}\n  ${t('agents.process')}: ${p.running?t('status.active')+' (PID '+p.pid+')':t('status.inactive')}\n${a.error?'  Error: '+a.error+'\n':''}\n`;
+  }
+  el.textContent = txt;
+}
+
+function applySettings(s) {
+  const a = document.getElementById('set-auto-start');
+  const p = document.getElementById('set-poll-interval');
+  const st = document.getElementById('set-startup');
+  if (a) a.checked = s.auto_start_agents !== false;
+  if (p) p.value = s.state_poll_interval || 5;
+  if (st) st.checked = !!s.startup_enabled;
+}
+
+function saveSetting(key, value) {
+  const settings = {}; settings[key] = value;
+  sendCmd({cmd:'save_settings', settings});
+  showNotif(t('settings.saved'), 'success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — HELP
+// ═══════════════════════════════════════════════════════════
+
+function renderHelpPage() {
+  let el = document.getElementById('tab-help');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-help';
+    el.className = 'tab-page' + (currentTab==='help'?' active':'');
+    content.appendChild(el);
+  }
+  el.innerHTML = `<div class="card"><div class="card-title">&#10067; ${t('help.title')}</div>
+    <div class="help-section"><h3>${t('help.what')}</h3><p>${t('help.what_desc')}</p></div>
+    <div class="help-section"><h3>${t('help.agents_title')}</h3><ul>
+      <li><strong>${t('help.agents.netguard')}</strong></li>
+      <li><strong>${t('help.agents.cleanguard')}</strong></li>
+      <li><strong>${t('help.agents.mailshield')}</strong></li>
+      <li><strong>${t('help.agents.vpnguard')}</strong></li>
+    </ul></div>
+    <div class="help-section"><h3>${t('help.cortex_title')}</h3><p>${t('help.cortex_desc')}</p><ul>
+      <li>${t('help.cortex.1')}</li><li>${t('help.cortex.2')}</li><li>${t('help.cortex.3')}</li>
+      <li>${t('help.cortex.4')}</li><li>${t('help.cortex.5')}</li><li>${t('help.cortex.6')}</li>
+    </ul></div>
+    <div class="help-section"><h3>${t('help.score_title')}</h3><ul>
+      <li>${t('help.score.a')}</li><li>${t('help.score.b')}</li><li>${t('help.score.c')}</li>
+      <li>${t('help.score.d')}</li><li>${t('help.score.f')}</li>
+    </ul></div>
+    <div class="help-section"><h3>${t('help.arch_title')}</h3><p>${t('help.arch_desc')}</p>
+    <p style="margin-top:8px"><strong>${t('help.ports')}</strong></p></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT — Agent Dialog
+// ═══════════════════════════════════════════════════════════
+
+function renderChatPage() {
+  let el = document.getElementById('tab-chat');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-chat';
+    el.className = 'tab-page' + (currentTab==='chat'?' active':'');
+    content.appendChild(el);
+  }
+  const suggestions = [1,2,3,4].map(i => t(`chat.suggest.${chatAgent}.${i}`));
+  el.innerHTML = `
+    <div class="chat-container">
+      <div class="chat-agent-tabs">
+        ${AGENT_KEYS.map(k => `<div class="chat-agent-tab ${chatAgent===k?'active':''}" style="${chatAgent===k?'border-color:'+AGENT_COLORS[k]+';color:'+AGENT_COLORS[k]:''}" onclick="selectChatAgent('${k}')">
+          ${AGENT_ICONS[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}
+        </div>`).join('')}
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div style="padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-top:none">
+        <div class="chat-suggestions" id="chat-suggestions">
+          ${suggestions.map(s => `<span class="chat-suggestion" onclick="sendChatMsg('${s.replace(/'/g,"\\'")}')">&#128172; ${s}</span>`).join('')}
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" type="text" placeholder="${t('chat.placeholder')}" onkeydown="if(event.key==='Enter')sendChatFromInput()">
+        <button class="chat-send" onclick="sendChatFromInput()">${t('action.send')}</button>
+      </div>
+    </div>`;
+  renderChatMessages();
+}
+
+function selectChatAgent(key) {
+  chatAgent = key;
+  // Add greeting if no history
+  if (!chatHistory[key].length) {
+    const name = key.charAt(0).toUpperCase() + key.slice(1) + ' Pro';
+    chatHistory[key].push({
+      role: 'agent', text: t('chat.greeting').replace('{agent}', name), ts: Date.now()
+    });
+  }
+  renderChatPage();
+  // Request auto-advice
+  sendCmd({cmd: 'chat_advice', agent: key, lang: currentLang});
+}
+
+function sendChatFromInput() {
+  const input = document.getElementById('chat-input');
+  if (!input || !input.value.trim()) return;
+  sendChatMsg(input.value.trim());
+  input.value = '';
+}
+
+function sendChatMsg(text) {
+  chatHistory[chatAgent].push({role: 'user', text, ts: Date.now()});
+  renderChatMessages();
+  sendCmd({cmd: 'chat_message', agent: chatAgent, message: text, lang: currentLang});
+}
+
+function handleChatResponse(msg) {
+  const agent = msg.agent || chatAgent;
+  chatHistory[agent].push({
+    role: 'agent', text: msg.message || '...', ts: Date.now(), suggestions: msg.suggestions
+  });
+  if (agent === chatAgent) renderChatMessages();
+}
+
+function renderChatMessages() {
+  const el = document.getElementById('chat-messages');
+  if (!el) return;
+  const msgs = chatHistory[chatAgent] || [];
+  if (!msgs.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:40px">${t('chat.no_agent')}</div>`;
+    return;
+  }
+  const color = AGENT_COLORS[chatAgent];
+  el.innerHTML = msgs.map(m => {
+    const time = new Date(m.ts).toLocaleTimeString(currentLang==='fr'?'fr-FR':'en-US', {hour:'2-digit',minute:'2-digit'});
+    if (m.role === 'agent') {
+      return `<div class="chat-bubble agent">
+        <div class="bubble-header" style="color:${color}">${AGENT_ICONS[chatAgent]} ${chatAgent.charAt(0).toUpperCase()+chatAgent.slice(1)} Pro</div>
+        ${m.text}
+        ${m.suggestions?`<div class="chat-suggestions">${m.suggestions.map(s=>`<span class="chat-suggestion" onclick="sendChatMsg('${s.replace(/'/g,"\\'")}')">&#128172; ${s}</span>`).join('')}</div>`:''}
+        <div class="bubble-time">${time}</div>
+      </div>`;
+    }
+    return `<div class="chat-bubble user"><div class="bubble-header">Vous</div>${m.text}<div class="bubble-time">${time}</div></div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — HONEYPOT
+// ═══════════════════════════════════════════════════════════
+
+function renderHoneypot() {
+  let el = document.getElementById('tab-honeypot');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-honeypot';
+    el.className = 'tab-page' + (currentTab==='honeypot'?' active':'');
+    content.appendChild(el);
+  }
+  const hp = globalState?.agents?.honeypot?.state || {};
+  const traps = hp.traps || [];
+  const services = hp.services || [];
+  const alerts = hp.alerts || [];
+  const totalHits = traps.reduce((s,t) => s + (t.hits||0), 0);
+
+  el.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-value" style="color:var(--honeypot)">${traps.length}</div><div class="stat-label">${t('honeypot.active_traps')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${totalHits}</div><div class="stat-label">${t('honeypot.total_hits')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--orange)">${alerts.length}</div><div class="stat-label">${t('honeypot.alerts')}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">\u{1F36F} ${t('honeypot.traps')}</div>
+        ${traps.length ? traps.map(tr => `
+          <div class="honeypot-trap">
+            <span class="trap-name">${tr.name||tr.path||'--'}</span>
+            <span style="font-size:0.72rem;color:var(--text-muted)">${tr.path||''}</span>
+            <span class="trap-hits" style="background:${tr.hits?'var(--red-dim);color:var(--red)':'var(--green-dim);color:var(--green)'}">${tr.hits||0} ${t('honeypot.trap_hits')}</span>
+          </div>
+        `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('honeypot.no_traps')}</div>`}
+      </div>
+      <div class="card">
+        <div class="card-title">\u{1F3AD} ${t('honeypot.services')}</div>
+        ${services.length ? services.map(sv => `
+          <div class="honeypot-trap">
+            <span class="trap-name">${sv.name||sv.service||'--'}</span>
+            <span style="font-size:0.72rem;color:var(--text-muted)">:${sv.port||'--'}</span>
+            <span class="trap-hits" style="background:${sv.connections?'var(--orange-dim);color:var(--orange)':'var(--green-dim);color:var(--green)'}">${sv.connections||0} ${t('honeypot.service_conns')}</span>
+          </div>
+        `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('honeypot.no_services')}</div>`}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#9889; ${t('honeypot.alerts')}</div>
+      <div class="timeline-container" style="max-height:300px">
+        ${alerts.length ? alerts.slice(-20).reverse().map(a => `
+          <div class="timeline-event severity-${a.severity||'warning'}">
+            <span class="timeline-time">${formatTime(a.ts)}</span>
+            <span class="timeline-source" style="background:var(--honeypot)22;color:var(--honeypot)">HoneyPot</span>
+            <div class="timeline-content">${a.message||a.type||'--'} ${a.ip?'<span style="color:var(--text-muted)">'+a.ip+'</span>':''}</div>
+          </div>
+        `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:20px;text-align:center">${t('honeypot.no_alerts')}</div>`}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — FIM (File Integrity Monitor)
+// ═══════════════════════════════════════════════════════════
+
+function renderFIM() {
+  let el = document.getElementById('tab-fim');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-fim';
+    el.className = 'tab-page' + (currentTab==='fim'?' active':'');
+    content.appendChild(el);
+  }
+  const fim = globalState?.agents?.fim?.state || {};
+  const files = fim.baseline_count || fim.total_files || 0;
+  const changes = fim.changes || [];
+  const paths = fim.monitored_paths || [];
+  const lastScan = fim.last_scan || null;
+
+  el.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-value" style="color:var(--fim)">${files}</div><div class="stat-label">${t('fim.total_files')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:${changes.length?'var(--red)':'var(--green)'}">${changes.length}</div><div class="stat-label">${t('fim.total_changes')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--text-dim)">${lastScan?formatTime(lastScan):'--'}</div><div class="stat-label">${t('fim.last_scan')}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">\u{1F4C1} ${t('fim.monitored')}</div>
+        ${paths.length ? paths.map(p => `
+          <div class="fim-entry">
+            <span class="fim-path">${typeof p === 'string' ? p : p.path||'--'}</span>
+          </div>
+        `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('fim.no_paths')}</div>`}
+      </div>
+      <div class="card">
+        <div class="card-title">&#9888; ${t('fim.changes')}</div>
+        ${changes.length ? changes.slice(-30).reverse().map(c => {
+          const changeType = c.type || 'modified';
+          const changeColor = changeType==='added'?'var(--green)':changeType==='deleted'?'var(--red)':'var(--orange)';
+          return `<div class="fim-entry">
+            <span class="fim-path">${c.path||c.file||'--'}</span>
+            <span class="fim-status" style="background:${changeColor}22;color:${changeColor}">${t('fim.change_type.'+changeType)}</span>
+            ${c.ts?'<span style="font-size:0.68rem;color:var(--text-muted)">'+formatTime(c.ts)+'</span>':''}
+          </div>`;
+        }).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('fim.no_changes')}</div>`}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — SOAR Playbooks
+// ═══════════════════════════════════════════════════════════
+
+let soarPlaybooks = [];
+let soarLog = [];
+
+function renderSOAR() {
+  let el = document.getElementById('tab-soar');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-soar';
+    el.className = 'tab-page' + (currentTab==='soar'?' active':'');
+    content.appendChild(el);
+  }
+
+  el.innerHTML = `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">&#9654; ${t('soar.playbooks')}</div>
+        <div id="soar-playbooks-list">
+          ${soarPlaybooks.length ? soarPlaybooks.map((pb, i) => `
+            <div class="playbook-item">
+              <div style="flex:1">
+                <div class="playbook-name">${pb.name||'Playbook '+(i+1)}</div>
+                <div class="playbook-desc">${t('soar.trigger')}: ${pb.trigger||'--'} | ${t('soar.actions')}: ${pb.actions||pb.action_count||0}</div>
+                ${pb.last_run?'<div class="playbook-desc">'+t('soar.last_run')+': '+formatTime(pb.last_run)+'</div>':''}
+              </div>
+              <label class="toggle"><input type="checkbox" ${pb.enabled?'checked':''} onchange="togglePlaybook('${pb.id||i}',this.checked)"><span class="slider"></span></label>
+            </div>
+          `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('soar.no_playbooks')}</div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">&#128221; ${t('soar.execution_log')}</div>
+        <div id="soar-log" style="max-height:400px;overflow-y:auto">
+          ${soarLog.length ? soarLog.slice(-30).reverse().map(entry => `
+            <div class="log-entry">
+              <span class="log-time">${formatTime(entry.ts)}</span>
+              <span class="log-action">${entry.playbook||'--'}</span>
+              <span style="margin-left:8px">${entry.result||entry.message||'--'}</span>
+            </div>
+          `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('soar.no_logs')}</div>`}
+        </div>
+        <button class="btn btn-sm" style="margin-top:12px" onclick="sendCmd({cmd:'get_playbook_log'})">&#128260; ${t('soar.refresh_log')}</button>
+      </div>
+    </div>`;
+}
+
+function togglePlaybook(id, enabled) {
+  sendCmd({cmd:'toggle_playbook', playbook_id: id, enabled});
+}
+
+function applyPlaybooks(msg) {
+  soarPlaybooks = msg.playbooks || [];
+  if (currentTab === 'soar') renderSOAR();
+}
+
+function applyPlaybookLog(msg) {
+  soarLog = msg.log || msg.entries || [];
+  if (currentTab === 'soar') renderSOAR();
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — THREAT INTEL
+// ═══════════════════════════════════════════════════════════
+
+let intelData = { feeds: [], total_iocs: 0, malicious_ips: 0, last_update: null };
+let ipCheckResult = null;
+
+function renderThreatIntel() {
+  let el = document.getElementById('tab-intel');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-intel';
+    el.className = 'tab-page' + (currentTab==='intel'?' active':'');
+    content.appendChild(el);
+  }
+  const feeds = intelData.feeds || [];
+
+  el.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-value" style="color:var(--accent)">${intelData.total_iocs||0}</div><div class="stat-label">${t('intel.total_iocs')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${intelData.malicious_ips||0}</div><div class="stat-label">${t('intel.malicious_ips')}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--text-dim)">${intelData.last_update?formatTime(intelData.last_update):'--'}</div><div class="stat-label">${t('intel.last_update')}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">\u{1F310} ${t('intel.feeds')}</div>
+        ${feeds.length ? feeds.map(f => `
+          <div class="intel-feed">
+            <span class="feed-name">${f.name||'--'}</span>
+            <span class="feed-count">${f.entries||f.count||0} ${t('intel.feed_entries')}</span>
+          </div>
+        `).join('') : `<div style="color:var(--text-muted);font-size:0.82rem;padding:16px">${t('intel.no_feeds')}</div>`}
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="sendCmd({cmd:'update_threat_feeds'})">&#128260; ${t('intel.update_feeds')}</button>
+      </div>
+      <div class="card">
+        <div class="card-title">&#128269; ${t('intel.check_ip')}</div>
+        <div class="config-row" style="margin-bottom:12px">
+          <input class="config-input" id="intel-ip-input" type="text" placeholder="${t('intel.ip_placeholder')}">
+          <button class="btn btn-primary btn-sm" onclick="checkIP()">${t('intel.check')}</button>
+        </div>
+        <div id="intel-ip-result">
+          ${ipCheckResult ? `
+            <div style="padding:12px;border-radius:var(--radius-sm);background:${ipCheckResult.malicious?'var(--red-dim)':'var(--green-dim)'};color:${ipCheckResult.malicious?'var(--red)':'var(--green)'}">
+              <strong>${t('intel.ip_result')}:</strong> ${ipCheckResult.ip||'--'}<br>
+              ${ipCheckResult.malicious?t('intel.ip_malicious'):t('intel.ip_clean')}
+              ${ipCheckResult.details?'<div style="margin-top:6px;font-size:0.78rem;opacity:0.8">'+ipCheckResult.details+'</div>':''}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function checkIP() {
+  const input = document.getElementById('intel-ip-input');
+  if (!input || !input.value.trim()) return;
+  sendCmd({cmd:'check_ip', ip: input.value.trim()});
+}
+
+function applyThreatIntel(msg) {
+  intelData = { feeds: msg.feeds||[], total_iocs: msg.total_iocs||0, malicious_ips: msg.malicious_ips||0, last_update: msg.last_update||null };
+  if (currentTab === 'intel') renderThreatIntel();
+}
+
+function applyIPCheckResult(msg) {
+  ipCheckResult = msg;
+  if (currentTab === 'intel') renderThreatIntel();
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER — ALERT CONFIG (Telegram / Discord)
+// ═══════════════════════════════════════════════════════════
+
+let alertConfig = { telegram: { enabled: false, bot_token: '', chat_id: '' }, discord: { enabled: false, webhook_url: '' }, severity_filter: 'all' };
+
+function renderAlertConfig() {
+  let el = document.getElementById('tab-alerts');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-alerts';
+    el.className = 'tab-page' + (currentTab==='alerts'?' active':'');
+    content.appendChild(el);
+  }
+  const tg = alertConfig.telegram || {};
+  const dc = alertConfig.discord || {};
+
+  el.innerHTML = `
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">\u{1F4E8} ${t('alerts.telegram')}</div>
+        <div class="config-form">
+          <div class="config-row">
+            <label>${t('alerts.enabled')}</label>
+            <label class="toggle"><input type="checkbox" id="tg-enabled" ${tg.enabled?'checked':''}><span class="slider"></span></label>
+          </div>
+          <div class="config-row">
+            <label>${t('alerts.bot_token')}</label>
+            <input class="config-input" id="tg-token" type="text" value="${tg.bot_token||''}" placeholder="123456:ABC-DEF...">
+          </div>
+          <div class="config-row">
+            <label>${t('alerts.chat_id')}</label>
+            <input class="config-input" id="tg-chatid" type="text" value="${tg.chat_id||''}" placeholder="-100123456789">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="saveAlertConfig()">${t('alerts.save')}</button>
+            <button class="btn btn-sm" onclick="sendCmd({cmd:'test_telegram'})">\u{1F4E8} ${t('alerts.test_telegram')}</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">\u{1F3AE} ${t('alerts.discord')}</div>
+        <div class="config-form">
+          <div class="config-row">
+            <label>${t('alerts.enabled')}</label>
+            <label class="toggle"><input type="checkbox" id="dc-enabled" ${dc.enabled?'checked':''}><span class="slider"></span></label>
+          </div>
+          <div class="config-row">
+            <label>${t('alerts.webhook_url')}</label>
+            <input class="config-input" id="dc-webhook" type="text" value="${dc.webhook_url||''}" placeholder="https://discord.com/api/webhooks/...">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="saveAlertConfig()">${t('alerts.save')}</button>
+            <button class="btn btn-sm" onclick="sendCmd({cmd:'test_discord'})">\u{1F3AE} ${t('alerts.test_discord')}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">\u{1F514} ${t('alerts.severity_filter')}</div>
+      <div class="config-row">
+        <label>${t('alerts.severity_filter')}</label>
+        <select class="config-input" id="alert-severity" style="flex:0 0 200px" onchange="saveAlertConfig()">
+          <option value="all" ${alertConfig.severity_filter==='all'?'selected':''}>${t('alerts.severity_all')}</option>
+          <option value="warning" ${alertConfig.severity_filter==='warning'?'selected':''}>${t('alerts.severity_warning')}</option>
+          <option value="critical" ${alertConfig.severity_filter==='critical'?'selected':''}>${t('alerts.severity_critical')}</option>
+        </select>
+      </div>
+    </div>`;
+}
+
+function saveAlertConfig() {
+  const config = {
+    telegram: {
+      enabled: document.getElementById('tg-enabled')?.checked || false,
+      bot_token: document.getElementById('tg-token')?.value || '',
+      chat_id: document.getElementById('tg-chatid')?.value || ''
+    },
+    discord: {
+      enabled: document.getElementById('dc-enabled')?.checked || false,
+      webhook_url: document.getElementById('dc-webhook')?.value || ''
+    },
+    severity_filter: document.getElementById('alert-severity')?.value || 'all'
+  };
+  sendCmd({cmd:'update_alert_config', config});
+  showNotif(t('alerts.saved'), 'success');
+}
+
+function applyAlertConfig(msg) {
+  alertConfig = {
+    telegram: msg.telegram || { enabled: false, bot_token: '', chat_id: '' },
+    discord: msg.discord || { enabled: false, webhook_url: '' },
+    severity_filter: msg.severity_filter || 'all'
+  };
+  if (currentTab === 'alerts') renderAlertConfig();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STRIKEBACK TAB
+// ═══════════════════════════════════════════════════════════
+
+function renderStrikeBack() {
+  let el = document.getElementById('tab-strikeback');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-strikeback';
+    el.className = 'tab-page' + (currentTab==='strikeback'?' active':'');
+    content.appendChild(el);
+  }
+  const sb = globalState?.agents?.strikeback?.state || {};
+  const tarpit = sb.tarpit || {};
+  const decoys = sb.decoys || [];
+  const attackers = sb.tracked_attackers || [];
+  const stats = sb.stats || {};
+  const timeline = sb.timeline || [];
+  const connected = globalState?.agents?.strikeback?.connected || false;
+
+  el.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card"><div class="stat-value" style="color:var(--strikeback)">${stats.total_attackers||0}</div><div class="stat-label">${currentLang==='fr'?'Attaquants suivis':'Tracked attackers'}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--orange)">${tarpit.connections_slowed||0}</div><div class="stat-label">${currentLang==='fr'?'Connexions ralenties':'Connections slowed'}</div></div>
+      <div class="stat-card"><div class="stat-value">${decoys.length}</div><div class="stat-label">${currentLang==='fr'?'Leurres actifs':'Active decoys'}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${stats.total_isolated||0}</div><div class="stat-label">${currentLang==='fr'?'IPs isolees':'IPs isolated'}</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:${connected?'var(--green)':'var(--red)'}">${connected?'\u{2705}':'\u{274C}'}</div><div class="stat-label">Status</div></div>
+    </div>
+    <div class="overview-cols">
+      <div class="card">
+        <div class="card-title">\u{2694} ${currentLang==='fr'?'Attaquants profiles':'Profiled attackers'}</div>
+        ${attackers.length === 0 ? '<div style="color:var(--text-muted);padding:16px">'+( currentLang==='fr'?'Aucun attaquant detecte':'No attackers detected')+'</div>' :
+          attackers.slice(-10).reverse().map(a => `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
+              <span style="font-size:1.2rem">${a.danger_score>=70?'\u{1F534}':a.danger_score>=40?'\u{1F7E0}':'\u{1F7E2}'}</span>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:0.85rem">${a.ip} <span style="color:var(--text-muted);font-size:0.7rem">${a.reverse_dns||''}</span></div>
+                <div style="font-size:0.7rem;color:var(--text-muted)">${a.type||'unknown'} \u{2022} ${a.attacks||0} attacks \u{2022} ${a.country||'??'}</div>
+              </div>
+              <span style="font-weight:700;color:${a.danger_score>=70?'var(--red)':a.danger_score>=40?'var(--orange)':'var(--green)'}">${a.danger_score||0}</span>
+              ${!a.isolated ? '<button class="btn btn-red btn-sm" onclick="sendCmd({cmd:\'strikeback_isolate\',ip:\''+a.ip+'\'})">Block</button>' : '<span style="color:var(--red);font-size:0.7rem">\u{1F6AB} Blocked</span>'}
+            </div>
+          `).join('')
+        }
+      </div>
+      <div class="card">
+        <div class="card-title">\u{1F3AF} ${currentLang==='fr'?'Leurres deployes':'Deployed decoys'}</div>
+        ${decoys.map(d => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:1.2rem">\u{1F4E1}</span>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:0.85rem">Port ${d.port} — ${d.service}</div>
+              <div style="font-size:0.7rem;color:var(--text-muted)">${d.connections||0} connections</div>
+            </div>
+            <span class="tile-status" style="background:var(--green-dim);color:var(--green)">Active</span>
+          </div>
+        `).join('')}
+        ${decoys.length===0?'<div style="color:var(--text-muted);padding:16px">'+(currentLang==='fr'?'Aucun leurre':'No decoys')+'</div>':''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">\u{26A1} ${currentLang==='fr'?'Timeline des actions':'Action timeline'}</div>
+      <div class="timeline-container" style="max-height:300px" id="strikeback-timeline"></div>
+    </div>
+  `;
+  renderTimelineEvents(document.getElementById('strikeback-timeline'), timeline.slice(-20));
+}
+
+// ═══════════════════════════════════════════════════════════
+// RECORDER TAB
+// ═══════════════════════════════════════════════════════════
+
+function renderRecorder() {
+  let el = document.getElementById('tab-recorder');
+  if (!el) {
+    const content = document.getElementById('content-area');
+    el = document.createElement('div'); el.id = 'tab-recorder';
+    el.className = 'tab-page' + (currentTab==='recorder'?' active':'');
+    content.appendChild(el);
+  }
+  const rc = globalState?.agents?.recorder?.state || {};
+  const recording = rc.recording || {};
+  const monitors = rc.monitors || {};
+  const incident = rc.current_incident;
+  const events = rc.recent_events || [];
+  const reports = rc.reports || [];
+  const stats = rc.stats || {};
+  const connected = globalState?.agents?.recorder?.connected || false;
+  const isIncident = rc.mode === 'incident';
+
+  el.innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card"><div class="stat-value" style="color:var(--recorder)">${recording.events_recorded||0}</div><div class="stat-label">${currentLang==='fr'?'Evenements enregistres':'Events recorded'}</div></div>
+      <div class="stat-card"><div class="stat-value">${monitors.processes?.current_count||0}</div><div class="stat-label">${currentLang==='fr'?'Processus actifs':'Active processes'}</div></div>
+      <div class="stat-card"><div class="stat-value">${monitors.sessions?.total_logged||0}</div><div class="stat-label">${currentLang==='fr'?'Sessions reseau':'Network sessions'}</div></div>
+      <div class="stat-card"><div class="stat-value">${monitors.files?.changes_detected||0}</div><div class="stat-label">${currentLang==='fr'?'Changements fichiers':'File changes'}</div></div>
+      <div class="stat-card"><div class="stat-value">${(recording.storage_used_mb||0).toFixed(1)} MB</div><div class="stat-label">Storage</div></div>
+    </div>
+    <div class="card" style="border-color:${isIncident?'var(--red)':'var(--border)'}">
+      <div class="card-title">${isIncident?'\u{1F534}':'\u{1F7E2}'} ${currentLang==='fr'?'Mode d\'enregistrement':'Recording mode'}</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="font-size:1.5rem;font-weight:700;color:${isIncident?'var(--red)':'var(--green)'}">${isIncident?(currentLang==='fr'?'MODE INCIDENT':'INCIDENT MODE'):(currentLang==='fr'?'Surveillance normale':'Normal monitoring')}</div>
+        <button class="btn ${isIncident?'btn-green':'btn-red'}" onclick="sendCmd({cmd:'recorder_${isIncident?'stop':'start'}_incident'})">
+          ${isIncident?(currentLang==='fr'?'\u{23F9} Arreter l\'incident':'\u{23F9} Stop incident'):(currentLang==='fr'?'\u{23FA} Demarrer un incident':'\u{23FA} Start incident')}
+        </button>
+        <button class="btn" onclick="sendCmd({cmd:'recorder_generate_report'})">
+          \u{1F4CB} ${currentLang==='fr'?'Generer rapport':'Generate report'}
+        </button>
+      </div>
+      ${incident ? '<div style="margin-top:12px;padding:12px;background:var(--red-dim);border-radius:8px;color:var(--red)"><b>Incident '+incident.id+'</b> — '+incident.events+' events recorded</div>' : ''}
+    </div>
+    <div class="overview-cols">
+      <div class="card">
+        <div class="card-title">\u{1F4DD} ${currentLang==='fr'?'Evenements recents':'Recent events'}</div>
+        <div style="max-height:300px;overflow-y:auto">
+          ${events.length === 0 ? '<div style="color:var(--text-muted);padding:16px">'+(currentLang==='fr'?'En attente...':'Waiting...')+'</div>' :
+            events.slice(-15).reverse().map(e => `
+              <div style="display:flex;gap:10px;padding:8px;border-bottom:1px solid var(--border);font-size:0.78rem">
+                <span style="color:${e.severity==='critical'?'var(--red)':e.severity==='warning'?'var(--orange)':'var(--text-muted)'}">\u{25CF}</span>
+                <span style="color:var(--text-dim)">${formatTime(e.ts)}</span>
+                <span style="flex:1">${e.message||e.type||'event'}</span>
+                <span style="color:var(--text-muted)">${e.source||''}</span>
+              </div>
+            `).join('')
+          }
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">\u{1F4CB} ${currentLang==='fr'?'Rapports generes':'Generated reports'}</div>
+        ${reports.length === 0 ? '<div style="color:var(--text-muted);padding:16px">'+(currentLang==='fr'?'Aucun rapport':'No reports')+'</div>' :
+          reports.map(r => `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
+              <span style="font-size:1.2rem">\u{1F4C4}</span>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:0.85rem">${r.id}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted)">${r.events_count} events \u{2022} ${r.size_kb||0} KB</div>
+              </div>
+              <span style="font-size:0.7rem;color:var(--text-muted)">${formatTime(r.created)}</span>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════
+
+function agentAction(action, key) {
+  sendCmd({cmd: action+'_agent', agent: key});
+  showNotif(`${action==='start'?t('action.start'):action==='stop'?t('action.stop'):t('action.restart')} ${key}...`, 'info');
+}
+function sendAgentCmd(agent, cmd, params) { sendCmd({cmd:'send_agent_command', agent, agent_cmd: cmd, params: params||{}}); }
+function openAgentDashboard(key, port) {
+  // Open agent in its own independent window
+  const mainAgents = ['netguard', 'cleanguard', 'mailshield', 'vpnguard'];
+  if (mainAgents.includes(key)) {
+    sendCmd({cmd: 'open_agent_window', agent: key});
+    showNotif(key + ' — ouverture...', 'info');
+  } else {
+    switchTab(key);
+  }
+}
+function launchOpen(key, port) {
+  const tabOnly = ['honeypot', 'fim', 'strikeback', 'recorder'];
+  if (tabOnly.includes(key)) { switchTab(key); }
+  else { openAgentDashboard(key, port); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+
+function formatNum(n) { if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(1)+'K'; return String(n); }
+function formatBytes(b) { if (b>=1073741824) return (b/1073741824).toFixed(1)+' GB'; if (b>=1048576) return (b/1048576).toFixed(1)+' MB'; if (b>=1024) return (b/1024).toFixed(1)+' KB'; return b+' B'; }
+function formatUptime(s) { if (s<60) return Math.floor(s)+'s'; if (s<3600) return Math.floor(s/60)+'min'; const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); return h+'h'+(m>0?m+'min':''); }
+function formatTime(ts) { if (!ts) return '--:--'; const d=new Date(ts*1000); return d.toLocaleTimeString(currentLang==='fr'?'fr-FR':'en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function showNotif(text, type) {
+  const bar=document.getElementById('notif-bar'); const el=document.createElement('div');
+  el.className='notif '+(type||'info'); el.textContent=text; bar.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},4000);
+}
+
+// Clock
+setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString(currentLang==='fr'?'fr-FR':'en-US'); }, 1000);
+
+// Auto-refresh (8s for smoother performance)
+setInterval(() => { if (wsConnected || isPywebview()) sendCmd({cmd:'get_state'}); }, 12000);
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+// Set initial language
+document.getElementById('lang-fr').classList.toggle('active', currentLang === 'fr');
+document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+
+// Initial render (empty state)
+renderAll();
+
+// Auto-init greeting for default chat agent
+selectChatAgent(chatAgent);
+
+// Connect
+if (isPywebview()) {
+  if (window.pywebview?.api) connectWS();
+  else window.addEventListener('pywebviewready', connectWS);
+} else connectWS();
+
+</script>
+</body>
+</html>

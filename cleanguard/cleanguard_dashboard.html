@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CleanGuard Pro v1.0.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+.main{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 49px)}
+
+/* Topbar */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);height:49px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.logo-text{font-size:14px;font-weight:600}
+.logo-accent{background:linear-gradient(90deg,#4d9fff,#3dffb4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.status-dot.on{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.nav-section{padding:14px 12px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:.12s;color:var(--text2);font-size:13px;border-left:3px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--blue);border-left-color:var(--blue)}
+.nav-icon{font-size:16px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--reddim);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px}
+
+/* Content */
+.content{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.tab{display:none}
+.tab.active{display:flex;flex-direction:column;gap:16px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600}
+.card-body{padding:16px}
+
+/* Metrics */
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.metric-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.metric-value{font-size:28px;font-weight:700;font-family:'Geist Mono',monospace;margin-bottom:4px}
+.metric-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+
+/* Health score */
+.health-ring{position:relative;width:140px;height:140px;margin:0 auto}
+.health-ring canvas{width:140px;height:140px}
+.health-score{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.health-number{font-size:36px;font-weight:700;font-family:'Geist Mono',monospace}
+.health-grade{font-size:14px;font-weight:600;color:var(--text3)}
+
+/* Buttons */
+.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.15s;font-weight:500;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2)}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-blue{background:var(--bluedim);border-color:#4d9fff44;color:var(--blue)}
+.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-red{background:var(--reddim);border-color:#ff4d6a44;color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--greendim);border-color:#3dffb444;color:var(--green)}
+.btn-green:hover{background:var(--green);color:#000}
+.btn-lg{padding:12px 24px;font-size:14px;border-radius:10px}
+
+/* Progress bar */
+.progress-wrap{background:var(--bg4);border-radius:6px;height:8px;overflow:hidden;position:relative}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:6px;transition:width .3s}
+.progress-text{font-size:12px;color:var(--text2);margin-top:6px;display:flex;justify-content:space-between}
+
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+.tbl tr:hover{background:var(--bg3)}
+
+/* Toggle */
+.toggle{display:inline-flex;width:38px;height:20px;border-radius:10px;background:var(--bg4);border:1px solid var(--border2);cursor:pointer;position:relative;transition:.2s;flex-shrink:0}
+.toggle::after{content:'';width:16px;height:16px;border-radius:50%;background:var(--text3);position:absolute;top:1px;left:1px;transition:.2s}
+.toggle.on{background:var(--bluedim);border-color:var(--blue)}
+.toggle.on::after{left:19px;background:var(--blue)}
+
+/* Severity badges */
+.sev{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+.sev-critical{background:var(--reddim);color:var(--red)}
+.sev-high{background:#3d1220;color:#ff6b8a}
+.sev-medium{background:var(--amberdim);color:var(--amber)}
+.sev-low{background:var(--bg4);color:var(--text3)}
+
+/* Clean item */
+.clean-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);transition:.1s}
+.clean-item:hover{background:var(--bg3)}
+.clean-icon{font-size:20px;width:32px;text-align:center}
+.clean-info{flex:1}
+.clean-name{font-size:13px;font-weight:500}
+.clean-detail{font-size:11px;color:var(--text3);margin-top:2px}
+.clean-size{font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--amber)}
+
+/* Scan file ticker */
+.scan-file{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+/* Disk bar */
+.disk-bar-wrap{background:var(--bg4);border-radius:4px;height:20px;overflow:hidden;position:relative}
+.disk-bar{height:100%;border-radius:4px;transition:width .5s}
+.disk-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text)}
+
+/* Startup item */
+.startup-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.startup-item:hover{background:var(--bg3)}
+.startup-name{font-size:13px;font-weight:500;flex:1}
+.startup-path{font-size:10px;color:var(--text3);font-family:'Geist Mono',monospace;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.startup-scope{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--bg4);color:var(--text3)}
+
+/* Quarantine item */
+.q-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.q-item:hover{background:var(--bg3)}
+
+/* Action buttons row */
+.action-row{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.empty-state .text{font-size:14px}
+
+/* Timeline */
+.timeline{max-height:400px;overflow-y:auto}
+.tl-item{display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;animation:fadeIn .2s ease}
+.tl-item:hover{background:var(--bg3)}
+.tl-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0;margin-top:1px}
+.tl-body{flex:1;min-width:0}
+.tl-text{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-time{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3);flex-shrink:0}
+.tl-item[data-cat="threat"] .tl-text{color:var(--red)}
+.tl-item[data-cat="clean"] .tl-text{color:var(--green)}
+.tl-item[data-cat="scan"] .tl-text{color:var(--blue)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;z-index:9999;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <svg viewBox="0 0 200 200" width="30" height="30"><defs><linearGradient id="cgG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#3dffb4"/></linearGradient></defs><circle cx="100" cy="100" r="80" fill="#16161d" stroke="url(#cgG)" stroke-width="4"/><path d="M70 100 L90 120 L130 80" stroke="url(#cgG)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <div>
+      <span class="logo-text"><span class="logo-accent">Clean</span>Guard Pro</span>
+      <span style="font-size:10px;color:var(--text3);margin-left:6px">v1.0.0</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="status-dot" id="conn-dot"></div>
+      <span style="font-size:11px;color:var(--text2)" id="conn-status">Connexion...</span>
+    </div>
+    <span style="font-size:11px;color:var(--text3)" id="top-score">Score: --</span>
+    <a href="../netguard_dashboard.html" class="btn" style="text-decoration:none;padding:5px 10px;font-size:11px">NetGuard</a>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="showTab('dashboard',this)">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showTab('clean',this)">
+      <span class="nav-icon">🧹</span><span>Nettoyage</span>
+      <span class="nav-badge" id="nav-clean-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="showTab('antivirus',this)">
+      <span class="nav-icon">🛡</span><span>Antivirus</span>
+      <span class="nav-badge" id="nav-av-badge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="showTab('quarantine',this)">
+      <span class="nav-icon">🔒</span><span>Quarantaine</span>
+      <span class="nav-badge" id="nav-q-badge" style="display:none">0</span>
+    </div>
+
+    <div class="nav-section">Système</div>
+    <div class="nav-item" onclick="showTab('startup',this)">
+      <span class="nav-icon">🚀</span><span>Démarrage</span>
+    </div>
+    <div class="nav-item" onclick="showTab('disk',this)">
+      <span class="nav-icon">💾</span><span>Disque</span>
+    </div>
+    <div class="nav-item" onclick="showTab('processes',this)">
+      <span class="nav-icon">⚙</span><span>Processus</span>
+    </div>
+
+    <div class="nav-section">Rapports</div>
+    <div class="nav-item" onclick="showTab('history',this)">
+      <span class="nav-icon">📋</span><span>Historique</span>
+    </div>
+    <div class="nav-item" onclick="showTab('settings',this)">
+      <span class="nav-icon">⚙</span><span>Paramètres</span>
+    </div>
+
+    <div style="flex:1"></div>
+    <div style="padding:12px 14px;border-top:1px solid var(--border);font-size:10px;color:var(--text3)">
+      <div>CleanGuard Pro v1.0.0</div>
+      <div>Pack NetGuard Pro</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- TAB: DASHBOARD -->
+    <div class="tab active" id="tab-dashboard">
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:20px">
+        <!-- Health score -->
+        <div class="card" style="text-align:center">
+          <div class="card-body">
+            <div class="health-ring">
+              <canvas id="health-canvas" width="140" height="140"></canvas>
+              <div class="health-score">
+                <div class="health-number" id="health-number">--</div>
+                <div class="health-grade" id="health-grade">--</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:var(--text2)">Score de santé</div>
+          </div>
+        </div>
+        <!-- Quick metrics -->
+        <div>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-value" style="color:var(--amber)" id="m-clean-size">--</div>
+              <div class="metric-label">À nettoyer</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" style="color:var(--red)" id="m-threats">0</div>
+              <div class="metric-label">Menaces</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" style="color:var(--purple)" id="m-startup">--</div>
+              <div class="metric-label">Démarrage</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" style="color:var(--blue)" id="m-disk">--</div>
+              <div class="metric-label">Disque libre</div>
+            </div>
+          </div>
+          <div class="action-row" style="margin-top:14px">
+            <button class="btn btn-blue btn-lg" onclick="quickClean()">🧹 Nettoyage rapide</button>
+            <button class="btn btn-green btn-lg" onclick="sendCmd({cmd:'quick_scan'})">🔍 Scan antivirus</button>
+            <button class="btn btn-lg" onclick="sendCmd({cmd:'scan_processes'})">⚙ Processus</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health factors -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Facteurs de santé</span>
+        </div>
+        <div class="card-body" id="health-factors">
+          <div class="empty-state"><div class="text">Chargement...</div></div>
+        </div>
+      </div>
+
+      <!-- Disks -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Espace disque</span>
+        </div>
+        <div class="card-body" id="dash-disks"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <!-- Recent threats -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Dernières menaces</span>
+            <span style="font-size:11px;color:var(--text3)" id="dash-threats-count">0 menaces</span>
+          </div>
+          <div class="card-body" id="dash-threats" style="max-height:280px;overflow-y:auto">
+            <div class="empty-state">
+              <div class="icon">✅</div>
+              <div class="text">Aucune menace détectée</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity timeline -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Activité en temps réel</span>
+            <span style="font-size:11px;color:var(--text3)" id="tl-count">—</span>
+          </div>
+          <div class="card-body timeline" id="timeline" style="max-height:280px;overflow-y:auto;padding:0">
+            <div class="empty-state"><div class="text">En attente d'activité...</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: NETTOYAGE -->
+    <div class="tab" id="tab-clean">
+      <div class="action-row">
+        <button class="btn btn-blue" onclick="sendCmd({cmd:'scan_temp'})">🔍 Analyser les fichiers</button>
+        <button class="btn btn-red btn-lg" onclick="confirmCleanAll()">🗑 Supprimer tout</button>
+        <span style="font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px" id="clean-status">Prêt</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Fichiers à nettoyer</span>
+          <span style="font-size:12px;font-weight:600;color:var(--amber)" id="clean-total">0 fichiers — 0 B</span>
+        </div>
+        <div class="card-body" style="padding:0" id="clean-list">
+          <div class="empty-state">
+            <div class="icon">🔍</div>
+            <div class="text">Cliquez "Scanner" pour analyser les fichiers temporaires</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registry -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Registre Windows</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="sendCmd({cmd:'scan_registry'})" style="padding:4px 10px;font-size:11px">Scanner</button>
+            <button class="btn btn-red" onclick="sendCmd({cmd:'clean_registry'})" style="padding:4px 10px;font-size:11px">Nettoyer</button>
+          </div>
+        </div>
+        <div class="card-body" id="registry-list">
+          <div style="font-size:12px;color:var(--text3)">Cliquez "Scanner" pour analyser le registre</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ANTIVIRUS -->
+    <div class="tab" id="tab-antivirus">
+      <div class="action-row">
+        <button class="btn btn-green btn-lg" onclick="sendCmd({cmd:'quick_scan'})" id="av-btn-quick">🔍 Scan rapide</button>
+        <button class="btn btn-blue btn-lg" onclick="sendCmd({cmd:'full_scan'})" id="av-btn-full">🛡 Scan complet</button>
+        <button class="btn btn-lg" onclick="promptCustomScan()" id="av-btn-custom">📁 Scan personnalisé</button>
+        <button class="btn btn-red" onclick="sendCmd({cmd:'stop_scan'})" id="av-btn-stop" style="display:none">⏹ Arrêter</button>
+        <button class="btn" onclick="sendCmd({cmd:'pause_scan'})" id="av-btn-pause" style="display:none">⏸ Pause</button>
+        <button class="btn btn-green" onclick="sendCmd({cmd:'resume_scan'})" id="av-btn-resume" style="display:none">▶ Reprendre</button>
+      </div>
+
+      <!-- Scan progress -->
+      <div class="card" id="av-progress-card" style="display:none">
+        <div class="card-header">
+          <span class="card-title" id="av-scan-title">Scan en cours...</span>
+          <span style="font-size:12px;color:var(--blue);font-weight:600" id="av-pct">0%</span>
+        </div>
+        <div class="card-body">
+          <div class="progress-wrap" style="margin-bottom:8px">
+            <div class="progress-bar" id="av-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-text">
+            <span id="av-files">0 / 0 fichiers</span>
+            <span id="av-speed">0 fichiers/sec</span>
+          </div>
+          <div class="scan-file" id="av-current" style="margin-top:6px">—</div>
+        </div>
+      </div>
+
+      <!-- Threats found -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Menaces détectées</span>
+          <span class="nav-badge" id="av-threat-count" style="display:none">0</span>
+        </div>
+        <div class="card-body" style="padding:0" id="av-threats">
+          <div class="empty-state">
+            <div class="icon">✅</div>
+            <div class="text">Aucune menace — lancez un scan pour vérifier</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protection status -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Protection temps réel</span>
+          <div class="toggle" id="rt-toggle" onclick="sendCmd({cmd:'toggle_realtime'})"></div>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text2)" id="rt-status">
+            Surveille les dossiers Downloads, Desktop et Temp pour les fichiers suspects.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: QUARANTAINE -->
+    <div class="tab" id="tab-quarantine">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Fichiers en quarantaine</span>
+          <span style="font-size:11px;color:var(--text3)" id="q-count">0 fichiers</span>
+        </div>
+        <div class="card-body" style="padding:0" id="q-list">
+          <div class="empty-state">
+            <div class="icon">🔒</div>
+            <div class="text">Aucun fichier en quarantaine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DEMARRAGE -->
+    <div class="tab" id="tab-startup">
+      <div class="action-row">
+        <button class="btn btn-blue" onclick="sendCmd({cmd:'get_startup_programs'})">🔄 Rafraîchir</button>
+        <span style="font-size:12px;color:var(--text3);display:flex;align-items:center" id="startup-count">-- programmes</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Programmes au démarrage</span>
+        </div>
+        <div class="card-body" style="padding:0" id="startup-list">
+          <div class="empty-state"><div class="text">Chargement...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DISQUE -->
+    <div class="tab" id="tab-disk">
+      <div class="action-row">
+        <button class="btn btn-blue" onclick="sendCmd({cmd:'analyze_disk',path:prompt('Dossier à analyser:',userHome)||userHome})">📊 Analyser dossier</button>
+        <button class="btn" onclick="sendCmd({cmd:'get_large_files',min_size_mb:50})">📦 Gros fichiers (&gt;50MB)</button>
+        <button class="btn" onclick="sendCmd({cmd:'scan_duplicates',path:userHome})">🔄 Chercher doublons</button>
+      </div>
+
+      <!-- Disk info -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Partitions</span></div>
+        <div class="card-body" id="disk-partitions"></div>
+      </div>
+
+      <!-- Analysis results -->
+      <div class="card" id="disk-analysis-card" style="display:none">
+        <div class="card-header">
+          <span class="card-title" id="disk-analysis-title">Analyse</span>
+        </div>
+        <div class="card-body" style="padding:0" id="disk-analysis-list"></div>
+      </div>
+
+      <!-- Large files -->
+      <div class="card" id="large-files-card" style="display:none">
+        <div class="card-header"><span class="card-title">Gros fichiers</span></div>
+        <div class="card-body" style="padding:0" id="large-files-list"></div>
+      </div>
+
+      <!-- Duplicates -->
+      <div class="card" id="duplicates-card" style="display:none">
+        <div class="card-header"><span class="card-title">Doublons trouvés</span></div>
+        <div class="card-body" style="padding:0" id="duplicates-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: PROCESSUS -->
+    <div class="tab" id="tab-processes">
+      <div class="action-row">
+        <button class="btn btn-blue" onclick="sendCmd({cmd:'scan_processes'})">🔍 Scanner les processus</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Processus suspects</span></div>
+        <div class="card-body" style="padding:0" id="process-list">
+          <div class="empty-state">
+            <div class="icon">⚙</div>
+            <div class="text">Cliquez "Scanner" pour analyser les processus en cours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORIQUE -->
+    <div class="tab" id="tab-history">
+      <div class="action-row">
+        <button class="btn btn-blue" onclick="sendCmd({cmd:'get_scan_history'})">🔄 Rafraîchir</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Historique des scans et nettoyages</span></div>
+        <div class="card-body" style="padding:0" id="history-list">
+          <div class="empty-state"><div class="text">Chargement...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PARAMETRES -->
+    <div class="tab" id="tab-settings">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Paramètres généraux</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-size:13px;font-weight:500">Protection temps réel</div><div style="font-size:11px;color:var(--text3)">Surveille les dossiers clés en temps réel</div></div>
+              <div class="toggle" id="s-realtime" onclick="toggleSetting('realtime_protection')"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-size:13px;font-weight:500">Quarantaine automatique</div><div style="font-size:11px;color:var(--text3)">Isoler automatiquement les menaces critiques</div></div>
+              <div class="toggle" id="s-autoquar" onclick="toggleSetting('auto_quarantine')"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-size:13px;font-weight:500">Analyse heuristique</div><div style="font-size:11px;color:var(--text3)">Détecter les menaces par comportement suspect</div></div>
+              <div class="toggle" id="s-heuristic" onclick="toggleSetting('heuristic_enabled')"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div><div style="font-size:13px;font-weight:500">Scanner les fichiers cachés</div><div style="font-size:11px;color:var(--text3)">Inclure les fichiers et dossiers cachés</div></div>
+              <div class="toggle" id="s-hidden" onclick="toggleSetting('scan_hidden_files')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Exclusions</span></div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Chemins ou mots-clés à exclure des scans (un par ligne)</div>
+          <textarea id="s-exclusions" style="width:100%;height:80px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Geist Mono',monospace;font-size:11px;padding:8px;resize:vertical" placeholder="C:\Program Files\MonApp&#10;node_modules"></textarea>
+          <button class="btn btn-blue" onclick="saveExclusions()" style="margin-top:8px">💾 Sauvegarder</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Informations système</span></div>
+        <div class="card-body" id="sys-info">
+          <div style="font-size:12px;color:var(--text3)">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const WS_URL = 'ws://localhost:8810';
+let ws, lastState = null, activeTab = 'dashboard';
+const userHome = '~';
+let _renderPending = false;
+let _useNative = false; // true when running inside pywebview
+
+// ─── Detect pywebview ───────────────────────────────────────────────────
+function initConnection() {
+  // pywebview exposes window.pywebview after 'pywebviewready' event
+  if (window.pywebview && window.pywebview.api) {
+    _useNative = true;
+    document.getElementById('conn-dot').classList.add('on');
+    document.getElementById('conn-status').textContent = 'Natif';
+    console.log('[CleanGuard] Mode natif pywebview');
+    // Get initial state + system info
+    pywebview.api.get_state().then(s => handleMsg(s));
+    pywebview.api.get_system_info().then(s => handleMsg(s));
+  } else {
+    connectWS();
+  }
+}
+
+window.addEventListener('pywebviewready', () => {
+  _useNative = true;
+  document.getElementById('conn-dot').classList.add('on');
+  document.getElementById('conn-status').textContent = 'Natif';
+  pywebview.api.get_state().then(s => handleMsg(s));
+  pywebview.api.get_system_info().then(s => handleMsg(s));
+});
+
+// ─── Native API call (pywebview) ────────────────────────────────────────
+function sendCmd(obj) {
+  if (_useNative && window.pywebview && window.pywebview.api) {
+    sendNative(obj);
+  } else if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+function sendNative(obj) {
+  const api = window.pywebview.api;
+  const cmd = obj.cmd;
+  let p;
+
+  switch (cmd) {
+    case 'get_state': p = api.get_state(); break;
+    case 'get_system_info': p = api.get_system_info(); break;
+    case 'scan_temp': p = api.scan_temp(); break;
+    case 'clean_all': p = api.clean_all(); break;
+    case 'clean_category': p = api.clean_category(obj.category, obj.force_close_browser || false); break;
+    case 'scan_registry': p = api.scan_registry(); break;
+    case 'clean_registry': p = api.clean_registry(); break;
+    case 'get_startup_programs': p = api.get_startup_programs(); break;
+    case 'toggle_startup': p = api.toggle_startup(obj.name, obj.hive, obj.reg_path, obj.enabled); break;
+    case 'quick_scan': p = api.quick_scan(); break;
+    case 'full_scan': p = api.full_scan(); break;
+    case 'custom_scan': p = api.custom_scan(obj.path); break;
+    case 'stop_scan': p = api.stop_scan(); break;
+    case 'pause_scan': p = api.pause_scan(); break;
+    case 'resume_scan': p = api.resume_scan(); break;
+    case 'scan_processes': p = api.scan_processes(); break;
+    case 'get_quarantine': p = api.get_quarantine(); break;
+    case 'quarantine_restore': p = api.quarantine_restore(obj.name); break;
+    case 'quarantine_delete': p = api.quarantine_delete(obj.name); break;
+    case 'analyze_disk': p = api.analyze_disk(obj.path || null); break;
+    case 'get_large_files': p = api.get_large_files(obj.path || null, obj.min_size_mb || 100); break;
+    case 'scan_duplicates': p = api.scan_duplicates(obj.path || null); break;
+    case 'toggle_realtime': p = api.toggle_realtime(); break;
+    case 'get_scan_history': p = api.get_scan_history(); break;
+    case 'get_settings': p = api.get_settings(); break;
+    case 'save_settings': p = api.save_settings(obj.settings); break;
+    default: return;
+  }
+  if (p && p.then) p.then(r => { if (r) handleMsg(r); });
+}
+
+// ─── WebSocket fallback ─────────────────────────────────────────────────
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    document.getElementById('conn-dot').classList.add('on');
+    document.getElementById('conn-status').textContent = 'Connecté';
+    sendCmd({cmd:'get_state'});
+    sendCmd({cmd:'get_system_info'});
+  };
+  ws.onclose = () => {
+    document.getElementById('conn-dot').classList.remove('on');
+    document.getElementById('conn-status').textContent = 'Déconnecté';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = e => {
+    try { handleMsg(JSON.parse(e.data)); } catch(err) { console.error(err); }
+  };
+}
+
+// ─── Message handler ────────────────────────────────────────────────────
+function handleMsg(msg) {
+  if (msg.type === 'state') {
+    lastState = msg;
+    // Debounce rendering — skip if a render is already queued
+    if (!_renderPending) {
+      _renderPending = true;
+      requestAnimationFrame(() => {
+        _renderPending = false;
+        if (!lastState) return;
+        // Only render visible tab + always update topbar/badges
+        updateBadges(lastState);
+        if (activeTab === 'dashboard') renderDashboard(lastState);
+        if (activeTab === 'antivirus') renderScanProgress(lastState);
+        if (activeTab === 'clean') renderCleanResults(lastState);
+        if (activeTab === 'quarantine') renderQuarantine(lastState.quarantine || []);
+      });
+    }
+  } else if (msg.type === 'startup_programs') {
+    renderStartup(msg.programs);
+  } else if (msg.type === 'system_info') {
+    renderSystemInfo(msg);
+  } else if (msg.type === 'registry_results') {
+    renderRegistry(msg.issues);
+  } else if (msg.type === 'registry_cleaned') {
+    toast(`✓ ${msg.cleaned}/${msg.total} entrées registre nettoyées`, 'var(--green)');
+  } else if (msg.type === 'process_scan') {
+    renderProcesses(msg.processes);
+  } else if (msg.type === 'scan_history') {
+    renderHistory(msg.entries);
+  } else if (msg.type === 'quarantine_list') {
+    renderQuarantine(msg.entries);
+  } else if (msg.type === 'quarantine_action') {
+    toast(msg.success ? '✓ Action réussie' : '✗ Erreur', msg.success ? 'var(--green)' : 'var(--red)');
+    sendCmd({cmd:'get_quarantine'});
+  } else if (msg.type === 'clean_result') {
+    if (msg.browser_running) {
+      if (confirm(`⚠ ${msg.browser_name} est ouvert (${msg.pid_count} processus).\n\nFermer ${msg.browser_name} pour pouvoir supprimer son cache ?\n\nVos onglets ouverts seront fermés.`)) {
+        sendCmd({cmd:'clean_category', category: msg.category, force_close_browser: true});
+        toast(`🌐 Fermeture de ${msg.browser_name}...`, 'var(--amber)');
+      }
+    } else {
+      toast(`✅ ${msg.cleaned_files} fichiers supprimés (${fmtSize(msg.cleaned_size)})`, 'var(--green)');
+      sendCmd({cmd:'scan_temp'}); // Refresh list
+    }
+  } else if (msg.type === 'disk_analysis') {
+    renderDiskAnalysis(msg);
+  } else if (msg.type === 'large_files') {
+    renderLargeFiles(msg.files);
+  } else if (msg.type === 'duplicate_results') {
+    renderDuplicates(msg.duplicates);
+  } else if (msg.type === 'realtime_alert') {
+    toast(`🛡 Menace détectée: ${msg.file}`, 'var(--red)');
+  } else if (msg.type === 'realtime_status') {
+    // Updated via state
+  } else if (msg.type === 'ack') {
+    // Acknowledged
+  }
+}
+
+// ─── Tab navigation ─────────────────────────────────────────────────────
+function showTab(id, el) {
+  activeTab = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tab = document.getElementById('tab-' + id);
+  if (tab) tab.classList.add('active');
+  if (el) el.classList.add('active');
+
+  // Lazy-load data only when tab is opened
+  if (id === 'startup') sendCmd({cmd:'get_startup_programs'});
+  if (id === 'history') sendCmd({cmd:'get_scan_history'});
+  if (id === 'quarantine') sendCmd({cmd:'get_quarantine'});
+  if (id === 'settings') sendCmd({cmd:'get_system_info'});
+
+  // Immediately render visible tab from cached state
+  if (lastState) {
+    if (id === 'dashboard') renderDashboard(lastState);
+    if (id === 'antivirus') renderScanProgress(lastState);
+    if (id === 'nettoyage') renderCleanResults(lastState);
+    if (id === 'quarantine') renderQuarantine(lastState.quarantine || []);
+  }
+}
+
+// ─── Format helpers ─────────────────────────────────────────────────────
+function fmtSize(bytes) {
+  if (bytes == null || isNaN(bytes)) return '0 B';
+  const units = ['B','KB','MB','GB','TB'];
+  let i = 0;
+  while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+  return bytes.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return iso; }
+}
+
+function fmtDuration(sec) {
+  if (sec < 60) return Math.round(sec) + 's';
+  if (sec < 3600) return Math.floor(sec/60) + 'min ' + Math.round(sec%60) + 's';
+  return Math.floor(sec/3600) + 'h ' + Math.floor((sec%3600)/60) + 'min';
+}
+
+function sevBadge(sev) {
+  return `<span class="sev sev-${sev}">${sev.toUpperCase()}</span>`;
+}
+
+// ─── Render Dashboard ───────────────────────────────────────────────────
+let _prevScore = -1, _prevThreats = -1, _prevFactorsLen = -1, _prevDisksHash = '';
+
+function renderDashboard(s) {
+  const el = id => document.getElementById(id);
+  const score = s.health_score || 0;
+
+  // Health ring — only redraw if score changed
+  if (score !== _prevScore) {
+    _prevScore = score;
+    drawHealthRing(score);
+    el('health-number').textContent = score;
+    el('health-grade').textContent = 'Grade ' + (s.health_grade || '?');
+    el('top-score').textContent = 'Score: ' + score + '/100';
+  }
+
+  // Metrics (cheap text updates)
+  el('m-clean-size').textContent = fmtSize(s.clean_total_size || 0);
+  el('m-threats').textContent = s.scan_threats_count || 0;
+  el('m-disk').textContent = s.disks && s.disks[0] ? (100 - s.disks[0].percent).toFixed(0) + '%' : '--';
+
+  // Health factors — only rebuild if changed
+  const factors = s.health_factors || [];
+  if (factors.length !== _prevFactorsLen) {
+    _prevFactorsLen = factors.length;
+    el('health-factors').innerHTML = factors.length
+      ? factors.map(f => `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--text2)">${f.label}</span>
+          <span style="font-size:12px;font-weight:600;color:${f.impact <= -15 ? 'var(--red)' : f.impact <= -5 ? 'var(--amber)' : 'var(--text3)'}">${f.impact}</span>
+        </div>`).join('')
+      : '<div style="font-size:12px;color:var(--green)">✓ Tout est en ordre</div>';
+  }
+
+  // Disks — only rebuild if data changed
+  if (s.disks) {
+    const dh = s.disks.map(d => d.percent).join(',');
+    if (dh !== _prevDisksHash) {
+      _prevDisksHash = dh;
+      const html = s.disks.map(d => {
+        const color = d.percent > 90 ? 'var(--red)' : d.percent > 75 ? 'var(--amber)' : 'var(--blue)';
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span style="font-weight:500">${d.device}</span>
+            <span style="color:var(--text3)">${fmtSize(d.used)} / ${fmtSize(d.total)} (${d.percent}%)</span>
+          </div>
+          <div class="disk-bar-wrap">
+            <div class="disk-bar" style="width:${d.percent}%;background:${color}"></div>
+            <div class="disk-label">${fmtSize(d.free)} libre</div>
+          </div>
+        </div>`;
+      }).join('');
+      el('dash-disks').innerHTML = html;
+      el('disk-partitions').innerHTML = html;
+    }
+  }
+
+  // Recent threats — only rebuild if count changed
+  const threats = s.scan_threats || [];
+  el('dash-threats-count').textContent = (s.scan_threats_count || 0) + ' menaces';
+  if (threats.length !== _prevThreats) {
+    _prevThreats = threats.length;
+    el('dash-threats').innerHTML = threats.length
+      ? threats.slice(0, 10).map(t => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+          ${sevBadge(t.severity)}
+          <span style="font-size:12px;font-weight:500;flex:1">${t.name}</span>
+          <span style="font-size:10px;color:var(--text3);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.file||''}</span>
+        </div>`).join('')
+      : '<div class="empty-state"><div class="icon">✅</div><div class="text">Aucune menace détectée</div></div>';
+  }
+
+  // Timeline
+  renderTimeline(s.timeline || []);
+
+  // Toggle states (cheap className updates)
+  const rtTog = el('rt-toggle');
+  if (rtTog) rtTog.className = 'toggle' + (s.realtime_protection ? ' on' : '');
+  const sTog = id => document.getElementById(id);
+  if (sTog('s-realtime')) sTog('s-realtime').className = 'toggle' + (s.realtime_protection ? ' on' : '');
+  if (sTog('s-autoquar')) sTog('s-autoquar').className = 'toggle' + (s.auto_quarantine ? ' on' : '');
+  if (sTog('s-heuristic')) sTog('s-heuristic').className = 'toggle' + (s.heuristic_enabled ? ' on' : '');
+}
+
+function drawHealthRing(score) {
+  const c = document.getElementById('health-canvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const w = 140, cx = 70, cy = 70, r = 58, lw = 10;
+  ctx.clearRect(0, 0, w, w);
+
+  // Background ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = '#22222f';
+  ctx.lineWidth = lw;
+  ctx.stroke();
+
+  // Score ring
+  const angle = (score / 100) * Math.PI * 2;
+  const color = score >= 80 ? '#3dffb4' : score >= 60 ? '#4d9fff' : score >= 40 ? '#ffb347' : '#ff4d6a';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + angle);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  document.getElementById('health-number').style.color = color;
+}
+
+// ─── Render Timeline ────────────────────────────────────────────────────
+let _prevTimelineLen = -1;
+function renderTimeline(events) {
+  if (!events || events.length === _prevTimelineLen) return;
+  _prevTimelineLen = events.length;
+  const el = document.getElementById('timeline');
+  const countEl = document.getElementById('tl-count');
+  if (!el) return;
+  if (!events.length) {
+    el.innerHTML = '<div class="empty-state"><div class="text">En attente d\'activité...</div></div>';
+    countEl.textContent = '—';
+    return;
+  }
+  countEl.textContent = events.length + ' événements';
+  el.innerHTML = events.map(e => {
+    const t = new Date(e.time);
+    const ts = t.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    return `<div class="tl-item" data-cat="${e.category}">
+      <span class="tl-icon">${e.icon}</span>
+      <div class="tl-body"><div class="tl-text">${e.text}</div></div>
+      <span class="tl-time">${ts}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render Scan Progress ───────────────────────────────────────────────
+function renderScanProgress(s) {
+  const card = document.getElementById('av-progress-card');
+  const btnStop = document.getElementById('av-btn-stop');
+  const btnPause = document.getElementById('av-btn-pause');
+  const btnResume = document.getElementById('av-btn-resume');
+
+  if (s.scan_active) {
+    card.style.display = '';
+    btnStop.style.display = '';
+    btnPause.style.display = s.scan_paused ? 'none' : '';
+    btnResume.style.display = s.scan_paused ? '' : 'none';
+
+    document.getElementById('av-scan-title').textContent =
+      s.scan_paused ? 'Scan en pause...' :
+      `Scan ${s.scan_type === 'quick' ? 'rapide' : s.scan_type === 'full' ? 'complet' : 'personnalisé'} en cours...`;
+    document.getElementById('av-pct').textContent = s.scan_progress + '%';
+    document.getElementById('av-bar').style.width = s.scan_progress + '%';
+    document.getElementById('av-files').textContent = `${s.scan_files_scanned.toLocaleString()} / ${s.scan_files_total.toLocaleString()} fichiers`;
+    document.getElementById('av-speed').textContent = s.scan_speed + ' fichiers/sec';
+    document.getElementById('av-current').textContent = s.scan_current_file || '—';
+  } else {
+    if (card.style.display !== 'none' && s.scan_progress >= 100) {
+      const tCount = (s.scan_threats || []).length;
+      document.getElementById('av-scan-title').textContent =
+        tCount > 0
+          ? `⚠ Scan terminé — ${tCount} menace${tCount > 1 ? 's' : ''} détectée${tCount > 1 ? 's' : ''}`
+          : '✅ Scan terminé — aucune menace';
+      document.getElementById('av-scan-title').style.color = tCount > 0 ? 'var(--red)' : 'var(--green)';
+      document.getElementById('av-pct').textContent = '100%';
+      document.getElementById('av-bar').style.width = '100%';
+      document.getElementById('av-files').textContent = `${s.scan_files_scanned.toLocaleString()} fichiers analysés`;
+      document.getElementById('av-speed').textContent = '';
+      document.getElementById('av-current').textContent = tCount > 0
+        ? `${tCount} menace${tCount > 1 ? 's' : ''} mise${tCount > 1 ? 's' : ''} en quarantaine automatiquement`
+        : 'Votre système est propre';
+    }
+    btnStop.style.display = 'none';
+    btnPause.style.display = 'none';
+    btnResume.style.display = 'none';
+  }
+
+  // Threats list
+  const threats = s.scan_threats || [];
+  const avBadge = document.getElementById('av-threat-count');
+  if (threats.length) {
+    avBadge.style.display = '';
+    avBadge.textContent = threats.length;
+    document.getElementById('av-threats').innerHTML = threats.map(t => {
+      const fname = (t.file||'').split('\\').pop();
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border)">
+      ${sevBadge(t.severity)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500">${t.name}</div>
+        <div style="font-size:10px;color:var(--text3)">${t.detail || ''}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'Geist Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fname}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${t.severity === 'critical' || t.severity === 'high'
+          ? `<span style="font-size:10px;color:var(--green);padding:3px 6px;border:1px solid var(--greendim);border-radius:4px">✓ En quarantaine</span>`
+          : `<button class="btn btn-red" style="padding:2px 8px;font-size:10px" onclick="if(confirm('Supprimer ${fname.replace(/'/g,"\\'")} ?')) toast('Fichier signalé','var(--amber)')">Ignorer</button>`
+        }
+      </div>
+    </div>`}).join('');
+  } else {
+    avBadge.style.display = 'none';
+  }
+}
+
+// ─── Render Clean Results ───────────────────────────────────────────────
+function renderCleanResults(s) {
+  const results = s.clean_results || {};
+  const keys = Object.keys(results);
+  if (!keys.length) return;
+
+  document.getElementById('clean-total').textContent =
+    (s.clean_total_files || 0).toLocaleString() + ' fichiers — ' + fmtSize(s.clean_total_size || 0);
+
+  document.getElementById('clean-status').textContent =
+    s.clean_scanning ? '🔍 Analyse en cours...' : s.clean_cleaning ? '🗑 Suppression en cours...' : '✅ Analyse terminée';
+  document.getElementById('clean-status').style.color =
+    s.clean_scanning ? 'var(--blue)' : s.clean_cleaning ? 'var(--amber)' : 'var(--green)';
+
+  document.getElementById('clean-list').innerHTML = keys.map(key => {
+    const r = results[key];
+    if (!r.files && !r.size) return '';
+    return `<div class="clean-item">
+      <span class="clean-icon">${r.icon}</span>
+      <div class="clean-info">
+        <div class="clean-name">${r.label}</div>
+        <div class="clean-detail">${r.files.toLocaleString()} fichiers trouvés</div>
+      </div>
+      <span class="clean-size">${fmtSize(r.size)}</span>
+      <button class="btn btn-red" style="padding:4px 10px;font-size:11px" onclick="confirmCleanCategory('${key}','${r.label}',${r.files},'${fmtSize(r.size)}')">🗑 Supprimer</button>
+    </div>`;
+  }).filter(Boolean).join('') || '<div class="empty-state"><div class="text">✨ Tout est propre — rien à supprimer</div></div>';
+}
+
+// ─── Render Startup ─────────────────────────────────────────────────────
+function renderStartup(programs) {
+  document.getElementById('startup-count').textContent = programs.length + ' programmes';
+  document.getElementById('m-startup').textContent = programs.length;
+
+  document.getElementById('startup-list').innerHTML = programs.map(p => `<div class="startup-item">
+    <div class="toggle ${p.enabled?'on':''}" onclick="sendCmd({cmd:'toggle_startup',name:'${p.name}',hive:'${p.hive||'HKCU'}',reg_path:'${(p.reg_path||'').replace(/\\/g,'\\\\')}',enabled:${!p.enabled}})"></div>
+    <div style="flex:1">
+      <div class="startup-name">${p.name}</div>
+      <div class="startup-path">${p.command || p.path}</div>
+    </div>
+    <span class="startup-scope">${p.scope}</span>
+    ${!p.exists ? '<span class="sev sev-low">Introuvable</span>' : ''}
+  </div>`).join('') || '<div class="empty-state"><div class="text">Aucun programme au démarrage</div></div>';
+}
+
+// ─── Render Registry ────────────────────────────────────────────────────
+function renderRegistry(issues) {
+  document.getElementById('registry-list').innerHTML = issues.length
+    ? issues.map(i => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div style="color:var(--text2)">${i.description}</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px">${i.key}</div>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--green)">✓ Aucun problème trouvé dans le registre</div>';
+}
+
+// ─── Render Processes ───────────────────────────────────────────────────
+function renderProcesses(procs) {
+  document.getElementById('process-list').innerHTML = procs.length
+    ? procs.map(p => `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--amber)">${p.name}</span>
+          <span style="font-size:10px;color:var(--text3)">PID: ${p.pid}</span>
+          <span style="font-size:10px;color:var(--text3)">CPU: ${p.cpu}%</span>
+          <span style="font-size:10px;color:var(--text3)">RAM: ${fmtSize(p.memory)}</span>
+        </div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px">${p.exe || '—'}</div>
+        ${p.findings.map(f => `<div style="font-size:11px;color:var(--red);margin-top:2px">⚠ ${f}</div>`).join('')}
+      </div>`).join('')
+    : '<div class="empty-state"><div class="icon">✅</div><div class="text">Aucun processus suspect détecté</div></div>';
+}
+
+// ─── Render History ─────────────────────────────────────────────────────
+function renderHistory(entries) {
+  if (!entries || !entries.length) {
+    document.getElementById('history-list').innerHTML = '<div class="empty-state"><div class="text">Aucun historique</div></div>';
+    return;
+  }
+  entries.sort((a,b) => new Date(b.date) - new Date(a.date));
+  document.getElementById('history-list').innerHTML = `<table class="tbl">
+    <tr><th>Date</th><th>Type</th><th>Fichiers</th><th>Menaces</th><th>Durée</th><th>Nettoyé</th></tr>
+    ${entries.map(e => `<tr>
+      <td>${fmtDate(e.date)}</td>
+      <td><span class="sev sev-${e.type==='clean'?'low':e.threats_found?'medium':'low'}">${e.type.toUpperCase()}</span></td>
+      <td>${(e.files_scanned||0).toLocaleString()}</td>
+      <td style="color:${e.threats_found?'var(--red)':'var(--green)'}"><strong>${e.threats_found||0}</strong></td>
+      <td>${fmtDuration(e.duration_seconds||0)}</td>
+      <td>${e.cleaned_size ? fmtSize(e.cleaned_size) : '—'}</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+// ─── Render Quarantine ──────────────────────────────────────────────────
+function renderQuarantine(entries) {
+  document.getElementById('q-count').textContent = entries.length + ' fichiers';
+  const badge = document.getElementById('nav-q-badge');
+  badge.style.display = entries.length ? '' : 'none';
+  badge.textContent = entries.length;
+
+  document.getElementById('q-list').innerHTML = entries.length
+    ? entries.map(e => `<div class="q-item">
+        <span style="font-size:18px">🔒</span>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500">${e.threat_name}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'Geist Mono',monospace">${e.original_path}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(e.date)} — ${fmtSize(e.size)}</div>
+        </div>
+        <button class="btn btn-green" style="padding:3px 8px;font-size:10px" onclick="sendCmd({cmd:'quarantine_restore',name:'${e.quarantine_name}'})">Restaurer</button>
+        <button class="btn btn-red" style="padding:3px 8px;font-size:10px" onclick="if(confirm('Supprimer définitivement ?')) sendCmd({cmd:'quarantine_delete',name:'${e.quarantine_name}'})">Supprimer</button>
+      </div>`).join('')
+    : '<div class="empty-state"><div class="icon">🔒</div><div class="text">Aucun fichier en quarantaine</div></div>';
+}
+
+// ─── Render Disk Analysis ───────────────────────────────────────────────
+function renderDiskAnalysis(msg) {
+  const card = document.getElementById('disk-analysis-card');
+  card.style.display = '';
+  document.getElementById('disk-analysis-title').textContent = 'Analyse: ' + msg.path;
+  document.getElementById('disk-analysis-list').innerHTML = `<table class="tbl">
+    <tr><th>Nom</th><th>Type</th><th>Taille</th></tr>
+    ${msg.items.map(i => `<tr>
+      <td style="font-family:'Geist Mono',monospace;font-size:11px">${i.name}</td>
+      <td>${i.type === 'dir' ? '📁' : '📄'} ${i.files ? i.files + ' fichiers' : ''}</td>
+      <td style="font-weight:600;color:var(--amber)">${fmtSize(i.size)}</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+function renderLargeFiles(files) {
+  const card = document.getElementById('large-files-card');
+  card.style.display = '';
+  document.getElementById('large-files-list').innerHTML = files.length
+    ? `<table class="tbl"><tr><th>Fichier</th><th>Taille</th><th>Modifié</th></tr>
+      ${files.map(f => `<tr>
+        <td style="font-family:'Geist Mono',monospace;font-size:11px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.path}</td>
+        <td style="font-weight:600;color:var(--amber)">${fmtSize(f.size)}</td>
+        <td style="font-size:10px;color:var(--text3)">${fmtDate(f.modified)}</td>
+      </tr>`).join('')}</table>`
+    : '<div class="empty-state"><div class="text">Aucun gros fichier trouvé</div></div>';
+}
+
+function renderDuplicates(dups) {
+  const card = document.getElementById('duplicates-card');
+  card.style.display = '';
+  document.getElementById('duplicates-list').innerHTML = dups.length
+    ? dups.map(d => `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:500">${d.count} copies — ${fmtSize(d.size)} chacun</span>
+          <span style="font-size:12px;color:var(--amber);font-weight:600">Économie: ${fmtSize(d.size * (d.count - 1))}</span>
+        </div>
+        ${d.files.map(f => `<div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3);padding:2px 0">${f}</div>`).join('')}
+      </div>`).join('')
+    : '<div class="empty-state"><div class="text">Aucun doublon trouvé</div></div>';
+}
+
+// ─── Render System Info ─────────────────────────────────────────────────
+function renderSystemInfo(info) {
+  document.getElementById('sys-info').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div style="color:var(--text3)">OS</div><div>${info.os}</div>
+      <div style="color:var(--text3)">Version</div><div>${info.os_version}</div>
+      <div style="color:var(--text3)">Architecture</div><div>${info.architecture}</div>
+      <div style="color:var(--text3)">Hostname</div><div>${info.hostname}</div>
+      <div style="color:var(--text3)">CPU</div><div>${info.cpu} (${info.cpu_count} coeurs)</div>
+      <div style="color:var(--text3)">RAM</div><div>${fmtSize(info.ram_used)} / ${fmtSize(info.ram_total)} (${info.ram_percent}%)</div>
+      <div style="color:var(--text3)">Python</div><div>${info.python}</div>
+      <div style="color:var(--text3)">Uptime</div><div>${fmtDuration(info.uptime || 0)}</div>
+    </div>`;
+}
+
+// ─── Badges ─────────────────────────────────────────────────────────────
+function updateBadges(s) {
+  const cleanBadge = document.getElementById('nav-clean-badge');
+  if (s.clean_total_size > 100 * 1024 * 1024) {
+    cleanBadge.style.display = '';
+    cleanBadge.textContent = fmtSize(s.clean_total_size);
+  } else {
+    cleanBadge.style.display = 'none';
+  }
+
+  const avBadge = document.getElementById('nav-av-badge');
+  if (s.scan_threats_count > 0) {
+    avBadge.style.display = '';
+    avBadge.textContent = s.scan_threats_count;
+  } else {
+    avBadge.style.display = 'none';
+  }
+}
+
+// ─── Actions ────────────────────────────────────────────────────────────
+function quickClean() {
+  toast('🔍 Analyse des fichiers temporaires...', 'var(--blue)');
+  sendCmd({cmd:'scan_temp'});
+  // Wait for scan to complete, then ask to clean
+  let checks = 0;
+  const interval = setInterval(() => {
+    checks++;
+    if (checks > 20) { clearInterval(interval); return; }
+    if (lastState && !lastState.clean_scanning) {
+      clearInterval(interval);
+      if (lastState.clean_total_files > 0) {
+        const msg = `${lastState.clean_total_files.toLocaleString()} fichiers trouvés (${fmtSize(lastState.clean_total_size)}).\n\nSupprimer tous les fichiers temporaires ?`;
+        if (confirm(msg)) {
+          sendCmd({cmd:'clean_all'});
+          toast('🗑 Suppression en cours...', 'var(--amber)');
+        }
+      } else {
+        toast('✨ Rien à nettoyer !', 'var(--green)');
+      }
+    }
+  }, 500);
+}
+
+function confirmCleanAll() {
+  if (!lastState || !lastState.clean_total_files) {
+    toast('⚠ Lancez d\'abord une analyse avec le bouton "Analyser"', 'var(--amber)');
+    return;
+  }
+  const msg = `⚠ SUPPRIMER ${lastState.clean_total_files.toLocaleString()} fichiers ?\n\nTaille totale: ${fmtSize(lastState.clean_total_size)}\n\nCette action est irréversible.`;
+  if (confirm(msg)) {
+    sendCmd({cmd:'clean_all'});
+    toast('🗑 Suppression de tous les fichiers en cours...', 'var(--amber)');
+  }
+}
+
+function confirmCleanCategory(key, label, count, size) {
+  const msg = `Supprimer ${count} fichiers de "${label}" ?\n\nTaille: ${size}\nCette action est irréversible.`;
+  if (confirm(msg)) {
+    sendCmd({cmd:'clean_category', category: key});
+    toast('🗑 Suppression de ' + label + '...', 'var(--amber)');
+  }
+}
+
+function promptCustomScan() {
+  const path = prompt('Dossier à scanner:', 'C:\\');
+  if (path) sendCmd({cmd:'custom_scan', path});
+}
+
+function toggleSetting(key) {
+  if (!lastState) return;
+  const newVal = !lastState[key];
+  sendCmd({cmd:'save_settings', settings: {[key]: newVal}});
+  if (key === 'realtime_protection') sendCmd({cmd:'toggle_realtime'});
+}
+
+function saveExclusions() {
+  const text = document.getElementById('s-exclusions').value;
+  const exclusions = text.split('\n').map(l => l.trim()).filter(Boolean);
+  sendCmd({cmd:'save_settings', settings: {exclusions}});
+  toast('✓ Exclusions sauvegardées', 'var(--green)');
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────
+function toast(msg, color) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.color = color || 'var(--text)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ─── Init ───────────────────────────────────────────────────────────────
+initConnection();
+</script>
+</body>
+</html>

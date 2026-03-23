@@ -1,0 +1,23 @@
+{
+  "ws_port": 8820,
+  "theme": "dark",
+  "language": "fr",
+  "mode": "server",
+  "active_profile": "default",
+  "wg_interface": "wg0",
+  "wg_listen_port": 51820,
+  "wg_address": "10.66.66.1/24",
+  "wg_dns": "1.1.1.1, 9.9.9.9",
+  "wg_endpoint": "",
+  "wg_post_up": "",
+  "wg_post_down": "",
+  "kill_switch_enabled": false,
+  "dns_leak_protection": true,
+  "auto_connect": false,
+  "auto_connect_untrusted_wifi": true,
+  "split_tunnel_enabled": false,
+  "split_tunnel_apps": [],
+  "split_tunnel_bypass": [],
+  "trusted_networks": [],
+  "connection_log_max": 500
+}

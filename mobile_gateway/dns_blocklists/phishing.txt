@@ -1,0 +1,33 @@
+# Optimus Mobile Gateway — Phishing domains blocklist
+# One domain per line. Lines starting with # are comments.
+# These are known phishing and social engineering domains.
+secure-login-verify.example-blocked.com
+account-update-now.example-blocked.net
+paypal-security-check.example-blocked.org
+apple-id-verify.example-blocked.com
+microsoft-account-alert.example-blocked.net
+google-security-warning.example-blocked.org
+amazon-order-confirm.example-blocked.com
+netflix-billing-update.example-blocked.net
+bank-of-america-alert.example-blocked.org
+chase-verify-account.example-blocked.com
+wellsfargo-security.example-blocked.net
+dhl-tracking-update.example-blocked.org
+fedex-delivery-notice.example-blocked.com
+ups-package-alert.example-blocked.net
+irs-refund-status.example-blocked.org
+facebook-login-verify.example-blocked.com
+instagram-verify-badge.example-blocked.net
+twitter-account-locked.example-blocked.org
+linkedin-profile-view.example-blocked.com
+dropbox-shared-file.example-blocked.net
+steam-trade-offer.example-blocked.org
+discord-nitro-free.example-blocked.com
+whatsapp-verify-code.example-blocked.net
+telegram-premium-free.example-blocked.org
+crypto-airdrop-claim.example-blocked.com
+nft-mint-exclusive.example-blocked.net
+wallet-connect-verify.example-blocked.org
+covid-vaccine-appt.example-blocked.com
+stimulus-check-claim.example-blocked.net
+tech-support-alert.example-blocked.org
