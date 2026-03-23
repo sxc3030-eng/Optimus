@@ -1,0 +1,14 @@
+[
+  {
+    "name": "test-client-1",
+    "pubkey": "4ZoGb+Q9FlfHH0Srp9c1fcb8lTYWzOhdHbwUqf7AShE=",
+    "privkey": "sCo/4AFi9RMLHGr0yZjdI3Sz4K4TIszwZQN1053Wsmg=",
+    "preshared_key": "mHdl+rL/+7lEHkmzJ2yIcq1CoRAnVnpAe6DefB8ub4Q=",
+    "address": "10.66.66.2",
+    "allowed_ips": "10.66.66.2/32",
+    "created": "2026-03-20T22:03:48.135866",
+    "last_handshake": "",
+    "transfer_rx": 0,
+    "transfer_tx": 0
+  }
+]

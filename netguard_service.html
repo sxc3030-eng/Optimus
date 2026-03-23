@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NetGuard Pro — Service Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+.titlebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:14px;font-weight:600}
+.logo span{background:linear-gradient(90deg,#4d9fff,#b47dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:11px;color:var(--text3)}
+
+.content{max-width:900px;width:100%;margin:0 auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-body{padding:18px}
+
+/* Status indicator */
+.status-badge{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.status-running{background:var(--greendim);color:var(--green);border:1px solid var(--green)44}
+.status-stopped{background:var(--reddim);color:var(--red);border:1px solid var(--red)44}
+.status-unknown{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.status-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite}
+.status-dot.green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.status-dot.red{background:var(--red);animation:none}
+.status-dot.gray{background:var(--text3);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Buttons */
+.btn{padding:8px 18px;border-radius:7px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.15s;font-weight:500;border:none;display:flex;align-items:center;gap:6px}
+.btn-green{background:var(--greendim);color:var(--green);border:1px solid var(--green)44}
+.btn-green:hover{background:var(--green);color:#0f0f13}
+.btn-red{background:var(--reddim);color:var(--red);border:1px solid var(--red)44}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-blue{background:var(--bluedim);color:var(--blue);border:1px solid var(--blue)44}
+.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border2)}
+.btn-gray:hover{border-color:var(--blue);color:var(--blue)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-card{background:var(--bg4);border-radius:8px;padding:14px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;font-family:'Geist Mono',monospace;line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:11px;color:var(--text3)}
+
+/* Log viewer */
+.log-viewer{background:#070710;border:1px solid var(--border2);border-radius:8px;padding:14px;height:320px;overflow-y:auto;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.7}
+.log-line{padding:1px 0;border-bottom:1px solid #ffffff04}
+.log-info{color:#4d9fff}
+.log-warn{color:#ffb347}
+.log-error{color:#ff4d6a}
+.log-block{color:#ff4d6a;font-weight:600}
+.log-threat{color:#b47dff}
+.log-default{color:#6060a0}
+
+/* Info row */
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-label{font-size:12px;color:var(--text3)}
+.info-value{font-size:12px;font-family:'Geist Mono',monospace;color:var(--text)}
+
+/* Toggle */
+.toggle{width:36px;height:20px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;cursor:pointer;position:relative;transition:.2s;flex-shrink:0}
+.toggle.on{background:var(--blue);border-color:var(--blue)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s;pointer-events:none}
+.toggle.on::after{left:18px}
+
+.actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.separator{height:1px;background:var(--border);margin:4px 0}
+
+.cmd-block{background:#070710;border:1px solid var(--border2);border-radius:6px;padding:10px 14px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--green);margin-top:8px;position:relative}
+.copy-btn{position:absolute;right:8px;top:8px;background:var(--bg4);border:1px solid var(--border2);color:var(--text3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer}
+.copy-btn:hover{color:var(--green)}
+
+.badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:700}
+.badge-win{background:#0d2a5a;color:#4d9fff}
+.badge-linux{background:#1a3300;color:#3dffb4}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div>
+    <div class="logo" style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 200 200" width="28" height="28" style="flex-shrink:0"><defs><linearGradient id="ngG8" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#b47dff"/></linearGradient></defs><path d="M100 18L162 42V100C162 140 132 163 100 178C68 163 38 140 38 100V42Z" fill="#16161d" stroke="url(#ngG8)" stroke-width="3"/><path d="M72 70V130M72 70L128 130M128 70V130" stroke="url(#ngG8)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span><span>Net</span>Guard Pro — <span style="-webkit-text-fill-color:var(--text2);background:none">Service Manager</span></span></div>
+    <div class="subtitle">Gestion du service arrière-plan • Logs en direct</div>
+  </div>
+  <a href="netguard_dashboard.html" style="text-decoration:none;background:var(--bg4);border:1px solid var(--border2);color:var(--text2);font-size:12px;padding:6px 14px;border-radius:6px;display:flex;align-items:center;gap:6px">
+    ← Dashboard
+  </a>
+</div>
+
+<div class="content">
+
+  <!-- Statut du service -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Statut du service
+      </span>
+      <div id="status-badge" class="status-badge status-unknown">
+        <div class="status-dot gray" id="status-dot"></div>
+        <span id="status-text">Vérification…</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="stats-grid" style="margin-bottom:18px">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-paquets" style="color:var(--blue)">—</div>
+          <div class="stat-lbl">Paquets analysés</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-bloques" style="color:var(--red)">—</div>
+          <div class="stat-lbl">Bloqués</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-menaces" style="color:var(--amber)">—</div>
+          <div class="stat-lbl">Menaces</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-uptime" style="color:var(--green)">—</div>
+          <div class="stat-lbl">Uptime</div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-green" onclick="startService()">▶ Démarrer</button>
+        <button class="btn btn-red" onclick="stopService()">■ Arrêter</button>
+        <button class="btn btn-blue" onclick="restartService()">↺ Redémarrer</button>
+        <button class="btn btn-gray" onclick="openDashboard()">📊 Ouvrir Dashboard</button>
+        <button class="btn btn-gray" onclick="refreshStatus()">⟳ Rafraîchir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logs en direct -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 7h8M2 10h10M2 13h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Logs en direct
+      </span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--text3)" id="log-count">0 lignes</span>
+        <button class="btn btn-gray" style="padding:4px 10px;font-size:11px" onclick="clearLogs()">Effacer</button>
+        <button class="btn btn-gray" style="padding:4px 10px;font-size:11px" onclick="loadLogs()">↺ Recharger</button>
+        <div class="toggle on" id="auto-scroll-toggle" onclick="toggleAutoScroll()" title="Auto-scroll"></div>
+        <span style="font-size:11px;color:var(--text3)">Auto-scroll</span>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px">
+      <div class="log-viewer" id="log-viewer">
+        <div class="log-default">Chargement des logs…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuration service -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Configuration du service
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="info-row">
+        <span class="info-label">Dossier</span>
+        <span class="info-value" id="info-dir">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Port WebSocket</span>
+        <span class="info-value">ws://localhost:8765</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Fichier log</span>
+        <span class="info-value" id="info-log">netguard.log</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Démarrage automatique</span>
+        <span class="info-value" id="info-autostart" style="color:var(--green)">Activé (Planificateur de tâches)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commandes manuelles -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Commandes PowerShell / Bash</span>
+    </div>
+    <div class="card-body">
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <span class="badge badge-win">Windows</span> PowerShell (Admin)
+        </div>
+        <div class="cmd-block">
+          # Vérifier le statut<br>
+          Get-ScheduledTask -TaskName "Optimus" | Select-Object State<br><br>
+          # Démarrer<br>
+          Start-ScheduledTask -TaskName "Optimus"<br><br>
+          # Arrêter<br>
+          Stop-ScheduledTask -TaskName "Optimus"<br><br>
+          # Désinstaller<br>
+          Unregister-ScheduledTask -TaskName "Optimus" -Confirm:$false
+          <button class="copy-btn" onclick="copyCmd(this)">Copier</button>
+        </div>
+      </div>
+
+      <div class="separator"></div>
+
+      <div style="margin-top:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <span class="badge badge-linux">Linux</span> Terminal
+        </div>
+        <div class="cmd-block">
+          # Statut<br>
+          sudo systemctl status netguard-pro<br><br>
+          # Logs en direct<br>
+          journalctl -u netguard-pro -f<br><br>
+          # Démarrer / Arrêter / Redémarrer<br>
+          sudo systemctl start netguard-pro<br>
+          sudo systemctl stop netguard-pro<br>
+          sudo systemctl restart netguard-pro<br><br>
+          # Désactiver le démarrage auto<br>
+          sudo systemctl disable netguard-pro
+          <button class="copy-btn" onclick="copyCmd(this)">Copier</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WS_URL = 'ws://localhost:8765';
+let ws = null;
+let autoScroll = true;
+let logLines = [];
+let startTime = null;
+let uptimeInterval = null;
+
+// ── WebSocket connexion ───────────────────────────────────────────────────
+function connect() {
+  try {
+    ws = new WebSocket(WS_URL);
+    ws.onopen = () => {
+      setStatus('running');
+      ws.send(JSON.stringify({cmd: 'get_state'}));
+      startTime = startTime || new Date();
+      if (!uptimeInterval) uptimeInterval = setInterval(updateUptime, 1000);
+    };
+    ws.onclose = () => {
+      setStatus('stopped');
+      ws = null;
+      if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
+      setTimeout(connect, 3000);
+    };
+    ws.onerror = () => {};
+    ws.onmessage = e => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'state') updateStats(msg);
+      } catch(_) {}
+    };
+  } catch(e) {
+    setStatus('stopped');
+    setTimeout(connect, 3000);
+  }
+}
+
+function setStatus(state) {
+  const badge = document.getElementById('status-badge');
+  const dot   = document.getElementById('status-dot');
+  const text  = document.getElementById('status-text');
+  badge.className = 'status-badge ' + (state === 'running' ? 'status-running' : state === 'stopped' ? 'status-stopped' : 'status-unknown');
+  dot.className   = 'status-dot ' + (state === 'running' ? 'green' : state === 'stopped' ? 'red' : 'gray');
+  text.textContent = state === 'running' ? '● En cours — Protection active' : state === 'stopped' ? '■ Arrêté' : 'Inconnu';
+}
+
+function updateStats(s) {
+  document.getElementById('stat-paquets').textContent = (s.packets_total || 0).toLocaleString();
+  document.getElementById('stat-bloques').textContent = (s.packets_blocked || 0).toLocaleString();
+  document.getElementById('stat-menaces').textContent = (s.threats_count || 0).toLocaleString();
+}
+
+function updateUptime() {
+  if (!startTime) return;
+  const diff = Math.floor((new Date() - startTime) / 1000);
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  document.getElementById('stat-uptime').textContent =
+    (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'm ' : '') + s + 's';
+}
+
+// ── Boutons service ───────────────────────────────────────────────────────
+function startService() {
+  addLog('[SERVICE] Démarrage en cours…', 'info');
+  // Windows: ouvre PowerShell avec la commande
+  const cmd = 'Start-ScheduledTask -TaskName "Optimus"';
+  navigator.clipboard.writeText(cmd).then(() => {
+    showToast('Commande copiée — colle dans PowerShell Admin', 'var(--blue)');
+  });
+  setTimeout(connect, 2000);
+}
+
+function stopService() {
+  addLog('[SERVICE] Arrêt en cours…', 'warn');
+  const cmd = 'Stop-ScheduledTask -TaskName "Optimus"';
+  navigator.clipboard.writeText(cmd).then(() => {
+    showToast('Commande copiée — colle dans PowerShell Admin', 'var(--amber)');
+  });
+  if (ws) ws.close();
+}
+
+function restartService() {
+  addLog('[SERVICE] Redémarrage en cours…', 'warn');
+  const cmd = 'Stop-ScheduledTask -TaskName "Optimus"; Start-Sleep 2; Start-ScheduledTask -TaskName "Optimus"';
+  navigator.clipboard.writeText(cmd).then(() => {
+    showToast('Commande copiée — colle dans PowerShell Admin', 'var(--blue)');
+  });
+}
+
+function openDashboard() {
+  window.open('netguard_dashboard.html', '_blank');
+}
+
+function refreshStatus() {
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({cmd: 'get_state'}));
+    addLog('[SERVICE] Statut rafraîchi', 'info');
+  } else {
+    addLog('[SERVICE] Connexion WebSocket fermée — tentative reconnexion…', 'warn');
+    connect();
+  }
+}
+
+// ── Logs ──────────────────────────────────────────────────────────────────
+function addLog(line, type = 'default') {
+  const now = new Date().toTimeString().slice(0,8);
+  logLines.push({time: now, text: line, type});
+  if (logLines.length > 500) logLines.shift();
+  renderLogs();
+}
+
+function renderLogs() {
+  const viewer = document.getElementById('log-viewer');
+  document.getElementById('log-count').textContent = logLines.length + ' lignes';
+
+  viewer.innerHTML = logLines.map(l => {
+    let cls = 'log-default';
+    const t = l.text.toLowerCase();
+    if (t.includes('[block]') || t.includes('bloqué') || t.includes('error')) cls = 'log-block';
+    else if (t.includes('[threat') || t.includes('menace') || t.includes('[ids]')) cls = 'log-threat';
+    else if (t.includes('[warn') || t.includes('alerte')) cls = 'log-warn';
+    else if (t.includes('[info') || t.includes('[ws]') || t.includes('[mode]') || t.includes('[auto]') || t.includes('[suricata]') || t.includes('[settings]')) cls = 'log-info';
+    return `<div class="log-line ${cls}"><span style="color:var(--text3)">${l.time}</span> ${escHtml(l.text)}</div>`;
+  }).join('');
+
+  if (autoScroll) viewer.scrollTop = viewer.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function clearLogs() {
+  logLines = [];
+  renderLogs();
+}
+
+function loadLogs() {
+  addLog('[SERVICE] Rechargement des logs…', 'info');
+  // Simuler chargement depuis WebSocket
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({cmd: 'get_state'}));
+    addLog('[SERVICE] État récupéré depuis le backend', 'info');
+  }
+}
+
+function toggleAutoScroll() {
+  autoScroll = !autoScroll;
+  document.getElementById('auto-scroll-toggle').className = 'toggle' + (autoScroll ? ' on' : '');
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+function copyCmd(btn) {
+  const text = btn.parentElement.innerText.replace('Copier','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Commandes copiées !', 'var(--green)');
+  });
+}
+
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;z-index:9999;color:${color};box-shadow:0 4px 20px rgba(0,0,0,.5)`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ── Info dossier ──────────────────────────────────────────────────────────
+document.getElementById('info-dir').textContent = window.location.pathname.replace(/\/[^/]+$/, '') || '.';
+
+// ── Init ──────────────────────────────────────────────────────────────────
+addLog('[SERVICE] Interface de gestion démarrée', 'info');
+addLog('[SERVICE] Connexion au backend NetGuard Pro…', 'info');
+connect();
+
+// Polling log toutes les 5s via WS
+setInterval(() => {
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({cmd: 'get_state'}));
+  } else {
+    addLog('[SERVICE] Backend non connecté — en attente…', 'warn');
+  }
+}, 5000);
+</script>
+</body>
+</html>

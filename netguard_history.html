@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NetGuard Pro — Bilan & Historique</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.titlebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:.15s;border:1px solid var(--border2);background:var(--bg4);color:var(--text2);font-family:'Outfit',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-red{background:var(--reddim);border-color:var(--red)44;color:var(--red)}
+.btn-green{background:var(--greendim);border-color:var(--green)44;color:var(--green)}
+.btn-blue{background:var(--bluedim);border-color:var(--blue)44;color:var(--blue)}
+.content{flex:1;padding:20px;display:flex;flex-direction:column;gap:20px;max-width:1400px;width:100%;margin:0 auto}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px}
+.stat{background:var(--bg4);border-radius:8px;padding:14px;text-align:center;border:1px solid var(--border)}
+.stat-val{font-size:26px;font-weight:700;font-family:'Geist Mono',monospace;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:5px}
+.period-tabs{display:flex;gap:4px;background:var(--bg4);padding:3px;border-radius:7px}
+.ptab{padding:5px 14px;border-radius:5px;font-size:12px;cursor:pointer;color:var(--text3);transition:.15s;border:none;background:none;font-family:'Outfit',sans-serif}
+.ptab.active{background:var(--bg2);color:var(--blue);font-weight:500}
+.ptab:hover:not(.active){color:var(--text)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:16px}
+.chart-box{background:var(--bg4);border-radius:8px;padding:14px}
+.chart-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px}
+.bar-label{min-width:120px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-wrap{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:.5s}
+.bar-count{font-family:'Geist Mono',monospace;color:var(--text3);min-width:30px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{padding:8px 12px;color:var(--text3);font-weight:500;text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--border);font-family:'Outfit',sans-serif;white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid #ffffff04}
+tr:hover td{background:var(--bg4)44}
+.sev-badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:700}
+.sev-critical,.sev-high{background:var(--reddim);color:var(--red)}
+.sev-med,.sev-medium{background:var(--amberdim);color:var(--amber)}
+.sev-low{background:var(--bluedim);color:var(--blue)}
+.clear-menu{position:relative;display:inline-block}
+.clear-dropdown{position:absolute;top:100%;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:4px;min-width:180px;z-index:100;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.clear-dropdown.show{display:block}
+.clear-item{padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:5px;display:flex;justify-content:space-between}
+.clear-item:hover{background:var(--bg4);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg viewBox="0 0 200 200" width="28" height="28" style="flex-shrink:0"><defs><linearGradient id="ngG5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#b47dff"/></linearGradient></defs><path d="M100 18L162 42V100C162 140 132 163 100 178C68 163 38 140 38 100V42Z" fill="#16161d" stroke="url(#ngG5)" stroke-width="3"/><path d="M72 70V130M72 70L128 130M128 70V130" stroke="url(#ngG5)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <span style="font-size:13px;font-weight:600">
+      <span style="background:linear-gradient(90deg,#4d9fff,#b47dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Net</span>Guard Pro
+    </span>
+    <span style="font-size:11px;color:var(--text3)">— Bilan & Historique</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div id="dot" style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></div>
+      <span style="font-size:11px;color:var(--text3)" id="conn-status">Connexion…</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="btn btn-green" onclick="exportPDF()">📄 Exporter PDF</button>
+    <div class="clear-menu">
+      <button class="btn btn-red" onclick="toggleClearMenu()">🗑 Effacer historique ▾</button>
+      <div class="clear-dropdown" id="clear-dropdown">
+        <div class="clear-item" onclick="clearHistory('hour')">Dernière heure <span style="color:var(--text3)">1h</span></div>
+        <div class="clear-item" onclick="clearHistory('day')">Dernier jour <span style="color:var(--text3)">24h</span></div>
+        <div class="clear-item" onclick="clearHistory('week')">Dernière semaine <span style="color:var(--text3)">7j</span></div>
+        <div class="clear-item" onclick="clearHistory('month')">Dernier mois <span style="color:var(--text3)">30j</span></div>
+        <div style="height:1px;background:var(--border);margin:4px 0"></div>
+        <div class="clear-item" style="color:var(--red)" onclick="clearHistory('all')">Tout effacer <span>⚠️</span></div>
+      </div>
+    </div>
+    <a href="netguard_dashboard.html" class="btn" style="text-decoration:none">← Dashboard</a>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Sélecteur de période -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <span style="font-size:15px;font-weight:600">Bilan de sécurité</span>
+      <span style="font-size:12px;color:var(--text3);margin-left:10px" id="period-label">Dernière semaine</span>
+    </div>
+    <div class="period-tabs">
+      <button class="ptab" onclick="setPeriod('hour',this)">1h</button>
+      <button class="ptab" onclick="setPeriod('day',this)">24h</button>
+      <button class="ptab active" onclick="setPeriod('week',this)">7 jours</button>
+      <button class="ptab" onclick="setPeriod('month',this)">30 jours</button>
+      <button class="ptab" onclick="setPeriod('year',this)">1 an</button>
+      <button class="ptab" onclick="setPeriod('all',this)">Tout</button>
+    </div>
+  </div>
+
+  <!-- Stats globales -->
+  <div class="card">
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" style="color:var(--blue)" id="s-total">—</div><div class="stat-lbl">Menaces totales</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)" id="s-blocked">—</div><div class="stat-lbl">IPs bloquées</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)" id="s-critical">—</div><div class="stat-lbl">Critiques</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--amber)" id="s-high">—</div><div class="stat-lbl">Élevées</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--purple)" id="s-countries">—</div><div class="stat-lbl">Pays sources</div></div>
+    </div>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="charts-grid">
+
+    <!-- Activité par jour -->
+    <div class="chart-box" style="grid-column:span 3">
+      <div class="chart-title">Activité par jour — <span id="activity-label"></span></div>
+      <canvas id="activity-canvas" style="width:100%;height:70px"></canvas>
+      <div id="activity-labels" style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:4px"></div>
+    </div>
+
+    <!-- Types d'attaques -->
+    <div class="chart-box">
+      <div class="chart-title">Types d'attaques</div>
+      <div id="chart-types"></div>
+    </div>
+
+    <!-- Pays sources -->
+    <div class="chart-box">
+      <div class="chart-title">Pays sources</div>
+      <div id="chart-countries"></div>
+    </div>
+
+    <!-- Sévérité -->
+    <div class="chart-box">
+      <div class="chart-title">Répartition par sévérité</div>
+      <canvas id="sev-canvas" width="160" height="160" style="display:block;margin:0 auto"></canvas>
+      <div id="sev-legend" style="margin-top:10px"></div>
+    </div>
+
+  </div>
+
+  <!-- Historique détaillé -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Historique détaillé</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="hist-search" placeholder="Filtrer IP, type…" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:11px;padding:5px 10px;border-radius:5px;width:160px" oninput="filterHistory()">
+        <select id="hist-sev" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:11px;padding:5px 8px;border-radius:5px" onchange="filterHistory()">
+          <option value="">Toutes sévérités</option>
+          <option value="critical">Critique</option>
+          <option value="high">Élevée</option>
+          <option value="med">Moyenne</option>
+          <option value="low">Faible</option>
+        </select>
+        <select id="hist-country" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:11px;padding:5px 8px;border-radius:5px" onchange="filterHistory()">
+          <option value="">Tous pays</option>
+        </select>
+        <span style="font-size:11px;color:var(--text3)" id="hist-count"></span>
+      </div>
+    </div>
+    <div style="overflow-x:auto;max-height:500px;overflow-y:auto">
+      <table>
+        <thead><tr>
+          <th>Date/Heure</th><th>Sévérité</th><th>Type</th><th>IP</th><th>Pays</th><th>Description</th><th>Statut</th>
+        </tr></thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+<script>
+const WS_URL = 'ws://localhost:8765';
+let ws;
+let currentPeriod = 'week';
+let historyData = [];
+let filteredHistory = [];
+
+const FLAGS = {RU:'🇷🇺',CN:'🇨🇳',KP:'🇰🇵',IR:'🇮🇷',KR:'🇰🇷',BR:'🇧🇷',NG:'🇳🇬',IN:'🇮🇳',US:'🇺🇸',DE:'🇩🇪',FR:'🇫🇷',NL:'🇳🇱',GB:'🇬🇧',JP:'🇯🇵',UA:'🇺🇦'};
+const CNAMES  = {RU:'Russie',CN:'Chine',KP:'Corée du Nord',IR:'Iran',KR:'Corée du Sud',BR:'Brésil',NG:'Nigeria',IN:'Inde',US:'États-Unis',DE:'Allemagne',FR:'France',NL:'Pays-Bas',GB:'Royaume-Uni',JP:'Japon',UA:'Ukraine'};
+const PERIOD_LABELS = {hour:'Dernière heure',day:'Dernières 24h',week:'Dernière semaine',month:'Dernier mois',year:'Dernière année',all:'Tout l\'historique'};
+const TYPE_COLORS = ['#ff4d6a','#ffb347','#b47dff','#4d9fff','#3dffb4','#00d4ff','#ff6b9d','#ffd93d','#6bcb77','#4d96ff'];
+const SEV_COLORS  = {critical:'#ff1a4d',high:'#ff4d6a',med:'#ffb347',medium:'#ffb347',low:'#4d9fff'};
+
+// ── WebSocket ─────────────────────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    document.getElementById('dot').style.background = 'var(--green)';
+    document.getElementById('conn-status').textContent = 'Connecté';
+    loadSummary();
+    loadHistory();
+  };
+  ws.onclose = () => {
+    document.getElementById('dot').style.background = 'var(--red)';
+    document.getElementById('dot').style.animation = 'none';
+    document.getElementById('conn-status').textContent = 'Reconnexion…';
+    setTimeout(connect, 3000);
+  };
+  ws.onmessage = e => {
+    try { handleMsg(JSON.parse(e.data)); } catch(_) {}
+  };
+}
+
+function sendCmd(obj) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+function handleMsg(msg) {
+  if (msg.type === 'history_summary') {
+    renderSummary(msg.summary);
+  } else if (msg.type === 'history_data') {
+    historyData = msg.data || [];
+    filteredHistory = [...historyData];
+    populateCountryFilter();
+    filterHistory();
+  } else if (msg.type === 'history_cleared') {
+    showToast(`✓ Historique effacé (${msg.period})`, 'var(--green)');
+    loadSummary();
+    loadHistory();
+  }
+}
+
+function loadSummary() { sendCmd({cmd:'get_history_summary', period:currentPeriod}); }
+function loadHistory()  { sendCmd({cmd:'get_history',         period:currentPeriod}); }
+
+// ── Period ────────────────────────────────────────────────────────────────
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('period-label').textContent = PERIOD_LABELS[p] || p;
+  loadSummary();
+  loadHistory();
+}
+
+// ── Summary rendering ──────────────────────────────────────────────────────
+function renderSummary(s) {
+  if (!s) return;
+  document.getElementById('s-total').textContent    = s.total.toLocaleString();
+  document.getElementById('s-blocked').textContent  = s.blocked.toLocaleString();
+  document.getElementById('s-critical').textContent = (s.by_severity?.critical || 0).toLocaleString();
+  document.getElementById('s-high').textContent     = (s.by_severity?.high || 0).toLocaleString();
+  document.getElementById('s-countries').textContent= Object.keys(s.by_country||{}).length;
+
+  renderBarChart('chart-types',     s.by_type    || {}, TYPE_COLORS, '');
+  renderBarChart('chart-countries', s.by_country || {}, null, 'flags');
+  renderActivityChart(s.by_day || {});
+  renderSevPie(s.by_severity || {});
+}
+
+function renderBarChart(elId, data, colors, mode) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const entries = Object.entries(data).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const max = entries.length ? entries[0][1] : 1;
+  el.innerHTML = entries.map(([key, val], i) => {
+    const color = colors ? colors[i % colors.length] : (SEV_COLORS[key] || '#4d9fff');
+    const label = mode === 'flags' ? `${FLAGS[key]||'🌍'} ${CNAMES[key]||key}` : key;
+    const pct = Math.round(val*100/max);
+    return `<div class="bar-row">
+      <span class="bar-label" title="${key}">${label}</span>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="bar-count">${val}</span>
+    </div>`;
+  }).join('') || '<div style="font-size:11px;color:var(--text3);padding:8px 0">Aucune donnée</div>';
+}
+
+function renderActivityChart(byDay) {
+  const canvas = document.getElementById('activity-canvas');
+  const labelsEl = document.getElementById('activity-labels');
+  if (!canvas) return;
+  canvas.width = canvas.offsetWidth; canvas.height = 70;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const entries = Object.entries(byDay).sort((a,b) => a[0].localeCompare(b[0]));
+  if (!entries.length) return;
+
+  const max = Math.max(...entries.map(e => e[1]), 1);
+  const bw = W / entries.length;
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, '#ff4d6a');
+  grad.addColorStop(1, '#b47dff');
+
+  entries.forEach(([day, count], i) => {
+    const h = (count/max)*(H-8);
+    const x = i*bw;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x+1, H-h, bw-2, h, 2);
+    ctx.fill();
+  });
+
+  document.getElementById('activity-label').textContent = `${entries.length} jours, ${entries.reduce((a,[,v])=>a+v,0)} événements`;
+
+  labelsEl.innerHTML = '';
+  const step = Math.max(1, Math.floor(entries.length/7));
+  entries.forEach(([day],i) => {
+    if (i % step === 0) labelsEl.innerHTML += `<span>${day.slice(5)}</span>`;
+  });
+}
+
+function renderSevPie(bySev) {
+  const canvas = document.getElementById('sev-canvas');
+  const legend = document.getElementById('sev-legend');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const entries = Object.entries(bySev).filter(([,v]) => v > 0);
+  if (!entries.length) { ctx.fillStyle='#22222f'; ctx.beginPath(); ctx.arc(W/2,H/2,60,0,Math.PI*2); ctx.fill(); return; }
+
+  const total = entries.reduce((a,[,v])=>a+v,0);
+  const cx = W/2, cy = H/2, r = 65;
+  let start = -Math.PI/2;
+
+  entries.forEach(([sev, val]) => {
+    const slice = (val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice); ctx.closePath();
+    ctx.fillStyle = SEV_COLORS[sev] || '#5a5a72';
+    ctx.fill();
+    start += slice;
+  });
+
+  // Donut hole
+  ctx.beginPath(); ctx.arc(cx,cy,r*.45,0,Math.PI*2);
+  ctx.fillStyle='#1c1c26'; ctx.fill();
+  ctx.fillStyle='#e8e8f0'; ctx.font='bold 14px Geist Mono,monospace';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(total, cx, cy-6);
+  ctx.font='10px Outfit'; ctx.fillStyle='#5a5a72';
+  ctx.fillText('total', cx, cy+8);
+
+  if (legend) legend.innerHTML = entries.map(([sev,val]) => `
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${SEV_COLORS[sev]||'#5a5a72'};flex-shrink:0;display:inline-block"></span>
+      <span style="color:var(--text2);flex:1;text-transform:capitalize">${sev}</span>
+      <span style="font-family:'Geist Mono',monospace;color:${SEV_COLORS[sev]||'#5a5a72'};font-weight:600">${val}</span>
+      <span style="color:var(--text3)">${Math.round(val*100/total)}%</span>
+    </div>`).join('');
+}
+
+// ── History table ──────────────────────────────────────────────────────────
+function filterHistory() {
+  const search  = document.getElementById('hist-search').value.toLowerCase();
+  const sev     = document.getElementById('hist-sev').value;
+  const country = document.getElementById('hist-country').value;
+
+  filteredHistory = historyData.filter(h => {
+    if (search && !(h.ip||'').includes(search) && !(h.type||'').toLowerCase().includes(search)) return false;
+    if (sev && h.severity !== sev && h.severity !== (sev==='med'?'medium':sev)) return false;
+    if (country && h.country !== country) return false;
+    return true;
+  });
+
+  document.getElementById('hist-count').textContent = filteredHistory.length.toLocaleString() + ' événements';
+  renderHistoryTable();
+}
+
+function renderHistoryTable() {
+  const tbody = document.getElementById('hist-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = filteredHistory.slice(0,500).map(h => `<tr>
+    <td style="color:var(--text3);font-family:'Geist Mono',monospace;white-space:nowrap">${(h.ts||'').replace('T',' ').slice(0,19)}</td>
+    <td><span class="sev-badge sev-${h.severity||'low'}">${h.severity||'?'}</span></td>
+    <td style="color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.type||''}</td>
+    <td style="font-family:'Geist Mono',monospace;color:var(--blue)">${h.ip||''}</td>
+    <td><span style="font-size:13px">${FLAGS[h.country]||''}</span> <span style="color:var(--text3);font-size:11px">${CNAMES[h.country]||h.country||'?'}</span></td>
+    <td style="color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${h.desc||''}</td>
+    <td><span style="font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;${h.blocked?'background:var(--reddim);color:var(--red)':'background:var(--bg4);color:var(--text3)'}">${h.blocked?'🚫 BLOQUÉ':'✓ Détecté'}</span></td>
+  </tr>`).join('') || '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text3);font-size:12px">Aucune donnée pour cette période</td></tr>';
+}
+
+function populateCountryFilter() {
+  const countries = [...new Set(historyData.map(h => h.country).filter(Boolean))].sort();
+  const sel = document.getElementById('hist-country');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous pays</option>' +
+    countries.map(c => `<option value="${c}">${FLAGS[c]||''} ${CNAMES[c]||c}</option>`).join('');
+  sel.value = cur;
+}
+
+// ── Clear history ──────────────────────────────────────────────────────────
+function toggleClearMenu() {
+  document.getElementById('clear-dropdown').classList.toggle('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.clear-menu')) document.getElementById('clear-dropdown').classList.remove('show');
+});
+
+function clearHistory(period) {
+  document.getElementById('clear-dropdown').classList.remove('show');
+  const labels = {hour:'la dernière heure',day:'les dernières 24h',week:'la dernière semaine',month:'le dernier mois',all:'TOUT l\'historique'};
+  if (confirm(`Effacer ${labels[period]||period} ? Cette action est irréversible.`)) {
+    sendCmd({cmd:'clear_history', period});
+  }
+}
+
+// ── Export ────────────────────────────────────────────────────────────────
+function exportPDF() {
+  // Generate printable HTML and trigger print dialog
+  const w = window.open('', '_blank', 'width=900,height=700');
+  const period = PERIOD_LABELS[currentPeriod] || currentPeriod;
+  const total    = document.getElementById('s-total').textContent;
+  const blocked  = document.getElementById('s-blocked').textContent;
+  const critical = document.getElementById('s-critical').textContent;
+  const high     = document.getElementById('s-high').textContent;
+  const countries= document.getElementById('s-countries').textContent;
+
+  w.document.write(`<!DOCTYPE html><html><head><title>NetGuard Pro — Rapport ${period}</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#1a1a2e;padding:30px;max-width:900px;margin:0 auto}
+    h1{color:#1a1a2e;border-bottom:3px solid #4d9fff;padding-bottom:10px;margin-bottom:20px}
+    h2{color:#2d2d4e;margin:20px 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:1px}
+    .stat-row{display:flex;gap:15px;margin-bottom:20px}
+    .stat{flex:1;background:#f8f9ff;border:1px solid #e0e0f0;border-radius:8px;padding:14px;text-align:center}
+    .stat-val{font-size:24px;font-weight:700;color:#4d9fff}
+    .stat-lbl{font-size:11px;color:#888;margin-top:4px}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}
+    th{background:#4d9fff;color:#fff;padding:8px 12px;text-align:left}
+    td{padding:6px 12px;border-bottom:1px solid #eee}
+    tr:nth-child(even) td{background:#f8f9ff}
+    .footer{margin-top:30px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center}
+  </style></head><body>
+  <h1>🛡️ NetGuard Pro — Rapport de sécurité</h1>
+  <p style="color:#888;margin-bottom:20px">Période : <strong>${period}</strong> — Généré le ${new Date().toLocaleString('fr')}</p>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">Menaces totales</div></div>
+    <div class="stat"><div class="stat-val" style="color:#ff4d6a">${blocked}</div><div class="stat-lbl">IPs bloquées</div></div>
+    <div class="stat"><div class="stat-val" style="color:#ff1a4d">${critical}</div><div class="stat-lbl">Critiques</div></div>
+    <div class="stat"><div class="stat-val" style="color:#ffb347">${high}</div><div class="stat-lbl">Élevées</div></div>
+    <div class="stat"><div class="stat-val" style="color:#b47dff">${countries}</div><div class="stat-lbl">Pays sources</div></div>
+  </div>
+  <h2>Historique détaillé (${filteredHistory.length} événements)</h2>
+  <table><thead><tr><th>Date/Heure</th><th>Sévérité</th><th>Type</th><th>IP</th><th>Pays</th><th>Statut</th></tr></thead>
+  <tbody>${filteredHistory.slice(0,200).map(h=>`<tr>
+    <td>${(h.ts||'').replace('T',' ').slice(0,19)}</td>
+    <td>${h.severity||''}</td>
+    <td>${h.type||''}</td>
+    <td><strong>${h.ip||''}</strong></td>
+    <td>${CNAMES[h.country]||h.country||'?'}</td>
+    <td>${h.blocked?'BLOQUÉ':'Détecté'}</td>
+  </tr>`).join('')}</tbody></table>
+  <div class="footer">NetGuard Pro v2.1.0 — Rapport généré automatiquement</div>
+  <script>window.onload=()=>{window.print()}<\/script>
+  </body></html>`);
+  w.document.close();
+  showToast('📄 Rapport ouvert — utilise Ctrl+P pour sauvegarder en PDF', 'var(--green)');
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;z-index:9999;color:${color};box-shadow:0 4px 20px rgba(0,0,0,.5)`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+connect();
+</script>
+</body>
+</html>

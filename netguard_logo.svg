@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4d9fff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#b47dff;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4d9fff;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#b47dff;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="shieldClip">
+      <path d="M100 18 L162 42 L162 98 C162 138 132 166 100 178 C68 166 38 138 38 98 L38 42 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="92" fill="#0f0f13" stroke="#ffffff08" stroke-width="1"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="url(#shieldGrad)" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Grid lines (tech feel) -->
+  <g opacity="0.06" stroke="#4d9fff" stroke-width="0.5">
+    <line x1="20" y1="60" x2="180" y2="60"/>
+    <line x1="20" y1="100" x2="180" y2="100"/>
+    <line x1="20" y1="140" x2="180" y2="140"/>
+    <line x1="60" y1="20" x2="60" y2="180"/>
+    <line x1="100" y1="20" x2="100" y2="180"/>
+    <line x1="140" y1="20" x2="140" y2="180"/>
+  </g>
+
+  <!-- Shield shadow/glow -->
+  <path d="M100 22 L158 44 L158 98 C158 136 130 163 100 175 C70 163 42 136 42 98 L42 44 Z"
+        fill="url(#shieldGrad)" opacity="0.12" filter="url(#softglow)"/>
+
+  <!-- Shield body -->
+  <path d="M100 22 L158 44 L158 98 C158 136 130 163 100 175 C70 163 42 136 42 98 L42 44 Z"
+        fill="#16161d" stroke="url(#shieldGrad)" stroke-width="1.5"/>
+
+  <!-- Shield inner fill gradient -->
+  <path d="M100 22 L158 44 L158 98 C158 136 130 163 100 175 C70 163 42 136 42 98 L42 44 Z"
+        fill="url(#glowGrad)" clip-path="url(#shieldClip)"/>
+
+  <!-- Shield inner border -->
+  <path d="M100 30 L150 49 L150 98 C150 130 126 155 100 166 C74 155 50 130 50 98 L50 49 Z"
+        fill="none" stroke="url(#shieldGrad)" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- N letter - main mark -->
+  <g filter="url(#glow)">
+    <path d="M68 72 L68 128 M68 72 L132 128 M132 72 L132 128"
+          stroke="url(#shieldGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Scan line effect -->
+  <rect x="42" y="98" width="116" height="1.5" fill="url(#shieldGrad)" opacity="0.3"/>
+
+  <!-- Corner dots -->
+  <circle cx="100" cy="26" r="2" fill="#4d9fff" opacity="0.8"/>
+  <circle cx="155" cy="46" r="2" fill="#b47dff" opacity="0.8"/>
+  <circle cx="155" cy="100" r="2" fill="#4d9fff" opacity="0.6"/>
+
+  <!-- Bottom text -->
+  <text x="100" y="192" text-anchor="middle" font-family="'Outfit',sans-serif" font-size="9"
+        font-weight="600" letter-spacing="3" fill="#5a5a72">NETGUARD PRO</text>
+</svg>

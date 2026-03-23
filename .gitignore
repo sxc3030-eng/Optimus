@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+*/logs/
+
+# Data (user-specific)
+captures/
+reports/
+recordings/
+*/recordings/
+quarantine/
+*/quarantine/
+mailshield_quarantine/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sensitive
+*.env
+credentials.json

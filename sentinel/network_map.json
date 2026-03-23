@@ -1,0 +1,293 @@
+{
+  "positions": {
+    "10_0_0_198": {
+      "x": 380.3501952290535,
+      "y": -29.527891063690276
+    },
+    "10_0_0_26": {
+      "x": 293.6812792968749,
+      "y": 526.7712707519531
+    },
+    "10_0_0_58": {
+      "x": 293.08222142262053,
+      "y": 410.87056864741515
+    },
+    "10_0_0_10": {
+      "x": 286.0826842069906,
+      "y": 298.45515454197675
+    },
+    "10_0_0_108": {
+      "x": 1632.0810834598517,
+      "y": 156.07144588066734
+    },
+    "10_0_0_42": {
+      "x": 740.1496630859374,
+      "y": 677.3859252929688
+    },
+    "10_66_66_1": {
+      "x": 538.4015502929688,
+      "y": -57.55778228759755
+    },
+    "192_168_56_1": {
+      "x": 676.2900390625,
+      "y": -55.05031478881841
+    },
+    "10_0_0_78": {
+      "x": 285.87723251883256,
+      "y": 192.65471359793418
+    },
+    "10_0_0_208": {
+      "x": 665,
+      "y": 202.61999999999995
+    }
+  },
+  "labels": {
+    "10_0_0_78": ""
+  },
+  "devices": [
+    {
+      "ip": "192.168.56.1",
+      "mac": "—",
+      "hostname": "Master",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [
+        445
+      ],
+      "network": "Ethernet 2",
+      "type": "pc",
+      "id": "192_168_56_1",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.208",
+      "mac": "D4:F9:8D:2D:BF:0C",
+      "hostname": "",
+      "vendor": "Espressif",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "iot",
+      "id": "10_0_0_208",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.196",
+      "mac": "F0:AF:85:90:EC:6F",
+      "hostname": "",
+      "vendor": "CommScope",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "unknown",
+      "id": "10_0_0_196",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.162",
+      "mac": "9C:5A:44:9F:8D:47",
+      "hostname": "",
+      "vendor": "Compal",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "pc",
+      "id": "10_0_0_162",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.109",
+      "mac": "20:4E:F6:13:B8:A8",
+      "hostname": "",
+      "vendor": "AzureWave",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "pc",
+      "id": "10_0_0_109",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.108",
+      "mac": "D4:6A:6A:DA:06:24",
+      "hostname": "NPIDA0624",
+      "vendor": "Foxconn",
+      "status": "up",
+      "open_ports": [
+        80,
+        443,
+        8080,
+        9100
+      ],
+      "network": "Wi-Fi 2",
+      "type": "printer",
+      "id": "10_0_0_108",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.95",
+      "mac": "20:4E:F6:52:F7:9D",
+      "hostname": "",
+      "vendor": "AzureWave",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "pc",
+      "id": "10_0_0_95",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.92",
+      "mac": "BC:22:28:C6:3A:A8",
+      "hostname": "",
+      "vendor": "D-Link",
+      "status": "up",
+      "open_ports": [
+        80,
+        443
+      ],
+      "network": "Wi-Fi 2",
+      "type": "router",
+      "id": "10_0_0_92",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.78",
+      "mac": "66:FB:EA:3B:76:87",
+      "hostname": "",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "mobile",
+      "id": "10_0_0_78",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.42",
+      "mac": "F0:AF:85:90:E9:BF",
+      "hostname": "",
+      "vendor": "CommScope",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "unknown",
+      "id": "10_0_0_42",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.10",
+      "mac": "56:98:62:88:0A:EE",
+      "hostname": "",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "mobile",
+      "id": "10_0_0_10",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.1",
+      "mac": "3C:B7:4B:09:33:C6",
+      "hostname": "",
+      "vendor": "Vantiva",
+      "status": "up",
+      "open_ports": [
+        53,
+        80,
+        443
+      ],
+      "network": "Wi-Fi 2",
+      "type": "router",
+      "id": "10_0_0_1",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.58",
+      "mac": "1E:41:9E:87:31:78",
+      "hostname": "",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "mobile",
+      "id": "10_0_0_58",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.26",
+      "mac": "56:FB:C8:FD:86:E8",
+      "hostname": "",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [],
+      "network": "Wi-Fi 2",
+      "type": "mobile",
+      "id": "10_0_0_26",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.66.66.1",
+      "mac": "—",
+      "hostname": "Master",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [
+        445
+      ],
+      "network": "wg0",
+      "type": "pc",
+      "id": "10_66_66_1",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    },
+    {
+      "ip": "10.0.0.198",
+      "mac": "—",
+      "hostname": "Master",
+      "vendor": "",
+      "status": "up",
+      "open_ports": [
+        445
+      ],
+      "network": "Wi-Fi 2",
+      "type": "pc",
+      "id": "10_0_0_198",
+      "fw_blocked": false,
+      "fw_attempts": 0,
+      "fw_blocked_ports": []
+    }
+  ],
+  "last_scan": "2026-03-22 16:43:39",
+  "last_saved": "2026-03-22 16:48:17"
+}

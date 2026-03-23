@@ -1,0 +1,37 @@
+# ═══════════════════════════════════════════════════════
+#  Optimus Suite — Linux Python Dependencies
+# ═══════════════════════════════════════════════════════
+
+# ── Core (all programs) ──────────────────────────────
+pywebview[gtk]>=4.0        # Native desktop UI (GTK backend)
+requests>=2.28             # HTTP client
+psutil>=5.9                # System monitoring
+
+# ── NetGuard Pro ─────────────────────────────────────
+scapy>=2.5                 # Packet capture & analysis
+dpkt>=1.9                  # Deep packet inspection
+geoip2>=4.7                # GeoIP lookups
+pycountry>=22.3            # Country codes
+
+# ── CleanGuard Pro ───────────────────────────────────
+yara-python>=4.3           # YARA malware signatures
+pefile>=2023.2             # PE file analysis
+watchdog>=3.0              # File system monitoring
+
+# ── MailShield Pro ───────────────────────────────────
+dnspython>=2.3             # DNS lookups (SPF/DKIM)
+cryptography>=41.0         # Email encryption
+bleach>=6.0                # HTML sanitization
+
+# ── SentinelOS Cortex ────────────────────────────────
+aiohttp>=3.9               # Async HTTP for agents
+websockets>=12.0           # WebSocket communication
+
+# ── System Tray ──────────────────────────────────────
+pystray>=0.19              # System tray icon
+Pillow>=10.0               # Image processing for tray
+
+# ── Linux System Dependencies (install via package manager) ──
+# sudo apt install python3-gi gir1.2-webkit2-4.1 gir1.2-appindicator3-0.1  (Debian/Ubuntu)
+# sudo dnf install python3-gobject webkit2gtk4.1 libappindicator-gtk3       (Fedora)
+# sudo pacman -S python-gobject webkit2gtk-4.1                              (Arch)

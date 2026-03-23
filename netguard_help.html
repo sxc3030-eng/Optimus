@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NetGuard Pro — Aide & Support</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--blue2:#2d6fd4;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+.titlebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.titlebar-left{display:flex;align-items:center;gap:10px}
+.win-btns{display:flex;gap:6px}
+.win-btn{width:12px;height:12px;border-radius:50%}
+.win-btn.close{background:#ff5f57}.win-btn.min{background:#ffbd2e}.win-btn.max{background:#28c840}
+.app-icon{width:20px;height:20px;background:linear-gradient(135deg,#4d9fff,#b47dff);border-radius:4px;display:grid;place-items:center}
+
+.lang-selector{display:flex;gap:4px}
+.lang-btn{padding:4px 10px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:11px;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;transition:.15s}
+.lang-btn:hover{border-color:var(--blue);color:var(--blue)}
+.lang-btn.active{background:var(--bluedim);border-color:var(--blue);color:var(--blue)}
+
+.nav-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.nav-tab{padding:12px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.main{flex:1;max-width:900px;width:100%;margin:0 auto;padding:24px 24px 48px}
+
+.section{margin-bottom:32px}
+.section-title{font-size:18px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.15s}
+.card-header:hover{background:var(--bg4)}
+.card-title{font-size:14px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:10px}
+.card-body{padding:16px 18px;font-size:13px;color:var(--text2);line-height:1.8;display:none}
+.card-body.open{display:block}
+.card-arrow{color:var(--text3);transition:.2s;font-size:12px}
+.card-arrow.open{transform:rotate(90deg)}
+
+.tip-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px;display:flex;gap:14px}
+.tip-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.tip-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.tip-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.tip-severity{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;display:inline-block;margin-top:6px}
+.sev-high{background:var(--reddim);color:var(--red)}
+.sev-med{background:var(--amberdim);color:var(--amber)}
+.sev-low{background:var(--bluedim);color:var(--blue)}
+
+.cmd-block{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:10px 14px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--cyan);margin:8px 0;position:relative}
+.copy-btn{position:absolute;right:8px;top:8px;background:var(--bg3);border:1px solid var(--border2);color:var(--text3);font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;transition:.15s}
+.copy-btn:hover{color:var(--green);border-color:var(--green)}
+
+.share-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px}
+.share-title{font-size:14px;font-weight:500;margin-bottom:12px}
+.share-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.share-opt{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:.15s}
+.share-opt:hover{border-color:var(--blue)}
+.share-opt-icon{font-size:20px;margin-bottom:6px}
+.share-opt-label{font-size:12px;color:var(--text2)}
+.share-preview{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:12px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--text2);line-height:1.7;min-height:80px;white-space:pre-wrap;display:none}
+.share-preview.visible{display:block}
+.btn{background:var(--bg4);border:1px solid var(--border2);color:var(--text2);font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:.15s;font-family:'Outfit',sans-serif}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-green{background:var(--greendim);border-color:var(--green)44;color:var(--green)}
+
+.back-btn{background:var(--bg4);border:1px solid var(--border2);color:var(--text2);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;transition:.15s}
+.back-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+.alert-banner{background:var(--greendim);border:1px solid var(--green)44;border-radius:8px;padding:10px 16px;font-size:12px;color:var(--green);margin-bottom:16px;display:none}
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--bluedim);border:1px solid var(--blue)44;color:var(--blue);font-size:11px;font-weight:600;display:grid;place-items:center;flex-shrink:0;margin-top:2px}
+.step-text{font-size:13px;color:var(--text2);line-height:1.7}
+.highlight{color:var(--blue);font-weight:500}
+.tag{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;margin-left:6px}
+.tag-new{background:var(--greendim);color:var(--green)}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="titlebar-left">
+    <div class="win-btns">
+      <div class="win-btn close"></div>
+      <div class="win-btn min"></div>
+      <div class="win-btn max"></div>
+    </div>
+    <svg viewBox="0 0 200 200" width="28" height="28" style="flex-shrink:0"><defs><linearGradient id="ngG9" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d9fff"/><stop offset="100%" stop-color="#b47dff"/></linearGradient></defs><path d="M100 18L162 42V100C162 140 132 163 100 178C68 163 38 140 38 100V42Z" fill="#16161d" stroke="url(#ngG9)" stroke-width="3"/><path d="M72 70V130M72 70L128 130M128 70V130" stroke="url(#ngG9)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <span style="font-size:13px;font-weight:500"><span style="background:linear-gradient(90deg,#4d9fff,#b47dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Net</span>Guard Pro — <span data-t="help_title">Aide & Support</span></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="lang-selector">
+      <button class="lang-btn active" onclick="setLang('fr')">🇫🇷 FR</button>
+      <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+      <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+      <button class="lang-btn" onclick="setLang('de')">🇩🇪 DE</button>
+    </div>
+    <a href="netguard_dashboard.html" class="back-btn">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span data-t="back">Dashboard</span>
+    </a>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <div class="nav-tab active" onclick="showSection('how',this)" data-t="tab_how">Comment ça marche</div>
+  <div class="nav-tab" onclick="showSection('attacks',this)" data-t="tab_attacks">Types d'attaques</div>
+  <div class="nav-tab" onclick="showSection('tips',this)" data-t="tab_tips">Conseils sécurité</div>
+  <div class="nav-tab" onclick="showSection('share',this)" data-t="tab_share">Partager</div>
+  <div class="nav-tab" onclick="showSection('faq',this)" data-t="tab_faq">FAQ</div>
+</div>
+
+<div class="main">
+  <div id="alert-copy" class="alert-banner" data-t="copied">✓ Copié dans le presse-papier</div>
+
+  <!-- ── COMMENT ÇA MARCHE ── -->
+  <div id="sec-how" class="section">
+    <div class="section-title">
+      <div class="section-icon" style="background:var(--bluedim)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4v5c0 3-3 5-6 6C5 14 2 12 2 9V4l6-3z" stroke="#4d9fff" stroke-width="1.5"/></svg>
+      </div>
+      <span data-t="how_title">Comment fonctionne NetGuard Pro</span>
+    </div>
+
+    <div class="tip-card" style="border-color:var(--blue)22">
+      <div class="tip-icon">🔄</div>
+      <div>
+        <div class="tip-title" data-t="how_arch_title">Architecture en 3 couches</div>
+        <div class="tip-desc" data-t="how_arch_desc">NetGuard Pro fonctionne avec un backend Python qui capture les paquets réseau, un moteur de détection qui analyse chaque paquet en temps réel, et un tableau de bord web connecté via WebSocket pour tout visualiser.</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><span class="highlight" data-t="step1_title">Capture</span> — <span data-t="step1_desc">Scapy intercepte tous les paquets réseau qui transitent par ton interface (Wi-Fi ou Ethernet) grâce au driver Npcap sur Windows.</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><span class="highlight" data-t="step2_title">Analyse</span> — <span data-t="step2_desc">Chaque paquet est analysé en profondeur : IP, port, protocole, flags TCP, DPI (injection SQL, XSS), IDS Suricata (27+ règles), fingerprint JA3, analyse d'entropie, corrélation d'attaques multi-étapes et vérification contre les threat feeds.</span></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><span class="highlight" data-t="step3_title">Décision</span> — <span data-t="step3_desc">Le paquet reçoit un statut : PERMIS, ALERTE ou BLOQUÉ. Si bloqué, une règle est ajoutée au pare-feu Windows via netsh advfirewall.</span></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text"><span class="highlight" data-t="step4_title">Visualisation</span> — <span data-t="step4_desc">L'état est envoyé chaque seconde au dashboard via WebSocket. Tu vois tout en temps réel : paquets, menaces, carte mondiale, statistiques.</span></div></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px" data-t="how_launch_title">Lancement rapide</div>
+      <div class="cmd-block">python netguard.py<button class="copy-btn" onclick="copyCmd(this)" data-t="share_copy">Copier</button></div>
+      <div class="cmd-block">python netguard.py --no-block<button class="copy-btn" onclick="copyCmd(this)" data-t="share_copy">Copier</button></div>
+      <div class="cmd-block">python netguard.py --interface Wi-Fi<button class="copy-btn" onclick="copyCmd(this)" data-t="share_copy">Copier</button></div>
+    </div>
+  </div>
+
+  <!-- ── TYPES D'ATTAQUES ── -->
+  <div id="sec-attacks" class="section" style="display:none">
+    <div class="section-title">
+      <div class="section-icon" style="background:var(--reddim)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3h3l-2.5 2 1 3L8 8.5 5 10l1-3L3.5 5h3z" stroke="#ff4d6a" stroke-width="1.5"/></svg>
+      </div>
+      <span data-t="attacks_title">Types d'attaques détectées</span>
+    </div>
+
+    <div id="attacks-list"></div>
+  </div>
+
+  <!-- ── CONSEILS SÉCURITÉ ── -->
+  <div id="sec-tips" class="section" style="display:none">
+    <div class="section-title">
+      <div class="section-icon" style="background:var(--greendim)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.8 5.5H15L10.1 9.9l1.8 5.5L8 12l-3.9 3.4 1.8-5.5L1 6.5h5.2z" stroke="#3dffb4" stroke-width="1.3"/></svg>
+      </div>
+      <span data-t="tips_title">Conseils en cybersécurité</span>
+    </div>
+    <div id="tips-list"></div>
+  </div>
+
+  <!-- ── PARTAGER ── -->
+  <div id="sec-share" class="section" style="display:none">
+    <div class="section-title">
+      <div class="section-icon" style="background:var(--purpledim)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="12" cy="3" r="2" stroke="#b47dff" stroke-width="1.3"/><circle cx="12" cy="13" r="2" stroke="#b47dff" stroke-width="1.3"/><circle cx="3" cy="8" r="2" stroke="#b47dff" stroke-width="1.3"/><path d="M10 4L5 7M10 12L5 9" stroke="#b47dff" stroke-width="1.3"/></svg>
+      </div>
+      <span data-t="share_title">Partager un rapport</span>
+    </div>
+
+    <div class="share-box">
+      <div class="share-title" data-t="share_subtitle">Génère un résumé de l'activité réseau à partager</div>
+      <div class="share-options">
+        <div class="share-opt" onclick="genShare('text')">
+          <div class="share-opt-icon">📋</div>
+          <div class="share-opt-label" data-t="share_text">Texte simple</div>
+        </div>
+        <div class="share-opt" onclick="genShare('discord')">
+          <div class="share-opt-icon">💬</div>
+          <div class="share-opt-label" data-t="share_discord">Format Discord</div>
+        </div>
+        <div class="share-opt" onclick="genShare('email')">
+          <div class="share-opt-icon">📧</div>
+          <div class="share-opt-label" data-t="share_email">Email</div>
+        </div>
+      </div>
+      <div class="share-preview" id="share-preview"></div>
+      <div style="display:flex;gap:8px;margin-top:12px" id="share-actions" style="display:none">
+        <button class="btn btn-green" onclick="copyShare()" data-t="share_copy">Copier</button>
+        <button class="btn" onclick="document.getElementById('share-preview').className='share-preview'" data-t="share_close">Fermer</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px" data-t="share_note_title">Note de confidentialité</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7" data-t="share_note_desc">Tout reste local — aucune donnée n'est envoyée vers un serveur externe. Le rapport généré ne contient que les statistiques agrégées, jamais le contenu des paquets.</div>
+    </div>
+  </div>
+
+  <!-- ── FAQ ── -->
+  <div id="sec-faq" class="section" style="display:none">
+    <div class="section-title">
+      <div class="section-icon" style="background:var(--amberdim)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#ffb347" stroke-width="1.3"/><path d="M6.5 6C6.5 5 7.2 4.5 8 4.5c.9 0 1.5.6 1.5 1.4 0 1.2-1.5 1.6-1.5 2.6M8 11v.5" stroke="#ffb347" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <span data-t="faq_title">Questions fréquentes</span>
+    </div>
+    <div id="faq-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ── Traductions ────────────────────────────────────────────────────────────
+const T = {
+  fr: {
+    help_title:"Aide & Support", back:"Dashboard",
+    tab_how:"Comment ça marche", tab_attacks:"Types d'attaques",
+    tab_tips:"Conseils sécurité", tab_share:"Partager", tab_faq:"FAQ",
+    copied:"✓ Copié dans le presse-papier",
+    how_title:"Comment fonctionne NetGuard Pro",
+    how_arch_title:"Architecture en 3 couches",
+    how_arch_desc:"NetGuard Pro fonctionne avec un backend Python qui capture les paquets réseau, un moteur de détection qui analyse chaque paquet en temps réel, et un tableau de bord web connecté via WebSocket.",
+    step1_title:"Capture", step1_desc:"Scapy intercepte tous les paquets réseau via le driver Npcap sur Windows.",
+    step2_title:"Analyse", step2_desc:"Chaque paquet est analysé en profondeur : IP, port, protocole, flags TCP, DPI (injection SQL, XSS), IDS Suricata (27+ règles), fingerprint JA3, analyse d'entropie, corrélation d'attaques multi-étapes et vérification contre les threat feeds.",
+    step3_title:"Décision", step3_desc:"Le paquet reçoit un statut PERMIS, ALERTE ou BLOQUÉ. Si bloqué, une règle est ajoutée au pare-feu Windows.",
+    step4_title:"Visualisation", step4_desc:"L'état est envoyé chaque seconde au dashboard via WebSocket en temps réel.",
+    how_launch_title:"Lancement rapide",
+    attacks_title:"Types d'attaques détectées",
+    tips_title:"Conseils en cybersécurité",
+    share_title:"Partager un rapport",
+    share_subtitle:"Génère un résumé de l'activité réseau à partager",
+    share_text:"Texte simple", share_discord:"Format Discord", share_email:"Email",
+    share_copy:"Copier", share_close:"Fermer",
+    share_note_title:"Note de confidentialité",
+    share_note_desc:"Tout reste local — aucune donnée n'est envoyée vers un serveur externe.",
+    faq_title:"Questions fréquentes",
+  },
+  en: {
+    help_title:"Help & Support", back:"Dashboard",
+    tab_how:"How it works", tab_attacks:"Attack types",
+    tab_tips:"Security tips", tab_share:"Share", tab_faq:"FAQ",
+    copied:"✓ Copied to clipboard",
+    how_title:"How NetGuard Pro works",
+    how_arch_title:"3-layer architecture",
+    how_arch_desc:"NetGuard Pro runs a Python backend that captures network packets, a detection engine that analyzes each packet in real time, and a web dashboard connected via WebSocket.",
+    step1_title:"Capture", step1_desc:"Scapy intercepts all network packets via the Npcap driver on Windows.",
+    step2_title:"Analysis", step2_desc:"Each packet is deeply analyzed: IP, port, protocol, TCP flags, DPI (SQL injection, XSS), Suricata IDS (27+ rules), JA3 fingerprinting, entropy analysis, multi-step attack correlation and threat feed verification.",
+    step3_title:"Decision", step3_desc:"The packet gets a status: ALLOWED, ALERT or BLOCKED. If blocked, a rule is added to the Windows firewall.",
+    step4_title:"Visualization", step4_desc:"The state is sent every second to the dashboard via WebSocket in real time.",
+    how_launch_title:"Quick start",
+    attacks_title:"Detected attack types",
+    tips_title:"Cybersecurity tips",
+    share_title:"Share a report",
+    share_subtitle:"Generate a network activity summary to share",
+    share_text:"Plain text", share_discord:"Discord format", share_email:"Email",
+    share_copy:"Copy", share_close:"Close",
+    share_note_title:"Privacy note",
+    share_note_desc:"Everything stays local — no data is sent to any external server.",
+    faq_title:"Frequently asked questions",
+  },
+  es: {
+    help_title:"Ayuda & Soporte", back:"Panel",
+    tab_how:"Cómo funciona", tab_attacks:"Tipos de ataques",
+    tab_tips:"Consejos de seguridad", tab_share:"Compartir", tab_faq:"Preguntas",
+    copied:"✓ Copiado al portapapeles",
+    how_title:"Cómo funciona NetGuard Pro",
+    how_arch_title:"Arquitectura de 3 capas",
+    how_arch_desc:"NetGuard Pro ejecuta un backend Python que captura paquetes de red, un motor de detección que analiza cada paquete en tiempo real y un panel web conectado vía WebSocket.",
+    step1_title:"Captura", step1_desc:"Scapy intercepta todos los paquetes de red mediante el controlador Npcap en Windows.",
+    step2_title:"Análisis", step2_desc:"Cada paquete se analiza en profundidad: IP, puerto, protocolo, flags TCP, DPI (inyección SQL, XSS), IDS Suricata (27+ reglas), huella JA3, análisis de entropía, correlación de ataques y verificación contra feeds de amenazas.",
+    step3_title:"Decisión", step3_desc:"El paquete recibe un estado: PERMITIDO, ALERTA o BLOQUEADO. Si se bloquea, se añade una regla al firewall de Windows.",
+    step4_title:"Visualización", step4_desc:"El estado se envía cada segundo al panel vía WebSocket en tiempo real.",
+    how_launch_title:"Inicio rápido",
+    attacks_title:"Tipos de ataques detectados",
+    tips_title:"Consejos de ciberseguridad",
+    share_title:"Compartir un informe",
+    share_subtitle:"Genera un resumen de actividad de red para compartir",
+    share_text:"Texto simple", share_discord:"Formato Discord", share_email:"Email",
+    share_copy:"Copiar", share_close:"Cerrar",
+    share_note_title:"Nota de privacidad",
+    share_note_desc:"Todo se queda local — ningún dato se envía a servidores externos.",
+    faq_title:"Preguntas frecuentes",
+  },
+  de: {
+    help_title:"Hilfe & Support", back:"Dashboard",
+    tab_how:"Wie es funktioniert", tab_attacks:"Angriffstypen",
+    tab_tips:"Sicherheitstipps", tab_share:"Teilen", tab_faq:"FAQ",
+    copied:"✓ In die Zwischenablage kopiert",
+    how_title:"Wie NetGuard Pro funktioniert",
+    how_arch_title:"3-Schichten-Architektur",
+    how_arch_desc:"NetGuard Pro betreibt ein Python-Backend zur Netzwerkpaketerfassung, eine Erkennungs-Engine und ein WebSocket-Dashboard.",
+    step1_title:"Erfassung", step1_desc:"Scapy fängt alle Netzwerkpakete über den Npcap-Treiber unter Windows ab.",
+    step2_title:"Analyse", step2_desc:"Jedes Paket wird tiefgehend analysiert: IP, Port, Protokoll, TCP-Flags, DPI (SQL-Injection, XSS), Suricata IDS (27+ Regeln), JA3-Fingerprinting, Entropie-Analyse, Angriffskorrelation und Bedrohungs-Feed-Prüfung.",
+    step3_title:"Entscheidung", step3_desc:"Das Paket erhält einen Status: ERLAUBT, WARNUNG oder BLOCKIERT. Bei Blockierung wird eine Windows-Firewall-Regel hinzugefügt.",
+    step4_title:"Visualisierung", step4_desc:"Der Zustand wird jede Sekunde über WebSocket an das Dashboard gesendet.",
+    how_launch_title:"Schnellstart",
+    attacks_title:"Erkannte Angriffstypen",
+    tips_title:"Cybersicherheitstipps",
+    share_title:"Bericht teilen",
+    share_subtitle:"Erstelle eine Zusammenfassung der Netzwerkaktivität zum Teilen",
+    share_text:"Einfacher Text", share_discord:"Discord-Format", share_email:"E-Mail",
+    share_copy:"Kopieren", share_close:"Schließen",
+    share_note_title:"Datenschutzhinweis",
+    share_note_desc:"Alles bleibt lokal — keine Daten werden an externe Server gesendet.",
+    faq_title:"Häufig gestellte Fragen",
+  }
+};
+
+// ── Données contenu ────────────────────────────────────────────────────────
+const ATTACKS = {
+  fr:[
+    {icon:"🔍", title:"Scan de ports", sev:"high", desc:"Un attaquant envoie des paquets sur des dizaines de ports en quelques secondes pour cartographier les services ouverts sur ta machine. C'est la première étape de toute attaque ciblée.", action:"NetGuard bloque l'IP source dès 15 ports différents en 10 secondes."},
+    {icon:"🔨", title:"Brute Force SSH/RDP", sev:"high", desc:"Un bot essaie des milliers de combinaisons login/mot de passe automatiquement sur les ports SSH (22) ou Bureau à distance (3389). Entièrement automatisé, 24h/24.", action:"NetGuard bloque l'IP après 8 tentatives en 30 secondes."},
+    {icon:"🌊", title:"SYN Flood", sev:"high", desc:"L'attaquant envoie des milliers de paquets SYN sans jamais compléter la connexion TCP. Cela sature la table des connexions de ton système.", action:"NetGuard bloque l'IP après 200 SYN en 5 secondes."},
+    {icon:"📡", title:"ICMP Flood (Ping Flood)", sev:"med", desc:"Envoi massif de paquets ICMP (ping) pour saturer ta bande passante ou tester la disponibilité de ta machine.", action:"NetGuard bloque après 100 paquets ICMP en 5 secondes."},
+    {icon:"🕳️", title:"DNS Tunneling", sev:"med", desc:"Un logiciel malveillant cache des données dans des requêtes DNS pour exfiltrer des informations sans déclencher les alertes classiques.", action:"NetGuard alerte quand une IP envoie plus de 50 requêtes DNS en 5 secondes."},
+    {icon:"🎭", title:"ARP Spoofing", sev:"high", desc:"Sur ton réseau local, un appareil infecté répond à des requêtes ARP en se faisant passer pour le routeur. Il peut alors intercepter tout ton trafic.", action:"NetGuard surveille la table ARP et alerte si une IP change de MAC address."},
+    {icon:"🤖", title:"Scanner HTTP", sev:"med", desc:"Des outils comme Nmap, Nikto, SQLmap ou Burp Suite balayent ton serveur web à la recherche de vulnérabilités connues.", action:"NetGuard détecte les User-Agents et les patterns de requêtes des scanners connus."},
+    {icon:"🌐", title:"Domaines malveillants", sev:"med", desc:"Connexions vers des domaines à risque : TLDs gratuits abusés (.tk, .ml, .ga), services DDNS, tunnels ngrok ou domaines Tor.", action:"NetGuard inspecte les requêtes DNS et alerte si un domaine malveillant est détecté."},
+    {icon:"🧅", title:"Nœuds Tor", sev:"high", desc:"Les connexions depuis des exit nodes Tor sont souvent utilisées pour masquer l'identité de l'attaquant.", action:"NetGuard bloque automatiquement les plages IP connues des relais Tor."},
+    {icon:"🔒", title:"VPN / Proxy anonymes", sev:"med", desc:"Certains VPN commerciaux et proxies publics sont utilisés pour masquer l'origine d'attaques.", action:"NetGuard bloque les plages IP des VPN et proxies connus pour activité malveillante."},
+    {icon:"🔬", title:"Anomalie statistique", sev:"high", desc:"NetGuard v3.0 détecte les anomalies de trafic en calculant des z-scores sur le débit, le volume et la diversité de ports. Un comportement soudainement différent de la baseline est signalé.", action:"Alerte automatique quand le z-score dépasse 3.0 sur n'importe quelle métrique."},
+    {icon:"🔗", title:"Chaîne d'attaque multi-étapes", sev:"high", desc:"Un attaquant procède souvent en phases : reconnaissance (scan), exploitation (brute force/injection), puis exfiltration (C2/tunneling). NetGuard corrèle ces événements.", action:"Détection automatique de 5 patterns de chaînes d'attaque connues."},
+    {icon:"🔑", title:"Fingerprint TLS malveillant (JA3)", sev:"high", desc:"Certains malwares (Cobalt Strike, Metasploit, Trickbot) ont des empreintes TLS uniques (hash JA3). NetGuard les identifie dans les connexions HTTPS.", action:"Blocage immédiat si un hash JA3 malveillant connu est détecté."},
+    {icon:"🎲", title:"DNS haute entropie (C2)", sev:"med", desc:"Les canaux C2 chiffrés utilisent des sous-domaines à haute entropie Shannon pour exfiltrer des données via DNS.", action:"Alerte quand l'entropie d'un sous-domaine dépasse 3.5 bits/caractère."},
+    {icon:"💉", title:"SQL Injection / XSS (DPI)", sev:"high", desc:"NetGuard inspecte les payloads HTTP pour détecter les tentatives d'injection SQL, XSS, path traversal, command injection, SSRF et Log4Shell.", action:"Alerte DPI avec détail de l'attaque et masquage des données sensibles."},
+    {icon:"📡", title:"IP dans les Threat Feeds", sev:"high", desc:"Les IPs connues pour héberger du malware ou des serveurs C2 sont listées dans des feeds publics (Feodo Tracker, Emerging Threats).", action:"Blocage automatique des IPs trouvées dans les feeds de menaces actualisés toutes les heures."},
+  ],
+  en:[
+    {icon:"🔍", title:"Port Scan", sev:"high", desc:"An attacker sends packets to dozens of ports in seconds to map open services on your machine. It's the first step of any targeted attack.", action:"NetGuard blocks the source IP after 15 different ports in 10 seconds."},
+    {icon:"🔨", title:"SSH/RDP Brute Force", sev:"high", desc:"A bot tries thousands of login/password combinations automatically on SSH (22) or Remote Desktop (3389) ports. Fully automated, 24/7.", action:"NetGuard blocks the IP after 8 attempts in 30 seconds."},
+    {icon:"🌊", title:"SYN Flood", sev:"high", desc:"The attacker sends thousands of SYN packets without ever completing the TCP connection, saturating the connection table.", action:"NetGuard blocks the IP after 200 SYN packets in 5 seconds."},
+    {icon:"📡", title:"ICMP Flood (Ping Flood)", sev:"med", desc:"Mass sending of ICMP packets (ping) to saturate your bandwidth.", action:"NetGuard blocks after 100 ICMP packets in 5 seconds."},
+    {icon:"🕳️", title:"DNS Tunneling", sev:"med", desc:"Malware hides data in DNS requests to exfiltrate information without triggering classic alerts.", action:"NetGuard alerts when an IP sends more than 50 DNS queries in 5 seconds."},
+    {icon:"🎭", title:"ARP Spoofing", sev:"high", desc:"On your local network, an infected device responds to ARP requests pretending to be the router, intercepting all your traffic.", action:"NetGuard monitors the ARP table and alerts if an IP changes MAC address."},
+    {icon:"🤖", title:"HTTP Scanner", sev:"med", desc:"Tools like Nmap, Nikto, SQLmap or Burp Suite scan your web server for known vulnerabilities.", action:"NetGuard detects scanner User-Agents and request patterns."},
+    {icon:"🌐", title:"Malicious Domains", sev:"med", desc:"Connections to risky domains: abused free TLDs (.tk, .ml), DDNS services, ngrok tunnels or Tor domains.", action:"NetGuard inspects DNS queries and alerts on malicious domains."},
+    {icon:"🧅", title:"Tor Nodes", sev:"high", desc:"Connections from Tor exit nodes are often used to hide attacker identity.", action:"NetGuard automatically blocks known Tor relay IP ranges."},
+    {icon:"🔒", title:"VPN / Anonymous Proxies", sev:"med", desc:"Some commercial VPNs and public proxies are used to hide attack origins.", action:"NetGuard blocks IP ranges of VPNs and proxies known for malicious activity."},
+    {icon:"🔬", title:"Statistical Anomaly", sev:"high", desc:"NetGuard v3.0 detects traffic anomalies by computing z-scores on packet rate, byte volume and port diversity. Sudden deviations from baseline are flagged.", action:"Automatic alert when z-score exceeds 3.0 on any metric."},
+    {icon:"🔗", title:"Multi-step Attack Chain", sev:"high", desc:"Attackers often proceed in phases: reconnaissance (scan), exploitation (brute force/injection), then exfiltration (C2/tunneling). NetGuard correlates these events.", action:"Automatic detection of 5 known attack chain patterns."},
+    {icon:"🔑", title:"Malicious TLS Fingerprint (JA3)", sev:"high", desc:"Some malware (Cobalt Strike, Metasploit, Trickbot) have unique TLS fingerprints (JA3 hash). NetGuard identifies them in HTTPS connections.", action:"Immediate block if a known malicious JA3 hash is detected."},
+    {icon:"🎲", title:"High Entropy DNS (C2)", sev:"med", desc:"Encrypted C2 channels use high Shannon entropy subdomains to exfiltrate data via DNS.", action:"Alert when subdomain entropy exceeds 3.5 bits/character."},
+    {icon:"💉", title:"SQL Injection / XSS (DPI)", sev:"high", desc:"NetGuard inspects HTTP payloads to detect SQL injection, XSS, path traversal, command injection, SSRF and Log4Shell attempts.", action:"DPI alert with attack details and sensitive data masking."},
+    {icon:"📡", title:"Threat Feed IP", sev:"high", desc:"IPs known to host malware or C2 servers are listed in public feeds (Feodo Tracker, Emerging Threats).", action:"Automatic blocking of IPs found in threat feeds updated hourly."},
+  ],
+  es:[
+    {icon:"🔍", title:"Escaneo de puertos", sev:"high", desc:"Un atacante envía paquetes a docenas de puertos en segundos para mapear los servicios abiertos en tu máquina.", action:"NetGuard bloquea la IP fuente después de 15 puertos diferentes en 10 segundos."},
+    {icon:"🔨", title:"Fuerza bruta SSH/RDP", sev:"high", desc:"Un bot prueba miles de combinaciones de login/contraseña automáticamente en los puertos SSH (22) o Escritorio Remoto (3389).", action:"NetGuard bloquea la IP después de 8 intentos en 30 segundos."},
+    {icon:"🌊", title:"SYN Flood", sev:"high", desc:"El atacante envía miles de paquetes SYN sin completar la conexión TCP, saturando la tabla de conexiones.", action:"NetGuard bloquea la IP después de 200 SYN en 5 segundos."},
+    {icon:"📡", title:"ICMP Flood", sev:"med", desc:"Envío masivo de paquetes ICMP para saturar el ancho de banda.", action:"NetGuard bloquea después de 100 paquetes ICMP en 5 segundos."},
+    {icon:"🕳️", title:"DNS Tunneling", sev:"med", desc:"Un malware oculta datos en peticiones DNS para exfiltrar información.", action:"NetGuard alerta cuando una IP envía más de 50 consultas DNS en 5 segundos."},
+    {icon:"🎭", title:"ARP Spoofing", sev:"high", desc:"En tu red local, un dispositivo infectado responde a peticiones ARP haciéndose pasar por el router.", action:"NetGuard monitorea la tabla ARP y alerta si una IP cambia de dirección MAC."},
+    {icon:"🤖", title:"Escáner HTTP", sev:"med", desc:"Herramientas como Nmap, Nikto o SQLmap escanean tu servidor web en busca de vulnerabilidades.", action:"NetGuard detecta los User-Agents y patrones de escaneo conocidos."},
+    {icon:"🌐", title:"Dominios maliciosos", sev:"med", desc:"Conexiones a dominios de riesgo: TLDs gratuitos abusados, servicios DDNS, túneles ngrok.", action:"NetGuard inspecciona las consultas DNS y alerta sobre dominios maliciosos."},
+    {icon:"🧅", title:"Nodos Tor", sev:"high", desc:"Las conexiones desde exit nodes Tor se usan para ocultar la identidad del atacante.", action:"NetGuard bloquea automáticamente los rangos IP conocidos de relés Tor."},
+    {icon:"🔒", title:"VPN / Proxies anónimos", sev:"med", desc:"Algunas VPN comerciales y proxies públicos se usan para ocultar el origen de los ataques.", action:"NetGuard bloquea los rangos IP de VPN y proxies conocidos por actividad maliciosa."},
+    {icon:"🔬", title:"Anomalía estadística", sev:"high", desc:"NetGuard v3.0 detecta anomalías de tráfico calculando z-scores sobre tasa de paquetes, volumen y diversidad de puertos.", action:"Alerta automática cuando el z-score supera 3.0 en cualquier métrica."},
+    {icon:"🔗", title:"Cadena de ataque multi-etapa", sev:"high", desc:"Los atacantes proceden en fases: reconocimiento, explotación, y luego exfiltración. NetGuard correlaciona estos eventos.", action:"Detección automática de 5 patrones de cadenas de ataque conocidas."},
+    {icon:"🔑", title:"Huella TLS maliciosa (JA3)", sev:"high", desc:"Algunos malware tienen huellas TLS únicas (hash JA3). NetGuard las identifica en conexiones HTTPS.", action:"Bloqueo inmediato si se detecta un hash JA3 malicioso conocido."},
+    {icon:"🎲", title:"DNS alta entropía (C2)", sev:"med", desc:"Los canales C2 cifrados usan subdominios de alta entropía Shannon para exfiltrar datos vía DNS.", action:"Alerta cuando la entropía de un subdominio supera 3.5 bits/carácter."},
+    {icon:"💉", title:"SQL Injection / XSS (DPI)", sev:"high", desc:"NetGuard inspecciona payloads HTTP para detectar inyección SQL, XSS, path traversal y Log4Shell.", action:"Alerta DPI con detalle del ataque y enmascaramiento de datos sensibles."},
+    {icon:"📡", title:"IP en Threat Feeds", sev:"high", desc:"Las IPs conocidas por alojar malware están en feeds públicos (Feodo Tracker, Emerging Threats).", action:"Bloqueo automático de IPs encontradas en feeds de amenazas actualizados cada hora."},
+  ],
+  de:[
+    {icon:"🔍", title:"Port-Scan", sev:"high", desc:"Ein Angreifer sendet Pakete an Dutzende von Ports, um offene Dienste zu kartieren.", action:"NetGuard blockiert die Quell-IP nach 15 verschiedenen Ports in 10 Sekunden."},
+    {icon:"🔨", title:"SSH/RDP Brute Force", sev:"high", desc:"Ein Bot probiert automatisch Tausende von Login/Passwort-Kombinationen auf SSH (22) oder Remote Desktop (3389).", action:"NetGuard blockiert die IP nach 8 Versuchen in 30 Sekunden."},
+    {icon:"🌊", title:"SYN Flood", sev:"high", desc:"Der Angreifer sendet Tausende von SYN-Paketen ohne TCP-Verbindung abzuschließen.", action:"NetGuard blockiert die IP nach 200 SYN in 5 Sekunden."},
+    {icon:"📡", title:"ICMP Flood", sev:"med", desc:"Massenhaftes Senden von ICMP-Paketen zur Bandbreitensättigung.", action:"NetGuard blockiert nach 100 ICMP-Paketen in 5 Sekunden."},
+    {icon:"🕳️", title:"DNS-Tunneling", sev:"med", desc:"Malware versteckt Daten in DNS-Anfragen zur Datenexfiltration.", action:"NetGuard warnt, wenn eine IP mehr als 50 DNS-Anfragen in 5 Sekunden sendet."},
+    {icon:"🎭", title:"ARP-Spoofing", sev:"high", desc:"Im lokalen Netzwerk gibt sich ein infiziertes Gerät als Router aus.", action:"NetGuard überwacht die ARP-Tabelle und warnt bei MAC-Adress-Änderungen."},
+    {icon:"🤖", title:"HTTP-Scanner", sev:"med", desc:"Tools wie Nmap, Nikto oder SQLmap scannen deinen Webserver nach Schwachstellen.", action:"NetGuard erkennt bekannte Scanner-User-Agents und Request-Muster."},
+    {icon:"🌐", title:"Bösartige Domains", sev:"med", desc:"Verbindungen zu Risiko-Domains: missbrauchte TLDs, DDNS-Dienste, ngrok-Tunnel.", action:"NetGuard prüft DNS-Anfragen und warnt bei bösartigen Domains."},
+    {icon:"🧅", title:"Tor-Knoten", sev:"high", desc:"Verbindungen von Tor-Exit-Nodes werden oft zur Angreifer-Anonymisierung genutzt.", action:"NetGuard blockiert automatisch bekannte Tor-Relay-IP-Bereiche."},
+    {icon:"🔒", title:"VPN / Anonyme Proxies", sev:"med", desc:"Einige kommerzielle VPNs und öffentliche Proxies werden für Angriffe genutzt.", action:"NetGuard blockiert IP-Bereiche bekannter bösartiger VPNs und Proxies."},
+    {icon:"🔬", title:"Statistische Anomalie", sev:"high", desc:"NetGuard v3.0 erkennt Verkehrsanomalien durch Z-Score-Berechnung auf Paketrate, Byte-Volumen und Port-Diversität.", action:"Automatische Warnung wenn der Z-Score 3.0 bei einer Metrik überschreitet."},
+    {icon:"🔗", title:"Mehrstufige Angriffskette", sev:"high", desc:"Angreifer gehen oft in Phasen vor: Aufklärung, Ausnutzung, dann Exfiltration. NetGuard korreliert diese Ereignisse.", action:"Automatische Erkennung von 5 bekannten Angriffskettenmustern."},
+    {icon:"🔑", title:"Bösartiger TLS-Fingerabdruck (JA3)", sev:"high", desc:"Einige Malware (Cobalt Strike, Metasploit, Trickbot) haben einzigartige TLS-Fingerabdrücke (JA3-Hash).", action:"Sofortige Blockierung bei bekanntem bösartigen JA3-Hash."},
+    {icon:"🎲", title:"Hohe DNS-Entropie (C2)", sev:"med", desc:"Verschlüsselte C2-Kanäle verwenden Subdomains mit hoher Shannon-Entropie zur Datenexfiltration via DNS.", action:"Warnung wenn die Subdomain-Entropie 3.5 Bits/Zeichen überschreitet."},
+    {icon:"💉", title:"SQL Injection / XSS (DPI)", sev:"high", desc:"NetGuard inspiziert HTTP-Payloads auf SQL-Injection, XSS, Path Traversal und Log4Shell.", action:"DPI-Warnung mit Angriffsdetails und Maskierung sensibler Daten."},
+    {icon:"📡", title:"Threat-Feed-IP", sev:"high", desc:"IPs, die Malware oder C2-Server hosten, sind in öffentlichen Feeds gelistet.", action:"Automatische Blockierung von IPs aus stündlich aktualisierten Bedrohungs-Feeds."},
+  ],
+};
+
+const TIPS = {
+  fr:[
+    {icon:"🔐", title:"Désactive le Bureau à distance si tu ne l'utilises pas", desc:"Le port RDP (3389) est la cible numéro 1 des attaques automatisées. Si tu n'en as pas besoin : Paramètres → Système → Bureau à distance → Désactiver.", sev:"high"},
+    {icon:"🔑", title:"Utilise des mots de passe uniques et forts", desc:"Un mot de passe de 16+ caractères avec majuscules, chiffres et symboles rend le brute force pratiquement impossible. Utilise un gestionnaire de mots de passe (Bitwarden, KeePass).", sev:"high"},
+    {icon:"🔄", title:"Maintiens Windows à jour", desc:"La majorité des attaques exploitent des vulnérabilités connues et déjà corrigées. Active les mises à jour automatiques.", sev:"high"},
+    {icon:"🛡️", title:"Active le pare-feu Windows", desc:"Le pare-feu Windows est ton premier bouclier. Vérifie qu'il est actif : Panneau de configuration → Système et sécurité → Pare-feu Windows Defender.", sev:"med"},
+    {icon:"📶", title:"Sécurise ton Wi-Fi", desc:"Utilise WPA3 ou WPA2 minimum. Change le mot de passe par défaut de ton routeur Videotron. Désactive WPS si possible.", sev:"med"},
+    {icon:"🧹", title:"Désinstalle les services inutiles", desc:"Chaque service qui tourne est une surface d'attaque potentielle. FTP, Telnet, serveur web de test — désinstalle ce que tu n'utilises pas.", sev:"med"},
+    {icon:"📋", title:"Surveille les logs régulièrement", desc:"NetGuard génère des rapports. Consulte-les chaque semaine pour repérer des patterns suspects — une même IP qui revient, un pays inhabituel.", sev:"low"},
+    {icon:"🔒", title:"Chiffre tes données sensibles", desc:"VeraCrypt permet de créer des volumes chiffrés. En cas d'intrusion, tes données restent illisibles.", sev:"low"},
+    {icon:"🌐", title:"Utilise un DNS sécurisé", desc:"Remplace le DNS de Videotron par Cloudflare (1.1.1.1) ou Quad9 (9.9.9.9) qui bloquent automatiquement les domaines malveillants.", sev:"med"},
+    {icon:"💾", title:"Sauvegarde régulièrement", desc:"La règle 3-2-1 : 3 copies, 2 supports différents, 1 hors-site (cloud chiffré). Protection contre ransomware et pannes.", sev:"high"},
+    {icon:"📡", title:"Configure les alertes webhook", desc:"Active les notifications Discord ou Telegram dans l'onglet 'Active Response' pour être alerté en temps réel des menaces critiques, même quand tu ne regardes pas le dashboard.", sev:"high"},
+    {icon:"🔐", title:"Déploie le VPN WireGuard", desc:"WireGuard offre un tunnel VPN chiffré ultra-rapide. Configure-le dans NetGuard pour sécuriser tes connexions distantes avec un overhead minimal.", sev:"med"},
+    {icon:"🌐", title:"Active les Threat Feeds", desc:"Les feeds publics (Feodo Tracker, Emerging Threats) bloquent automatiquement les IPs malveillantes connues. Active-les dans 'Threat Intel' — c'est gratuit et très efficace.", sev:"high"},
+    {icon:"📋", title:"Active les rapports forensiques automatiques", desc:"Quand une menace critique est détectée, NetGuard génère automatiquement un rapport JSON complet avec la chaîne d'attaque, les IOC et les paquets capturés.", sev:"med"},
+  ],
+  en:[
+    {icon:"🔐", title:"Disable Remote Desktop if you don't use it", desc:"RDP port (3389) is the #1 target of automated attacks. If you don't need it: Settings → System → Remote Desktop → Disable.", sev:"high"},
+    {icon:"🔑", title:"Use unique, strong passwords", desc:"A 16+ character password with uppercase, numbers and symbols makes brute force practically impossible. Use a password manager (Bitwarden, KeePass).", sev:"high"},
+    {icon:"🔄", title:"Keep Windows up to date", desc:"Most attacks exploit known, already-patched vulnerabilities. Enable automatic updates.", sev:"high"},
+    {icon:"🛡️", title:"Enable Windows Firewall", desc:"Windows Firewall is your first shield. Check it's active: Control Panel → System and Security → Windows Defender Firewall.", sev:"med"},
+    {icon:"📶", title:"Secure your Wi-Fi", desc:"Use WPA3 or WPA2 minimum. Change your router's default password. Disable WPS if possible.", sev:"med"},
+    {icon:"🧹", title:"Uninstall unnecessary services", desc:"Every running service is a potential attack surface. FTP, Telnet, test web servers — uninstall what you don't use.", sev:"med"},
+    {icon:"📋", title:"Review logs regularly", desc:"NetGuard generates reports. Check them weekly to spot suspicious patterns — recurring IPs, unusual countries.", sev:"low"},
+    {icon:"🔒", title:"Encrypt sensitive data", desc:"VeraCrypt lets you create encrypted volumes. In case of intrusion, your data remains unreadable.", sev:"low"},
+    {icon:"🌐", title:"Use a secure DNS", desc:"Replace your ISP DNS with Cloudflare (1.1.1.1) or Quad9 (9.9.9.9) which automatically block malicious domains.", sev:"med"},
+    {icon:"💾", title:"Back up regularly", desc:"The 3-2-1 rule: 3 copies, 2 different media, 1 offsite (encrypted cloud). Protection against ransomware and failures.", sev:"high"},
+    {icon:"📡", title:"Set up webhook alerts", desc:"Enable Discord or Telegram notifications in the 'Active Response' tab to get real-time alerts for critical threats, even when you're not watching the dashboard.", sev:"high"},
+    {icon:"🔐", title:"Deploy WireGuard VPN", desc:"WireGuard offers an ultra-fast encrypted VPN tunnel. Set it up in NetGuard to secure your remote connections with minimal overhead.", sev:"med"},
+    {icon:"🌐", title:"Enable Threat Feeds", desc:"Public feeds (Feodo Tracker, Emerging Threats) automatically block known malicious IPs. Enable them in 'Threat Intel' — it's free and highly effective.", sev:"high"},
+    {icon:"📋", title:"Enable automatic forensic reports", desc:"When a critical threat is detected, NetGuard automatically generates a complete JSON report with the attack chain, IOCs and captured packets.", sev:"med"},
+  ],
+  es:[
+    {icon:"🔐", title:"Desactiva el Escritorio Remoto si no lo usas", desc:"El puerto RDP (3389) es el objetivo número 1 de ataques automatizados.", sev:"high"},
+    {icon:"🔑", title:"Usa contraseñas únicas y fuertes", desc:"Una contraseña de 16+ caracteres hace el brute force prácticamente imposible. Usa un gestor de contraseñas (Bitwarden, KeePass).", sev:"high"},
+    {icon:"🔄", title:"Mantén Windows actualizado", desc:"La mayoría de ataques explotan vulnerabilidades ya corregidas. Activa las actualizaciones automáticas.", sev:"high"},
+    {icon:"🛡️", title:"Activa el firewall de Windows", desc:"El firewall de Windows es tu primer escudo. Verifica que está activo.", sev:"med"},
+    {icon:"📶", title:"Asegura tu Wi-Fi", desc:"Usa WPA3 o WPA2 mínimo. Cambia la contraseña por defecto de tu router. Desactiva WPS si es posible.", sev:"med"},
+    {icon:"🧹", title:"Desinstala servicios innecesarios", desc:"Cada servicio en ejecución es una superficie de ataque potencial.", sev:"med"},
+    {icon:"📋", title:"Revisa los registros regularmente", desc:"NetGuard genera informes. Consúltalos semanalmente para detectar patrones sospechosos.", sev:"low"},
+    {icon:"🔒", title:"Cifra los datos sensibles", desc:"VeraCrypt permite crear volúmenes cifrados. En caso de intrusión, tus datos permanecen ilegibles.", sev:"low"},
+    {icon:"🌐", title:"Usa un DNS seguro", desc:"Reemplaza el DNS de tu ISP por Cloudflare (1.1.1.1) o Quad9 (9.9.9.9).", sev:"med"},
+    {icon:"💾", title:"Haz copias de seguridad regularmente", desc:"La regla 3-2-1: 3 copias, 2 soportes diferentes, 1 fuera del sitio.", sev:"high"},
+    {icon:"📡", title:"Configura alertas webhook", desc:"Activa notificaciones Discord o Telegram en 'Active Response' para recibir alertas en tiempo real de amenazas críticas.", sev:"high"},
+    {icon:"🔐", title:"Despliega WireGuard VPN", desc:"WireGuard ofrece un túnel VPN cifrado ultra-rápido. Configúralo en NetGuard para asegurar tus conexiones remotas.", sev:"med"},
+    {icon:"🌐", title:"Activa los Threat Feeds", desc:"Los feeds públicos bloquean automáticamente las IPs maliciosas conocidas. Actívalos en 'Threat Intel' — es gratis y muy efectivo.", sev:"high"},
+    {icon:"📋", title:"Activa los informes forenses automáticos", desc:"Cuando se detecta una amenaza crítica, NetGuard genera automáticamente un informe JSON completo.", sev:"med"},
+  ],
+  de:[
+    {icon:"🔐", title:"Deaktiviere Remote Desktop wenn du es nicht brauchst", desc:"Der RDP-Port (3389) ist das Hauptziel automatisierter Angriffe.", sev:"high"},
+    {icon:"🔑", title:"Verwende einzigartige, starke Passwörter", desc:"Ein 16+ Zeichen Passwort macht Brute Force praktisch unmöglich. Nutze einen Passwort-Manager (Bitwarden, KeePass).", sev:"high"},
+    {icon:"🔄", title:"Halte Windows aktuell", desc:"Die meisten Angriffe nutzen bekannte, bereits gepatchte Schwachstellen. Aktiviere automatische Updates.", sev:"high"},
+    {icon:"🛡️", title:"Aktiviere die Windows-Firewall", desc:"Die Windows-Firewall ist dein erster Schutzschild. Prüfe ob sie aktiv ist.", sev:"med"},
+    {icon:"📶", title:"Sichere dein WLAN", desc:"Verwende mindestens WPA2. Ändere das Standard-Passwort deines Routers. Deaktiviere WPS wenn möglich.", sev:"med"},
+    {icon:"🧹", title:"Deinstalliere unnötige Dienste", desc:"Jeder laufende Dienst ist eine potenzielle Angriffsfläche.", sev:"med"},
+    {icon:"📋", title:"Überprüfe Logs regelmäßig", desc:"NetGuard erstellt Berichte. Überprüfe sie wöchentlich auf verdächtige Muster.", sev:"low"},
+    {icon:"🔒", title:"Verschlüssele sensible Daten", desc:"VeraCrypt ermöglicht verschlüsselte Volumes. Bei einem Einbruch bleiben deine Daten unlesbar.", sev:"low"},
+    {icon:"🌐", title:"Verwende einen sicheren DNS", desc:"Ersetze den ISP-DNS durch Cloudflare (1.1.1.1) oder Quad9 (9.9.9.9).", sev:"med"},
+    {icon:"💾", title:"Erstelle regelmäßige Backups", desc:"Die 3-2-1-Regel: 3 Kopien, 2 verschiedene Medien, 1 extern.", sev:"high"},
+    {icon:"📡", title:"Webhook-Alarme einrichten", desc:"Aktiviere Discord- oder Telegram-Benachrichtigungen im Tab 'Active Response' für Echtzeit-Alarme bei kritischen Bedrohungen.", sev:"high"},
+    {icon:"🔐", title:"WireGuard VPN einrichten", desc:"WireGuard bietet einen ultraschnellen verschlüsselten VPN-Tunnel. Richte ihn in NetGuard ein für sichere Remote-Verbindungen.", sev:"med"},
+    {icon:"🌐", title:"Threat Feeds aktivieren", desc:"Öffentliche Feeds blockieren automatisch bekannte bösartige IPs. Aktiviere sie in 'Threat Intel' — kostenlos und sehr effektiv.", sev:"high"},
+    {icon:"📋", title:"Automatische Forensik-Berichte aktivieren", desc:"Bei kritischen Bedrohungen erstellt NetGuard automatisch einen vollständigen JSON-Bericht mit Angriffskette und IOCs.", sev:"med"},
+  ],
+};
+
+const FAQ = {
+  fr:[
+    {q:"Pourquoi je vois autant d'attaques ?", a:"C'est normal — n'importe quelle IP publique reçoit des scans automatisés 24h/24 de la part de bots qui balayent tout internet. Ce n'est pas forcément ciblé contre toi personnellement."},
+    {q:"Est-ce que NetGuard ralentit ma connexion ?", a:"Non. Scapy capture les paquets en mode passif (lecture seule). Le blocage via netsh est instantané et n'affecte pas les connexions légitimes."},
+    {q:"Que faire si une IP légitime est bloquée ?", a:"Va dans l'onglet 'IPs bloquées' du dashboard → clique sur 'Débloquer'. Tu peux aussi ajuster les seuils dans Configuration pour réduire les faux positifs."},
+    {q:"NetGuard remplace-t-il un antivirus ?", a:"Non — NetGuard analyse le trafic réseau, pas les fichiers. Il complète Windows Defender mais ne le remplace pas. Garde ton antivirus actif."},
+    {q:"Dois-je laisser la fenêtre Python ouverte ?", a:"Oui — c'est le moteur. Si tu fermes la fenêtre noire (CMD), le backend s'arrête et le dashboard affiche 'Backend déconnecté'."},
+    {q:"Comment mettre à jour NetGuard ?", a:"Télécharge les nouveaux fichiers et remplace-les dans ton dossier. Relance le .bat. Tes règles et configurations sont conservées."},
+    {q:"Est-ce que ça fonctionne sans internet ?", a:"Oui pour la capture et le blocage. Le dashboard fonctionne en local. Seule la carte mondiale nécessite internet au chargement initial pour les données géographiques."},
+    {q:"Npcap est-il obligatoire ?", a:"Sur Windows oui — sans Npcap, Scapy ne peut pas capturer les paquets. Télécharge Npcap sur npcap.com pour activer la capture réseau."},
+    {q:"Comment configurer les alertes Discord/Telegram ?", a:"Ouvre l'onglet 'Active Response' dans le dashboard. Colle ton URL de webhook Discord ou ton token de bot Telegram avec le chat ID. Clique 'Save' puis 'Test' pour vérifier. Les alertes sont envoyées automatiquement selon la sévérité minimum configurée."},
+    {q:"Comment fonctionnent les Threat Feeds ?", a:"NetGuard télécharge automatiquement des listes d'IPs malveillantes depuis Feodo Tracker et Emerging Threats. Les feeds sont rafraîchis toutes les heures. Tu peux aussi ajouter tes clés API VirusTotal et AlienVault OTX dans l'onglet 'Threat Intel'."},
+    {q:"Qu'est-ce que le fingerprinting JA3 ?", a:"JA3 est une méthode pour identifier les logiciels par leur empreinte TLS. Chaque malware a un hash JA3 unique. NetGuard compare les hash observés contre une base de données de Cobalt Strike, Metasploit, Trickbot, etc."},
+    {q:"Comment fonctionne l'isolation de device ?", a:"Dans l'onglet 'Active Response', tu peux isoler un appareil de ton réseau local. Cela ajoute des règles firewall qui bloquent tout le trafic de cet appareil sauf vers le gateway. Utile si un appareil est compromis."},
+    {q:"Comment configurer le VPN WireGuard ?", a:"Ouvre l'onglet 'WireGuard VPN'. Configure l'endpoint (ton IP publique:51820), puis clique 'Start VPN'. Pour ajouter des clients, entre un nom et clique 'Add Peer'. Copie la configuration générée sur l'appareil client. WireGuard doit être installé sur le serveur."},
+    {q:"Qu'est-ce que la corrélation d'attaques ?", a:"NetGuard analyse les menaces par IP et détecte quand un attaquant suit un pattern connu : d'abord un scan de ports, puis une tentative d'exploitation, puis une communication C2. Une alerte critique est générée quand une chaîne complète est détectée."},
+  ],
+  en:[
+    {q:"Why do I see so many attacks?", a:"This is normal — any public IP receives automated scans 24/7 from bots sweeping all of the internet. It's not necessarily targeted at you personally."},
+    {q:"Does NetGuard slow down my connection?", a:"No. Scapy captures packets in passive mode (read-only). Blocking via netsh is instantaneous and doesn't affect legitimate connections."},
+    {q:"What if a legitimate IP gets blocked?", a:"Go to the 'Blocked IPs' tab → click 'Unblock'. You can also adjust thresholds in Configuration to reduce false positives."},
+    {q:"Does NetGuard replace an antivirus?", a:"No — NetGuard analyzes network traffic, not files. It complements Windows Defender but doesn't replace it. Keep your antivirus active."},
+    {q:"Do I need to keep the Python window open?", a:"Yes — it's the engine. If you close the black window (CMD), the backend stops and the dashboard shows 'Backend disconnected'."},
+    {q:"How do I update NetGuard?", a:"Download the new files and replace them in your folder. Relaunch the .bat. Your rules and configurations are preserved."},
+    {q:"Does it work without internet?", a:"Yes for capture and blocking. The dashboard works locally. Only the world map needs internet on initial load for geographic data."},
+    {q:"Is Npcap required?", a:"On Windows yes — without Npcap, Scapy cannot capture packets. Download Npcap from npcap.com to enable network capture."},
+    {q:"How do I set up Discord/Telegram alerts?", a:"Open the 'Active Response' tab in the dashboard. Paste your Discord webhook URL or Telegram bot token with chat ID. Click 'Save' then 'Test' to verify. Alerts are sent automatically based on the configured minimum severity."},
+    {q:"How do Threat Feeds work?", a:"NetGuard automatically downloads malicious IP lists from Feodo Tracker and Emerging Threats. Feeds are refreshed hourly. You can also add your VirusTotal and AlienVault OTX API keys in the 'Threat Intel' tab."},
+    {q:"What is JA3 fingerprinting?", a:"JA3 is a method to identify software by its TLS fingerprint. Each malware has a unique JA3 hash. NetGuard compares observed hashes against a database of Cobalt Strike, Metasploit, Trickbot, etc."},
+    {q:"How does device isolation work?", a:"In the 'Active Response' tab, you can isolate a device from your local network. This adds firewall rules blocking all traffic from that device except to the gateway. Useful if a device is compromised."},
+    {q:"How do I set up WireGuard VPN?", a:"Open the 'WireGuard VPN' tab. Configure the endpoint (your public IP:51820), then click 'Start VPN'. To add clients, enter a name and click 'Add Peer'. Copy the generated config to the client device. WireGuard must be installed on the server."},
+    {q:"What is attack correlation?", a:"NetGuard analyzes threats per IP and detects when an attacker follows a known pattern: first a port scan, then an exploit attempt, then C2 communication. A critical alert is generated when a complete chain is detected."},
+  ],
+  es:[
+    {q:"¿Por qué veo tantos ataques?", a:"Es normal: cualquier IP pública recibe escaneos automáticos 24/7 de bots que barren toda internet. No necesariamente está dirigido a ti."},
+    {q:"¿NetGuard ralentiza mi conexión?", a:"No. Scapy captura paquetes en modo pasivo. El bloqueo vía netsh es instantáneo."},
+    {q:"¿Qué pasa si una IP legítima queda bloqueada?", a:"Ve a la pestaña 'IPs bloqueadas' → haz clic en 'Desbloquear'. También puedes ajustar los umbrales en Configuración."},
+    {q:"¿NetGuard reemplaza un antivirus?", a:"No — NetGuard analiza el tráfico de red, no los archivos. Complementa Windows Defender pero no lo reemplaza."},
+    {q:"¿Debo dejar la ventana de Python abierta?", a:"Sí — es el motor. Si cierras la ventana negra, el backend se detiene."},
+    {q:"¿Cómo actualizo NetGuard?", a:"Descarga los nuevos archivos y reemplázalos en tu carpeta. Reinicia el .bat."},
+    {q:"¿Funciona sin internet?", a:"Sí para captura y bloqueo. Solo el mapa mundial necesita internet al cargar."},
+    {q:"¿Es obligatorio Npcap?", a:"En Windows sí. Sin Npcap, Scapy no puede capturar paquetes. Descarga Npcap de npcap.com para habilitar la captura."},
+    {q:"¿Cómo configuro alertas Discord/Telegram?", a:"Abre la pestaña 'Active Response'. Pega tu URL de webhook Discord o token de bot Telegram. Haz clic en 'Save' y luego 'Test'. Las alertas se envían automáticamente según la severidad mínima configurada."},
+    {q:"¿Cómo funcionan los Threat Feeds?", a:"NetGuard descarga automáticamente listas de IPs maliciosas de Feodo Tracker y Emerging Threats. Los feeds se actualizan cada hora. También puedes agregar tus claves API de VirusTotal y OTX."},
+    {q:"¿Qué es el fingerprinting JA3?", a:"JA3 identifica software por su huella TLS. Cada malware tiene un hash JA3 único. NetGuard compara los hashes observados contra una base de datos de malware conocido."},
+    {q:"¿Cómo funciona el aislamiento de dispositivos?", a:"En la pestaña 'Active Response' puedes aislar un dispositivo de tu red local bloqueando todo su tráfico excepto al gateway."},
+    {q:"¿Cómo configuro WireGuard VPN?", a:"Abre la pestaña 'WireGuard VPN'. Configura el endpoint, haz clic en 'Start VPN'. Para añadir clientes, ingresa un nombre y haz clic en 'Add Peer'. Copia la configuración generada al dispositivo cliente."},
+    {q:"¿Qué es la correlación de ataques?", a:"NetGuard analiza amenazas por IP y detecta cuando un atacante sigue un patrón conocido: escaneo, explotación, luego comunicación C2. Se genera una alerta crítica al detectar una cadena completa."},
+  ],
+  de:[
+    {q:"Warum sehe ich so viele Angriffe?", a:"Das ist normal — jede öffentliche IP empfängt 24/7 automatisierte Scans von Bots, die das gesamte Internet durchsuchen."},
+    {q:"Verlangsamt NetGuard meine Verbindung?", a:"Nein. Scapy erfasst Pakete im passiven Modus. Das Blockieren via netsh ist sofortig."},
+    {q:"Was wenn eine legitime IP blockiert wird?", a:"Gehe zum Tab 'Blockierte IPs' → klicke auf 'Entsperren'. Du kannst auch Schwellenwerte in der Konfiguration anpassen."},
+    {q:"Ersetzt NetGuard ein Antivirenprogramm?", a:"Nein — NetGuard analysiert Netzwerkverkehr, keine Dateien. Es ergänzt Windows Defender."},
+    {q:"Muss ich das Python-Fenster offen lassen?", a:"Ja — es ist die Engine. Wenn du das schwarze Fenster schließt, stoppt das Backend."},
+    {q:"Wie aktualisiere ich NetGuard?", a:"Lade die neuen Dateien herunter und ersetze sie in deinem Ordner. Starte die .bat-Datei neu."},
+    {q:"Funktioniert es ohne Internet?", a:"Ja für Erfassung und Blockierung. Nur die Weltkarte benötigt Internet beim ersten Laden."},
+    {q:"Ist Npcap erforderlich?", a:"Unter Windows ja. Ohne Npcap kann Scapy keine Pakete erfassen. Lade Npcap von npcap.com herunter."},
+    {q:"Wie richte ich Discord/Telegram-Alarme ein?", a:"Öffne den Tab 'Active Response'. Füge deine Discord-Webhook-URL oder deinen Telegram-Bot-Token ein. Klicke 'Save' und dann 'Test'. Alarme werden automatisch basierend auf der konfigurierten Mindestschwere gesendet."},
+    {q:"Wie funktionieren Threat Feeds?", a:"NetGuard lädt automatisch Listen bösartiger IPs von Feodo Tracker und Emerging Threats herunter. Feeds werden stündlich aktualisiert. Du kannst auch VirusTotal- und OTX-API-Schlüssel hinzufügen."},
+    {q:"Was ist JA3-Fingerprinting?", a:"JA3 identifiziert Software anhand ihres TLS-Fingerabdrucks. Jede Malware hat einen einzigartigen JA3-Hash. NetGuard vergleicht beobachtete Hashes gegen eine Datenbank bekannter Malware."},
+    {q:"Wie funktioniert die Geräteisolierung?", a:"Im Tab 'Active Response' kannst du ein Gerät aus deinem lokalen Netzwerk isolieren. Dies blockiert allen Verkehr des Geräts außer zum Gateway."},
+    {q:"Wie richte ich WireGuard VPN ein?", a:"Öffne den Tab 'WireGuard VPN'. Konfiguriere den Endpoint, klicke 'Start VPN'. Um Clients hinzuzufügen, gib einen Namen ein und klicke 'Add Peer'. Kopiere die generierte Konfiguration auf das Client-Gerät."},
+    {q:"Was ist Angriffskorrelation?", a:"NetGuard analysiert Bedrohungen pro IP und erkennt bekannte Angriffsmuster: zuerst Port-Scan, dann Exploit-Versuch, dann C2-Kommunikation. Eine kritische Warnung wird bei Erkennung einer vollständigen Kette ausgegeben."},
+  ],
+};
+
+// ── État ───────────────────────────────────────────────────────────────────
+let lang = localStorage.getItem('ng_lang') || 'fr';
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('ng_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(l));
+  });
+  applyTranslations();
+  renderCurrentSection();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    if (t[key]) el.textContent = t[key];
+  });
+}
+
+function renderCurrentSection() {
+  const active = document.querySelector('.nav-tab.active');
+  if (!active) return;
+  const sec = active.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+  if (sec) renderSection(sec);
+}
+
+function renderSection(sec) {
+  if (sec === 'attacks') renderAttacks();
+  if (sec === 'tips') renderTips();
+  if (sec === 'faq') renderFaq();
+}
+
+function showSection(id, el) {
+  ['how','attacks','tips','share','faq'].forEach(s => {
+    document.getElementById('sec-'+s).style.display = s===id ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderSection(id);
+}
+
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.card-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ── Render attacks ─────────────────────────────────────────────────────────
+function renderAttacks() {
+  const el = document.getElementById('attacks-list');
+  if (!el) return;
+  const data = ATTACKS[lang] || ATTACKS.fr;
+  el.innerHTML = data.map((a,i) => `
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <div class="card-title">
+          <span style="font-size:18px">${a.icon}</span>
+          ${a.title}
+          <span class="tag-new tag" style="display:none">NEW</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="tip-severity sev-${a.sev}">${a.sev==='high'?({fr:'CRITIQUE',en:'CRITICAL',es:'CRÍTICO',de:'KRITISCH'}[lang]||'CRITIQUE'):a.sev==='med'?({fr:'MOYEN',en:'MEDIUM',es:'MEDIO',de:'MITTEL'}[lang]||'MOYEN'):({fr:'FAIBLE',en:'LOW',es:'BAJO',de:'NIEDRIG'}[lang]||'FAIBLE')}</span>
+          <span class="card-arrow">▶</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom:10px">${a.desc}</p>
+        <div style="background:var(--greendim);border:1px solid var(--green)22;border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green)">
+          🛡️ ${a.action}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Render tips ────────────────────────────────────────────────────────────
+function renderTips() {
+  const el = document.getElementById('tips-list');
+  if (!el) return;
+  const data = TIPS[lang] || TIPS.fr;
+  el.innerHTML = data.map(t => `
+    <div class="tip-card">
+      <div class="tip-icon">${t.icon}</div>
+      <div>
+        <div class="tip-title">${t.title}</div>
+        <div class="tip-desc">${t.desc}</div>
+        <span class="tip-severity sev-${t.sev}">${t.sev==='high'?({fr:'IMPORTANT',en:'IMPORTANT',es:'IMPORTANTE',de:'WICHTIG'}[lang]):{fr:'RECOMMANDÉ',en:'RECOMMENDED',es:'RECOMENDADO',de:'EMPFOHLEN'}[lang]||'IMPORTANT'}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── Render FAQ ─────────────────────────────────────────────────────────────
+function renderFaq() {
+  const el = document.getElementById('faq-list');
+  if (!el) return;
+  const data = FAQ[lang] || FAQ.fr;
+  el.innerHTML = data.map(f => `
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <div class="card-title" style="font-size:13px">${f.q}</div>
+        <span class="card-arrow">▶</span>
+      </div>
+      <div class="card-body">${f.a}</div>
+    </div>`).join('');
+}
+
+// ── Share ──────────────────────────────────────────────────────────────────
+function genShare(type) {
+  const now = new Date().toLocaleString(lang === 'fr' ? 'fr-CA' : lang === 'de' ? 'de-DE' : lang === 'es' ? 'es-ES' : 'en-CA');
+  const labels = {
+    fr:{title:'Rapport NetGuard Pro', gen:'Généré le', active:'Protection active', github:'Projet open source'},
+    en:{title:'NetGuard Pro Report', gen:'Generated on', active:'Active protection', github:'Open source project'},
+    es:{title:'Informe NetGuard Pro', gen:'Generado el', active:'Protección activa', github:'Proyecto open source'},
+    de:{title:'NetGuard Pro Bericht', gen:'Erstellt am', active:'Aktiver Schutz', github:'Open-Source-Projekt'},
+  }[lang];
+
+  let text = '';
+  if (type === 'text') {
+    text = `${labels.title}\n${'─'.repeat(40)}\n${labels.gen}: ${now}\n${labels.active}: ✓\nhttps://github.com/sxc3030-eng/netguard-pro`;
+  } else if (type === 'discord') {
+    text = `**🛡️ ${labels.title}**\n\`\`\`\n${labels.gen}: ${now}\n${labels.active}: ✓\n\`\`\`\n🔗 https://github.com/sxc3030-eng/netguard-pro`;
+  } else if (type === 'email') {
+    text = `Objet: ${labels.title} — ${now}\n\n${labels.title}\n${labels.gen}: ${now}\n${labels.active}: ✓\n\n${labels.github}:\nhttps://github.com/sxc3030-eng/netguard-pro`;
+  }
+
+  const preview = document.getElementById('share-preview');
+  const actions = document.getElementById('share-actions');
+  preview.textContent = text;
+  preview.className = 'share-preview visible';
+  actions.style.display = 'flex';
+}
+
+function copyShare() {
+  const text = document.getElementById('share-preview').textContent;
+  navigator.clipboard.writeText(text).then(() => showAlert());
+}
+
+function copyCmd(btn) {
+  const copyLabel = {fr:'Copier',en:'Copy',es:'Copiar',de:'Kopieren'}[lang]||'Copier';
+  const text = btn.parentElement.textContent.replace(copyLabel,'').trim();
+  navigator.clipboard.writeText(text).then(() => showAlert());
+}
+
+function showAlert() {
+  const el = document.getElementById('alert-copy');
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2000);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+setLang(lang);
+</script>
+</body>
+</html>

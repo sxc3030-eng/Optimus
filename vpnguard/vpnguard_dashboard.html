@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VPN Guard Pro v1.0.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a10;--bg2:#12121a;--bg3:#1a1a25;--bg4:#222230;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --cyan:#00d4ff;--cyandim:#0a2a3a;--cyanglow:rgba(0,212,255,.15);
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+a{color:var(--cyan);text-decoration:none}
+
+/* ─── TOPBAR ─── */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;-webkit-app-region:drag;user-select:none}
+.topbar .logo{font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:.5px}
+.topbar .logo span{color:var(--text2);font-weight:400;font-size:12px;margin-left:6px}
+.topbar .spacer{flex:1}
+.conn-indicator{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);-webkit-app-region:no-drag}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.conn-dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* ─── MAIN LAYOUT ─── */
+.main{display:grid;grid-template-columns:210px 1fr;height:calc(100vh - 48px)}
+
+/* ─── SIDEBAR ─── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.nav-section{padding:12px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border-left:3px solid transparent;position:relative}
+.nav-item:hover{background:var(--cyanglow);color:var(--text)}
+.nav-item.active{background:var(--cyanglow);color:var(--cyan);border-left-color:var(--cyan);font-weight:600}
+.nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.nav-badge{position:absolute;right:12px;background:var(--cyan);color:#000;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+
+/* ─── CONTENT ─── */
+.content{overflow-y:auto;padding:24px;background:var(--bg)}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.tab{display:none;flex-direction:column;gap:16px}
+.tab.active{display:flex}
+
+/* ─── CARDS ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title .icon{font-size:18px}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-cyan{background:var(--cyan);color:#000}.btn-cyan:hover{filter:brightness(1.15)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}.btn-outline:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-red{background:var(--reddim);color:var(--red);border:1px solid transparent}.btn-red:hover{border-color:var(--red)}
+.btn-green{background:var(--greendim);color:var(--green);border:1px solid transparent}.btn-green:hover{border-color:var(--green)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ─── INPUTS ─── */
+input[type=text],input[type=number],input[type=password],textarea,select{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;width:100%;font-family:inherit;outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan)}
+textarea{resize:vertical;min-height:80px}
+label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block}
+
+/* ─── TOGGLE SWITCH ─── */
+.toggle{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;transition:.25s}
+.toggle .slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--text3);left:3px;top:3px;transition:.25s}
+.toggle input:checked+.slider{background:var(--cyandim)}
+.toggle input:checked+.slider::before{background:var(--cyan);transform:translateX(20px)}
+
+/* ─── STATUS PILLS ─── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.pill-on{background:var(--greendim);color:var(--green)}
+.pill-off{background:var(--reddim);color:var(--red)}
+.pill-warn{background:var(--amberdim);color:var(--amber)}
+.pill-info{background:var(--cyandim);color:var(--cyan)}
+
+/* ─── TABLE ─── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.tbl tr:hover td{background:var(--bg3)}
+
+/* ─── GRID HELPERS ─── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.flex-row{display:flex;align-items:center;gap:12px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.gap-8{gap:8px}.gap-16{gap:16px}.mt-8{margin-top:8px}.mt-16{margin-top:16px}
+
+/* ═══════════════════════════════════════════
+   TAB 1: DASHBOARD — BIG TOGGLE BUTTON
+   ═══════════════════════════════════════════ */
+.vpn-hero{display:flex;flex-direction:column;align-items:center;padding:40px 20px 30px;gap:12px}
+.vpn-toggle-ring{position:relative;width:160px;height:160px;cursor:pointer}
+.vpn-toggle-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.vpn-toggle-ring .ring-bg{fill:none;stroke:var(--bg4);stroke-width:6}
+.vpn-toggle-ring .ring-fg{fill:none;stroke:var(--text3);stroke-width:6;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1.5s ease,stroke .4s}
+.vpn-toggle-ring.on .ring-fg{stroke:var(--cyan);stroke-dashoffset:0}
+.vpn-toggle-inner{position:absolute;inset:18px;border-radius:50%;background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .4s;border:2px solid var(--border2)}
+.vpn-toggle-ring.on .vpn-toggle-inner{background:var(--cyandim);border-color:var(--cyan)}
+.vpn-toggle-icon{font-size:36px;transition:.3s}
+.vpn-toggle-ring.on .vpn-toggle-icon{filter:drop-shadow(0 0 8px var(--cyan))}
+.vpn-status-text{font-size:22px;font-weight:700;letter-spacing:.5px}
+.vpn-status-text.on{color:var(--cyan)}
+.vpn-status-sub{font-size:13px;color:var(--text2)}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:700px;margin-top:8px}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-val{font-size:20px;font-weight:700;color:var(--cyan)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Quick status strip */
+.status-strip{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+
+/* Quick actions */
+.quick-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+
+/* ═══════════════════════════════════════════
+   PEER CONFIG MODAL
+   ═══════════════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:90%;max-width:550px;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:var(--cyan)}
+
+/* ─── PROFILE CARDS ─── */
+.profile-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.profile-card:hover{border-color:var(--cyan)}
+.profile-card.active{border-color:var(--cyan);background:var(--cyandim)}
+.profile-card .pname{font-weight:600;font-size:14px}
+.profile-card .pmode{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ─── HISTORY ROW ─── */
+.hist-row{display:grid;grid-template-columns:140px 120px 1fr 80px 80px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
+.hist-header{font-weight:700;color:var(--text3);text-transform:uppercase;font-size:10px;letter-spacing:.5px}
+
+/* ─── WIFI NETWORK CARD ─── */
+.wifi-card{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px}
+.wifi-signal{font-size:20px}
+.wifi-info{flex:1}
+.wifi-ssid{font-weight:600;font-size:13px}
+.wifi-detail{font-size:11px;color:var(--text3)}
+
+/* ─── SPLIT TUNNEL APP ROW ─── */
+.app-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px}
+.app-name{flex:1;font-size:13px;font-weight:500}
+
+/* ─── SCROLLBAR FOR SIDEBAR ─── */
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ─── INFO TIPS ─── */
+.info-tip{background:var(--cyandim);border:1px solid rgba(0,212,255,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--cyan);display:flex;align-items:center;gap:8px}
+.info-tip.warn{background:var(--amberdim);border-color:rgba(255,179,71,.3);color:var(--amber)}
+.info-tip.error{background:var(--reddim);border-color:rgba(255,77,106,.3);color:var(--red)}
+.info-tip .tip-icon{font-size:16px;flex-shrink:0}
+
+/* ─── DIAGNOSTIC CHECKS ─── */
+.diag-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:13px}
+.diag-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.diag-label{flex:1;font-weight:500}
+.diag-value{color:var(--text2);font-size:12px;text-align:right;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+
+/* ─── ACCORDION ─── */
+.accordion{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.accordion+.accordion{margin-top:6px}
+.acc-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;background:var(--bg3);font-size:13px;font-weight:600;transition:background .15s;user-select:none}
+.acc-header:hover{background:var(--bg4)}
+.acc-header .acc-icon{font-size:16px;width:22px;text-align:center}
+.acc-header .acc-arrow{margin-left:auto;transition:transform .2s;color:var(--text3);font-size:10px}
+.acc-header.open .acc-arrow{transform:rotate(90deg)}
+.acc-body{display:none;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;background:var(--bg2);border-top:1px solid var(--border)}
+.acc-header.open+.acc-body{display:block}
+
+/* ─── STEP GUIDE ─── */
+.step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--cyandim);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.step-num.done{background:var(--greendim);color:var(--green)}
+.step-content{flex:1}
+.step-title{font-weight:600;font-size:13px}
+.step-desc{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:700px){.main{grid-template-columns:1fr}.sidebar{display:none}.stats-row{grid-template-columns:1fr 1fr}}
+
+/* ─── ANIMATION ─── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab.active{animation:fadeIn .25s ease}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulsing{animation:pulse 1.5s ease infinite}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="logo">🛡️ VPN Guard Pro <span>v1.0.0</span></div>
+  <div class="spacer"></div>
+  <div class="conn-indicator">
+    <div class="conn-dot" id="conn-dot"></div>
+    <span id="conn-status">Déconnecté</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="showTab('dashboard',this)"><span class="nav-icon">🏠</span><span>Tableau de bord</span></div>
+  <div class="nav-item" onclick="showTab('connect',this)"><span class="nav-icon">🔗</span><span>Connexion</span></div>
+
+  <div class="nav-section">Sécurité</div>
+  <div class="nav-item" onclick="showTab('killswitch',this)"><span class="nav-icon">🔒</span><span>Kill Switch</span></div>
+  <div class="nav-item" onclick="showTab('dns',this)"><span class="nav-icon">🌐</span><span>Protection DNS</span></div>
+  <div class="nav-item" onclick="showTab('split',this)"><span class="nav-icon">🔀</span><span>Split Tunneling</span><span class="nav-badge" style="display:none;background:var(--amber);color:#000">BETA</span></div>
+  <div class="nav-item" onclick="showTab('wifi',this)"><span class="nav-icon">📶</span><span>Wi-Fi</span></div>
+
+  <div class="nav-section">Serveur</div>
+  <div class="nav-item" onclick="showTab('server',this)"><span class="nav-icon">🖥️</span><span>Mode Serveur</span></div>
+  <div class="nav-item" onclick="showTab('peers',this)"><span class="nav-icon">👥</span><span>Peers</span><span class="nav-badge" id="peers-badge" style="display:none">0</span></div>
+
+  <div class="nav-section">Configuration</div>
+  <div class="nav-item" onclick="showTab('profiles',this)"><span class="nav-icon">📁</span><span>Profils</span></div>
+  <div class="nav-item" onclick="showTab('history',this)"><span class="nav-icon">📜</span><span>Historique</span></div>
+  <div class="nav-item" onclick="showTab('settings',this)"><span class="nav-icon">⚙️</span><span>Paramètres</span></div>
+
+  <div class="nav-section">Support</div>
+  <div class="nav-item" onclick="showTab('help',this)"><span class="nav-icon">❓</span><span>Aide & Guide</span></div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+<!-- ──────── TAB: DASHBOARD ──────── -->
+<div class="tab active" id="tab-dashboard">
+  <div class="card" style="border:none;background:transparent;padding:0">
+    <div class="vpn-hero">
+      <div class="vpn-toggle-ring" id="vpn-ring" onclick="toggleVPN()">
+        <svg viewBox="0 0 160 160"><circle class="ring-bg" cx="80" cy="80" r="70"/><circle class="ring-fg" cx="80" cy="80" r="70"/></svg>
+        <div class="vpn-toggle-inner">
+          <div class="vpn-toggle-icon" id="vpn-icon">⏻</div>
+        </div>
+      </div>
+      <div class="vpn-status-text" id="vpn-status-text">DÉCONNECTÉ</div>
+      <div class="vpn-status-sub" id="vpn-status-sub">Appuyez pour vous connecter</div>
+    </div>
+
+    <div class="stats-row" style="margin:0 auto">
+      <div class="stat-box"><div class="stat-val" id="st-upload">0 B/s</div><div class="stat-label">Upload</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-download">0 B/s</div><div class="stat-label">Download</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-data">0 B</div><div class="stat-label">Données</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-duration">00:00:00</div><div class="stat-label">Durée</div></div>
+    </div>
+
+    <div class="status-strip" id="status-strip">
+      <span class="pill pill-off" id="pill-ks">🔒 Kill Switch: OFF</span>
+      <span class="pill pill-off" id="pill-dns">🌐 DNS: Non protégé</span>
+      <span class="pill pill-info" id="pill-wifi">📶 Wi-Fi: —</span>
+      <span class="pill pill-info" id="pill-ip">🌍 IP: —</span>
+    </div>
+
+    <div class="quick-actions">
+      <button class="btn btn-cyan" onclick="toggleVPN()" id="btn-quick-toggle">⚡ Connexion rapide</button>
+      <button class="btn btn-outline" onclick="showTab('profiles',document.querySelectorAll('.nav-item')[8])">📁 Changer profil</button>
+      <button class="btn btn-outline" onclick="checkLeaks()">🔍 Test fuites</button>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── TAB: CONNEXION ──────── -->
+<div class="tab" id="tab-connect">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span> Connexion VPN</div>
+    <div class="flex-between">
+      <div>
+        <div style="font-size:14px;font-weight:600" id="conn-profile-name">Profil par défaut</div>
+        <div style="font-size:12px;color:var(--text3)" id="conn-profile-mode">Mode: Serveur</div>
+      </div>
+      <button class="btn btn-cyan" onclick="toggleVPN()" id="btn-connect">⚡ Connecter</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> Détails de connexion</div>
+    <div class="grid2">
+      <div><label>IP Publique</label><div id="conn-ip" style="font-weight:600;color:var(--cyan)">—</div></div>
+      <div><label>Interface</label><div id="conn-iface">wg0</div></div>
+      <div><label>Adresse VPN</label><div id="conn-addr">10.66.66.1/24</div></div>
+      <div><label>Port</label><div id="conn-port">51820</div></div>
+      <div><label>DNS</label><div id="conn-dns">1.1.1.1, 9.9.9.9</div></div>
+      <div><label>Durée</label><div id="conn-duration">—</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📥</span> Importer un fichier .conf</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Collez le contenu d'un fichier de configuration WireGuard client</div>
+    <textarea id="import-conf-text" placeholder="[Interface]&#10;PrivateKey = ...&#10;Address = ...&#10;DNS = ...&#10;&#10;[Peer]&#10;PublicKey = ...&#10;Endpoint = ...&#10;AllowedIPs = 0.0.0.0/0"></textarea>
+    <div class="flex-row mt-8">
+      <input type="text" id="import-conf-name" placeholder="Nom du profil" style="max-width:200px">
+      <button class="btn btn-cyan btn-sm" onclick="importConfig()">📥 Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── TAB: KILL SWITCH ──────── -->
+<div class="tab" id="tab-killswitch">
+  <div class="info-tip"><span class="tip-icon">💡</span> Le Kill Switch bloque tout internet si le VPN se déconnecte. Désactivez-le si vous n'avez plus accès au réseau. <a href="#" onclick="showTab('help',document.querySelectorAll('.nav-item')[11]);return false" style="color:var(--cyan)">En savoir plus</a></div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🔒</span> Kill Switch</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      Le Kill Switch coupe automatiquement votre connexion internet si le VPN se déconnecte, empêchant toute fuite de données.
+    </div>
+    <div class="flex-between">
+      <div>
+        <div style="font-weight:600">Activer le Kill Switch</div>
+        <div style="font-size:12px;color:var(--text3)">Bloque tout le trafic si le VPN tombe</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="ks-toggle" onchange="toggleKillSwitch()"><span class="slider"></span></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span> État du pare-feu</div>
+    <div id="ks-status" style="font-size:13px">
+      <span class="pill pill-off">Inactif</span>
+      <div class="mt-8" style="color:var(--text3);font-size:12px">Aucune règle VPN Guard active dans le pare-feu Windows.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── TAB: DNS PROTECTION ──────── -->
+<div class="tab" id="tab-dns">
+  <div class="info-tip"><span class="tip-icon">💡</span> Les fuites DNS peuvent révéler les sites que vous visitez, même avec un VPN actif. Activez la protection et testez régulièrement.</div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🌐</span> Protection DNS</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      Force l'utilisation des serveurs DNS du VPN pour éviter les fuites DNS qui pourraient révéler votre activité.
+    </div>
+    <div class="flex-between">
+      <div>
+        <div style="font-weight:600">Protection DNS</div>
+        <div style="font-size:12px;color:var(--text3)">Forcer DNS via le tunnel VPN</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="dns-toggle" onchange="toggleDNS()"><span class="slider"></span></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🔍</span> Test de fuites</div>
+    <div class="grid2">
+      <div>
+        <label>Votre IP publique</label>
+        <div style="font-size:18px;font-weight:700;color:var(--cyan)" id="dns-public-ip">—</div>
+      </div>
+      <div>
+        <label>Serveurs DNS</label>
+        <div id="dns-servers" style="font-size:13px">—</div>
+      </div>
+    </div>
+    <div class="flex-row mt-16">
+      <button class="btn btn-cyan btn-sm" onclick="checkDNSLeak()">🔍 Vérifier fuites DNS</button>
+      <button class="btn btn-outline btn-sm" onclick="checkIP()">🌍 Vérifier IP</button>
+    </div>
+    <div id="dns-leak-result" class="mt-8" style="font-size:13px"></div>
+  </div>
+</div>
+
+<!-- ──────── TAB: SPLIT TUNNELING ──────── -->
+<div class="tab" id="tab-split">
+  <div class="info-tip warn"><span class="tip-icon">🧪</span> Fonctionnalité en bêta — Le split tunneling complet nécessite des modifications au niveau du routage réseau. Actuellement en mode simplifié.</div>
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">🔀</span> Split Tunneling <span class="pill pill-warn" style="margin-left:8px">BETA</span></div>
+      <label class="toggle"><input type="checkbox" id="split-toggle" onchange="toggleSplit()"><span class="slider"></span></label>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-top:8px">
+      Choisissez quelles applications passent par le VPN et lesquelles utilisent votre connexion directe.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📱</span> Applications en cours</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Cliquez pour ajouter une app au tunnel VPN ou au bypass</div>
+    <button class="btn btn-outline btn-sm" onclick="listApps()" style="margin-bottom:12px">🔄 Rafraîchir la liste</button>
+    <div id="split-apps-list" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">✅</span> Applications via VPN</div>
+    <div id="split-vpn-apps" style="display:flex;flex-direction:column;gap:6px"><div style="color:var(--text3);font-size:12px">Aucune application configurée</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">⏩</span> Applications bypass (hors VPN)</div>
+    <div id="split-bypass-apps" style="display:flex;flex-direction:column;gap:6px"><div style="color:var(--text3);font-size:12px">Aucune application configurée</div></div>
+  </div>
+</div>
+
+<!-- ──────── TAB: WIFI ──────── -->
+<div class="tab" id="tab-wifi">
+  <div class="card">
+    <div class="card-title"><span class="icon">📶</span> Réseau actuel</div>
+    <div id="wifi-current" style="font-size:13px;color:var(--text3)">Aucun réseau Wi-Fi détecté</div>
+  </div>
+  <div class="card">
+    <div class="flex-between">
+      <div>
+        <div class="card-title" style="margin-bottom:0"><span class="icon">🔄</span> Auto-connect VPN</div>
+        <div style="font-size:12px;color:var(--text3)">Se connecter automatiquement sur les réseaux non fiables</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="wifi-auto-toggle" onchange="toggleAutoConnect()"><span class="slider"></span></label>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">📡</span> Réseaux disponibles</div>
+      <button class="btn btn-outline btn-sm" onclick="scanNetworks()">🔄 Scanner</button>
+    </div>
+    <div id="wifi-networks" style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text3);font-size:12px">Cliquez sur Scanner pour détecter les réseaux</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">✅</span> Réseaux de confiance</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Le VPN ne se connectera pas automatiquement sur ces réseaux</div>
+    <div id="wifi-trusted" style="display:flex;flex-direction:column;gap:6px"><div style="color:var(--text3);font-size:12px">Aucun réseau de confiance</div></div>
+    <div class="flex-row mt-8">
+      <input type="text" id="wifi-add-ssid" placeholder="Nom du réseau (SSID)" style="max-width:250px">
+      <button class="btn btn-cyan btn-sm" onclick="addTrusted()">➕ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── TAB: MODE SERVEUR ──────── -->
+<div class="tab" id="tab-server">
+  <div class="card">
+    <div class="card-title"><span class="icon">🖥️</span> Serveur WireGuard</div>
+    <div class="flex-between" style="margin-bottom:16px">
+      <div>
+        <span class="pill" id="srv-status-pill">—</span>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-green btn-sm" onclick="toggleVPN()" id="btn-srv-toggle">▶ Démarrer</button>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><label>Interface</label><input type="text" id="srv-iface" value="wg0"></div>
+      <div><label>Port d'écoute</label><input type="number" id="srv-port" value="51820"></div>
+      <div><label>Adresse VPN</label><input type="text" id="srv-addr" value="10.66.66.1/24"></div>
+      <div><label>DNS</label><input type="text" id="srv-dns" value="1.1.1.1, 9.9.9.9"></div>
+    </div>
+    <div class="mt-8">
+      <label>Post Up</label><input type="text" id="srv-postup" placeholder="Commande exécutée après démarrage">
+    </div>
+    <div class="mt-8">
+      <label>Post Down</label><input type="text" id="srv-postdown" placeholder="Commande exécutée après arrêt">
+    </div>
+    <div class="mt-16">
+      <button class="btn btn-cyan btn-sm" onclick="saveServerConfig()">💾 Sauvegarder la configuration</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🔑</span> Clé publique du serveur</div>
+    <div style="font-family:monospace;font-size:13px;background:var(--bg);padding:10px;border-radius:8px;word-break:break-all;color:var(--cyan)" id="srv-pubkey">—</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">ℹ️</span> Informations</div>
+    <div style="font-size:12px;color:var(--text2)">
+      <div id="srv-wg-installed" style="margin-bottom:4px">WireGuard: vérification...</div>
+      <div id="srv-wg-status">Statut tunnel: —</div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── TAB: PEERS ──────── -->
+<div class="tab" id="tab-peers">
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">👥</span> Peers connectés</div>
+      <button class="btn btn-cyan btn-sm" onclick="showAddPeer()">➕ Ajouter un peer</button>
+    </div>
+  </div>
+  <div id="peers-add-form" class="card" style="display:none">
+    <div class="card-title"><span class="icon">➕</span> Nouveau peer</div>
+    <div class="grid2">
+      <div><label>Nom du peer</label><input type="text" id="peer-name" placeholder="ex: iPhone-Alice"></div>
+      <div><label>IP Autorisée</label><input type="text" id="peer-ip" placeholder="auto"></div>
+    </div>
+    <div class="flex-row mt-8">
+      <button class="btn btn-cyan btn-sm" onclick="addPeer()">✅ Créer</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('peers-add-form').style.display='none'">Annuler</button>
+    </div>
+  </div>
+  <div id="peers-list" style="display:flex;flex-direction:column;gap:8px">
+    <div class="card" style="text-align:center;color:var(--text3);font-size:13px">Aucun peer configuré</div>
+  </div>
+</div>
+
+<!-- ──────── TAB: PROFILS ──────── -->
+<div class="tab" id="tab-profiles">
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">📁</span> Profils de connexion</div>
+      <button class="btn btn-cyan btn-sm" onclick="showCreateProfile()">➕ Nouveau profil</button>
+    </div>
+  </div>
+  <div id="profile-create-form" class="card" style="display:none">
+    <div class="card-title"><span class="icon">➕</span> Créer un profil</div>
+    <div class="grid2">
+      <div><label>Nom</label><input type="text" id="prof-name" placeholder="ex: Bureau"></div>
+      <div><label>Mode</label><select id="prof-mode"><option value="server">Serveur</option><option value="client">Client</option></select></div>
+    </div>
+    <div class="flex-row mt-8">
+      <button class="btn btn-cyan btn-sm" onclick="createProfile()">✅ Créer</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('profile-create-form').style.display='none'">Annuler</button>
+    </div>
+  </div>
+  <div class="grid2" id="profiles-grid">
+    <div class="profile-card" style="text-align:center;color:var(--text3);font-size:13px;grid-column:1/-1">Chargement des profils...</div>
+  </div>
+</div>
+
+<!-- ──────── TAB: HISTORIQUE ──────── -->
+<div class="tab" id="tab-history">
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">📜</span> Historique de connexion</div>
+      <div class="flex-row">
+        <button class="btn btn-outline btn-sm" onclick="sendCmd({cmd:'clear_history'})">🗑️ Effacer</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hist-row hist-header"><span>Date</span><span>Profil</span><span>IP</span><span>Durée</span><span>Données</span></div>
+    <div id="history-list"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Aucun historique</div></div>
+  </div>
+</div>
+
+<!-- ──────── TAB: PARAMÈTRES ──────── -->
+<div class="tab" id="tab-settings">
+  <div class="info-tip"><span class="tip-icon">💡</span> Utilisez <strong>LANCER_VPNGUARD.bat</strong> pour lancer le programme avec les droits administrateur et l'installation automatique de WireGuard.</div>
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span> Paramètres généraux</div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="flex-between">
+        <div><div style="font-weight:600">Démarrage automatique</div><div style="font-size:12px;color:var(--text3)">Lancer VPN Guard au démarrage de Windows</div></div>
+        <label class="toggle"><input type="checkbox" id="set-startup" onchange="toggleStartup()"><span class="slider"></span></label>
+      </div>
+      <div class="flex-between">
+        <div><div style="font-weight:600">Auto-connect au démarrage</div><div style="font-size:12px;color:var(--text3)">Se connecter automatiquement au VPN au lancement</div></div>
+        <label class="toggle"><input type="checkbox" id="set-autoconn" onchange="saveSettings()"><span class="slider"></span></label>
+      </div>
+      <div class="flex-between">
+        <div><div style="font-weight:600">Thème sombre</div><div style="font-size:12px;color:var(--text3)">Interface sombre (seul thème disponible)</div></div>
+        <label class="toggle"><input type="checkbox" checked disabled><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🖥️</span> Système</div>
+    <div class="grid2">
+      <div><label>Version</label><div>VPN Guard Pro v1.0.0</div></div>
+      <div><label>WireGuard</label><div id="set-wg-status">—</div></div>
+      <div><label>Port WebSocket</label><div>8820</div></div>
+      <div><label>Max historique</label><div>500 entrées</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🪟</span> Fenêtre</div>
+    <button class="btn btn-outline btn-sm" onclick="minimizeTray()">📥 Réduire dans la barre système</button>
+  </div>
+</div>
+
+<!-- ──────── TAB: AIDE & GUIDE ──────── -->
+<div class="tab" id="tab-help">
+
+  <!-- Card 1: Diagnostic système -->
+  <div class="card">
+    <div class="flex-between">
+      <div class="card-title" style="margin-bottom:0"><span class="icon">🔍</span> Diagnostic système</div>
+      <button class="btn btn-outline btn-sm" onclick="runDiagnostics()">🔄 Actualiser</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin:8px 0 12px">Vérification automatique de tous les composants nécessaires</div>
+    <div id="diag-results" style="display:flex;flex-direction:column;gap:6px">
+      <div class="diag-row"><div class="diag-icon">⏳</div><div class="diag-label">Chargement du diagnostic...</div></div>
+    </div>
+  </div>
+
+  <!-- Card 2: Guide de démarrage rapide -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🚀</span> Guide de démarrage rapide</div>
+    <div id="guide-steps">
+      <div class="step">
+        <div class="step-num" id="step-1">1</div>
+        <div class="step-content">
+          <div class="step-title">🛡️ Installer WireGuard</div>
+          <div class="step-desc">WireGuard est le protocole VPN ultra-rapide utilisé par VPN Guard. Il doit être installé sur votre PC. Le lanceur <code>LANCER_VPNGUARD.bat</code> l'installe automatiquement.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step-2">2</div>
+        <div class="step-content">
+          <div class="step-title">🔑 Clés serveur (automatique)</div>
+          <div class="step-desc">VPN Guard génère automatiquement vos clés de chiffrement au premier lancement. Elles sont sauvegardées dans le dossier <code>configs/</code>.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step-3">3</div>
+        <div class="step-content">
+          <div class="step-title">👥 Ajouter des Peers (appareils)</div>
+          <div class="step-desc">Allez dans l'onglet <strong>Peers</strong>, cliquez sur <em>Ajouter un peer</em>. Chaque peer reçoit une configuration à importer sur l'appareil distant (téléphone, laptop, etc.).</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step-4">4</div>
+        <div class="step-content">
+          <div class="step-title">⚡ Se connecter</div>
+          <div class="step-desc">Retournez au <strong>Tableau de bord</strong> et cliquez sur le grand bouton toggle pour démarrer le tunnel VPN. Vous pouvez aussi utiliser le bouton <em>Connexion rapide</em>.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step-5">5</div>
+        <div class="step-content">
+          <div class="step-title">🔒 Activer les protections</div>
+          <div class="step-desc">Activez le <strong>Kill Switch</strong> pour bloquer internet si le VPN tombe, et la <strong>Protection DNS</strong> pour éviter les fuites. Ces options sont dans les onglets dédiés.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Explication des fonctionnalités (accordéon) -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📖</span> Comprendre les fonctionnalités</div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🔗</span> Qu'est-ce qu'un VPN WireGuard ? <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <strong>WireGuard</strong> est un protocole VPN moderne, ultra-rapide et sécurisé. Il crée un tunnel chiffré entre votre PC et un autre appareil (ou serveur).<br><br>
+        <strong>Chiffrement :</strong> Curve25519 (clés), ChaCha20-Poly1305 (données), BLAKE2s (hash)<br>
+        <strong>Port :</strong> UDP 51820 par défaut<br>
+        <strong>Performance :</strong> Beaucoup plus rapide qu'OpenVPN, latence minimale<br><br>
+        Tout le trafic internet passe par le tunnel chiffré, ce qui masque votre véritable IP et protège vos données.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🖥️</span> Mode Serveur vs Mode Client <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <strong>Mode Serveur</strong> (par défaut) :<br>
+        Votre PC devient le serveur VPN. D'autres appareils (téléphone, laptop) se connectent à vous. Idéal pour accéder à votre réseau domestique depuis l'extérieur.<br><br>
+        <strong>Mode Client :</strong><br>
+        Votre PC se connecte à un serveur VPN distant (ex: un VPS, un autre PC). Importez un fichier <code>.conf</code> dans l'onglet Connexion. Tout votre trafic passe par le serveur distant.<br><br>
+        <strong>Prérequis serveur :</strong> Ouvrir le port UDP 51820 sur votre routeur (redirection de port) et connaître votre IP publique.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🔒</span> Kill Switch — protection anti-fuite <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Le <strong>Kill Switch</strong> ajoute des règles au pare-feu Windows pour <strong>bloquer tout le trafic internet</strong> si le VPN se déconnecte accidentellement.<br><br>
+        <strong>Comment ça marche :</strong><br>
+        1. Bloque toutes les connexions sortantes<br>
+        2. Autorise uniquement le trafic via le tunnel VPN (interface wg0)<br>
+        3. Autorise le réseau local (LAN) pour imprimantes, NAS, etc.<br><br>
+        <strong>Important :</strong> Si le Kill Switch reste actif et que le VPN est arrêté, vous n'aurez plus internet. Désactivez-le dans l'onglet Kill Switch.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🌐</span> Protection DNS — éviter les fuites <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Même avec un VPN actif, vos <strong>requêtes DNS</strong> (traduction nom de domaine → IP) peuvent fuiter hors du tunnel et révéler les sites que vous visitez.<br><br>
+        La protection DNS force toutes les requêtes à passer par les serveurs DNS configurés (1.1.1.1, 9.9.9.9) via le tunnel VPN.<br><br>
+        <strong>Test de fuites :</strong> Utilisez le bouton "Vérifier fuites DNS" dans l'onglet DNS Protection pour vérifier que votre IP publique correspond à celle du VPN.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🔀</span> Split Tunneling — choisir le trafic <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Le <strong>Split Tunneling</strong> permet de choisir quelles applications passent par le VPN et lesquelles utilisent votre connexion directe.<br><br>
+        <strong>Exemples d'utilisation :</strong><br>
+        • Navigateur → via VPN (navigation privée)<br>
+        • Jeux vidéo → bypass (meilleur ping)<br>
+        • Streaming → bypass (éviter blocage géo inverse)<br><br>
+        <strong>Note :</strong> Cette fonctionnalité est en version beta.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">📶</span> Protection Wi-Fi — réseaux non fiables <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        VPN Guard peut <strong>détecter automatiquement</strong> le réseau Wi-Fi auquel vous êtes connecté et activer le VPN si le réseau n'est pas dans votre liste de confiance.<br><br>
+        <strong>Réseaux de confiance :</strong> Ajoutez votre Wi-Fi maison, bureau, etc. Le VPN ne s'activera pas sur ces réseaux.<br>
+        <strong>Réseaux non fiables :</strong> Cafés, hôtels, aéroports — le VPN s'active automatiquement pour protéger vos données.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">👥</span> Peers — ajouter des appareils <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Un <strong>peer</strong> est un appareil qui se connecte à votre VPN. Chaque peer a sa propre paire de clés et une IP unique dans le réseau VPN (10.66.66.x).<br><br>
+        <strong>Comment ajouter un peer :</strong><br>
+        1. Onglet Peers → Ajouter un peer → Donnez un nom<br>
+        2. VPN Guard génère automatiquement les clés et la config<br>
+        3. Cliquez sur 📋 Config pour voir le fichier .conf<br>
+        4. Importez ce fichier sur l'appareil distant (app WireGuard mobile/desktop)<br><br>
+        <strong>Apps WireGuard :</strong> Disponibles sur iOS, Android, macOS, Linux, Windows.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">📁</span> Profils — gérer plusieurs configs <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Les <strong>profils</strong> permettent de sauvegarder différentes configurations VPN et de basculer rapidement entre elles.<br><br>
+        <strong>Profils par défaut :</strong><br>
+        • 🏠 Maison — votre réseau domestique<br>
+        • 🏢 Bureau — réseau professionnel<br>
+        • 📶 Wi-Fi Public — configuration sécurisée pour les hotspots<br><br>
+        Vous pouvez aussi <strong>importer un fichier .conf</strong> pour vous connecter à un serveur VPN externe.
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4: Résolution de problèmes -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔧</span> Résolution de problèmes</div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">❌</span> Je ne peux pas connecter le VPN <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <strong>Vérifications :</strong><br>
+        1. WireGuard est-il installé ? → Vérifiez dans le diagnostic ci-dessus<br>
+        2. Le programme est-il lancé en <strong>administrateur</strong> ? → WireGuard nécessite des droits admin pour créer le tunnel<br>
+        3. Utilisez <code>LANCER_VPNGUARD.bat</code> qui gère tout automatiquement<br><br>
+        <strong>Si rien ne marche :</strong><br>
+        • Installez WireGuard manuellement : <a href="https://www.wireguard.com/install/" target="_blank">wireguard.com/install</a><br>
+        • Ou via la commande : <code>winget install WireGuard.WireGuard</code>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🚫</span> Le Kill Switch bloque tout internet <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Si le Kill Switch est actif et le VPN déconnecté, <strong>tout le trafic internet est bloqué</strong>. C'est le comportement normal (protection anti-fuite).<br><br>
+        <strong>Solution :</strong><br>
+        1. Allez dans l'onglet <strong>Kill Switch</strong><br>
+        2. Désactivez le toggle<br>
+        3. Les règles pare-feu seront automatiquement supprimées<br><br>
+        <strong>En cas d'urgence</strong> (si l'interface ne répond pas) :<br>
+        Ouvrez un terminal admin et exécutez :<br>
+        <code>netsh advfirewall firewall delete rule name=all dir=out program=any</code><br>
+        ⚠️ Ceci supprime TOUTES les règles sortantes — utilisez en dernier recours.
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🌐</span> Fuite DNS détectée <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Une fuite DNS signifie que vos requêtes DNS passent en dehors du tunnel VPN.<br><br>
+        <strong>Solution :</strong><br>
+        1. Activez la <strong>Protection DNS</strong> dans l'onglet dédié<br>
+        2. Vérifiez que les serveurs DNS sont configurés (1.1.1.1, 9.9.9.9)<br>
+        3. Relancez le test de fuites
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🔌</span> Pas d'internet après connexion VPN <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <strong>Causes possibles :</strong><br>
+        • <strong>Mode Serveur :</strong> Vérifiez que les règles PostUp/PostDown sont configurées pour le NAT (forwarding)<br>
+        • <strong>Mode Client :</strong> Vérifiez que le serveur distant est joignable et que la config .conf est correcte<br>
+        • <strong>DNS :</strong> Essayez de changer les serveurs DNS (1.1.1.1 → 8.8.8.8)<br>
+        • <strong>Kill Switch :</strong> Désactivez-le temporairement pour tester
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)"><span class="acc-icon">🔑</span> Comment ouvrir le port 51820 sur mon routeur ? <span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        Pour utiliser le mode serveur depuis l'extérieur :<br><br>
+        1. Connectez-vous à l'interface de votre routeur (souvent 192.168.1.1)<br>
+        2. Cherchez <strong>Redirection de port</strong> (Port Forwarding / NAT)<br>
+        3. Ajoutez une règle :<br>
+           • Port externe : <strong>51820</strong><br>
+           • Port interne : <strong>51820</strong><br>
+           • Protocole : <strong>UDP</strong><br>
+           • IP interne : L'IP de votre PC<br>
+        4. Sauvegardez et redémarrez le routeur si nécessaire<br><br>
+        <strong>Note :</strong> Configurez votre endpoint avec votre IP publique dans l'onglet Mode Serveur.
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 5: Liens utiles -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span> Liens utiles</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+      <a href="https://www.wireguard.com/install/" target="_blank">🛡️ Télécharger WireGuard — wireguard.com/install</a>
+      <a href="https://www.wireguard.com/" target="_blank">📖 Documentation officielle WireGuard</a>
+      <a href="https://www.wireguard.com/quickstart/" target="_blank">⚡ Guide de démarrage rapide WireGuard</a>
+      <a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">📱 WireGuard pour iOS</a>
+      <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">📱 WireGuard pour Android</a>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══ MODAL: PEER CONFIG ═══ -->
+<div class="modal-overlay" id="modal-peer-config" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <div class="flex-between">
+      <div class="modal-title">📋 Configuration du peer</div>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('modal-peer-config').classList.remove('show')">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Copiez cette configuration et importez-la sur l'appareil du peer</div>
+    <pre id="peer-config-text"></pre>
+    <div class="mt-8"><button class="btn btn-cyan btn-sm" onclick="copyPeerConfig()">📋 Copier</button></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: DNS LEAK RESULT ═══ -->
+<div class="modal-overlay" id="modal-leak" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <div class="flex-between">
+      <div class="modal-title">🔍 Résultat du test de fuites</div>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('modal-leak').classList.remove('show')">✕</button>
+    </div>
+    <div id="leak-result-content"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   VPN Guard Pro — Dashboard Logic
+   ═══════════════════════════════════════════ */
+
+const WS_URL = 'ws://localhost:8820';
+let ws = null, _useNative = false, lastState = null, activeTab = 'dashboard';
+let _renderPending = false;
+
+/* ─── CONNECTION ─── */
+function initConnection() {
+  if (window.pywebview && window.pywebview.api) {
+    _useNative = true;
+    document.getElementById('conn-dot').classList.add('on');
+    document.getElementById('conn-status').textContent = 'Natif';
+    sendCmd({cmd:'get_state'});
+  } else {
+    connectWS();
+  }
+}
+
+window.addEventListener('pywebviewready', () => {
+  if (_useNative) return;
+  _useNative = true;
+  if (ws) { try { ws.close(); } catch(e){} ws = null; }
+  document.getElementById('conn-dot').classList.add('on');
+  document.getElementById('conn-status').textContent = 'Natif';
+  sendCmd({cmd:'get_state'});
+});
+
+function connectWS() {
+  try { ws = new WebSocket(WS_URL); } catch(e) { setTimeout(connectWS, 3000); return; }
+  ws.onopen = () => {
+    document.getElementById('conn-dot').classList.add('on');
+    document.getElementById('conn-status').textContent = 'Connecté';
+    sendCmd({cmd:'get_state'});
+  };
+  ws.onclose = () => {
+    document.getElementById('conn-dot').classList.remove('on');
+    document.getElementById('conn-status').textContent = 'Déconnecté';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = e => { try { handleMsg(JSON.parse(e.data)); } catch(err) { console.error(err); } };
+}
+
+function sendCmd(obj) {
+  if (_useNative && window.pywebview && window.pywebview.api) {
+    const cmd = obj.cmd;
+    const params = Object.assign({}, obj);
+    delete params.cmd;
+    let p;
+    if (cmd === 'get_state') p = window.pywebview.api.get_state();
+    else p = window.pywebview.api.send_command(cmd, params);
+    if (p && p.then) p.then(r => { if (r) handleMsg(r); });
+    return;
+  }
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+/* ─── MESSAGE HANDLER ─── */
+function handleMsg(msg) {
+  if (!msg || !msg.type) return;
+  const t = msg.type;
+
+  if (t === 'state') {
+    lastState = msg;
+    if (!_renderPending) {
+      _renderPending = true;
+      requestAnimationFrame(() => {
+        _renderPending = false;
+        if (!lastState) return;
+        renderState(lastState);
+      });
+    }
+  }
+  // ── Connection results ──
+  else if (t === 'connect_result' || t === 'disconnect_result') {
+    if (msg.error) showNotif(msg.error, 'error');
+    else showNotif(t === 'connect_result' ? 'VPN connecté !' : 'VPN déconnecté', 'success');
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Peer operations ──
+  else if (t === 'peer_config') {
+    document.getElementById('peer-config-text').textContent = msg.config || '';
+    document.getElementById('modal-peer-config').classList.add('show');
+  }
+  else if (t === 'peer_added') {
+    if (msg.error) showNotif(msg.error, 'error');
+    else {
+      showNotif('Peer ajouté !', 'success');
+      if (msg.config) {
+        document.getElementById('peer-config-text').textContent = msg.config;
+        document.getElementById('modal-peer-config').classList.add('show');
+      }
+    }
+    sendCmd({cmd:'get_state'});
+  }
+  else if (t === 'peer_removed') {
+    if (msg.error) showNotif(msg.error, 'error');
+    else showNotif('Peer supprimé', 'success');
+    sendCmd({cmd:'get_state'});
+  }
+  else if (t === 'peers_list') {
+    renderPeers(msg.peers || []);
+  }
+  // ── DNS / IP ──
+  else if (t === 'dns_leak_result') {
+    showLeakResult(msg);
+  }
+  else if (t === 'public_ip') {
+    document.getElementById('dns-public-ip').textContent = msg.ip || '—';
+    document.getElementById('pill-ip').textContent = '🌍 IP: ' + (msg.ip || '—');
+  }
+  else if (t === 'dns_toggled') {
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Kill Switch ──
+  else if (t === 'kill_switch_toggled') {
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Split Tunnel ──
+  else if (t === 'split_tunnel_toggled' || t === 'split_app_added' || t === 'split_app_removed') {
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Wi-Fi ──
+  else if (t === 'networks_list') {
+    renderNetworks(msg.networks || []);
+  }
+  else if (t === 'network_info') {
+    // Single network info, refresh state
+    sendCmd({cmd:'get_state'});
+  }
+  else if (t === 'trusted_updated') {
+    renderTrusted(msg.networks || []);
+  }
+  else if (t === 'auto_connect_toggled') {
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Profiles ──
+  else if (t === 'profiles_list') {
+    renderProfiles(msg.profiles || []);
+  }
+  else if (t === 'profile_created' || t === 'profile_deleted' || t === 'profile_set' || t === 'profile_imported') {
+    if (msg.error) showNotif(msg.error, 'error');
+    else showNotif('Profil mis à jour', 'success');
+    sendCmd({cmd:'list_profiles'});
+    sendCmd({cmd:'get_state'});
+  }
+  // ── History ──
+  else if (t === 'history') {
+    renderHistory(msg.entries || []);
+  }
+  else if (t === 'history_cleared') {
+    renderHistory([]);
+    showNotif('Historique effacé', 'success');
+  }
+  // ── Settings / Config ──
+  else if (t === 'settings') {
+    applySettings(msg);
+  }
+  else if (t === 'settings_saved' || t === 'wg_config_saved') {
+    showNotif('Configuration sauvegardée', 'success');
+    sendCmd({cmd:'get_state'});
+  }
+  // ── Import ──
+  else if (t === 'config_imported') {
+    if (msg.error) showNotif(msg.error, 'error');
+    else {
+      showNotif('Configuration importée !', 'success');
+      document.getElementById('import-conf-text').value = '';
+      document.getElementById('import-conf-name').value = '';
+    }
+  }
+  // ── Apps list ──
+  else if (t === 'running_apps') {
+    renderRunningApps(msg.apps || []);
+  }
+  // ── Diagnostics ──
+  else if (t === 'diagnostics') {
+    renderDiagnostics(msg);
+  }
+  // ── Generic ──
+  else if (t === 'error') {
+    showNotif(msg.message || msg.error || 'Erreur', 'error');
+  }
+  else if (t === 'success' || t === 'ok' || t === 'ack') {
+    // silent ack
+  }
+}
+
+/* ─── RENDER STATE ─── */
+function renderState(s) {
+  const on = s.connected;
+
+  // Toggle ring
+  const ring = document.getElementById('vpn-ring');
+  ring.classList.toggle('on', on);
+  document.getElementById('vpn-status-text').textContent = on ? 'CONNECTÉ' : 'DÉCONNECTÉ';
+  document.getElementById('vpn-status-text').classList.toggle('on', on);
+  document.getElementById('vpn-status-sub').textContent = on
+    ? ('Profil: ' + (s.active_profile_name || s.active_profile || 'default') + '  |  Durée: ' + fmtDuration(s.duration_s))
+    : 'Appuyez pour vous connecter';
+
+  // Stats
+  document.getElementById('st-upload').textContent = fmtSpeed(s.speed_tx || 0);
+  document.getElementById('st-download').textContent = fmtSpeed(s.speed_rx || 0);
+  document.getElementById('st-data').textContent = fmtBytes((s.bytes_rx || 0) + (s.bytes_tx || 0));
+  document.getElementById('st-duration').textContent = fmtDuration(s.duration_s || 0);
+
+  // Quick toggle btn
+  const btn = document.getElementById('btn-quick-toggle');
+  btn.textContent = on ? '⛔ Déconnecter' : '⚡ Connexion rapide';
+  btn.className = on ? 'btn btn-red' : 'btn btn-cyan';
+
+  // Status pills
+  const ksOn = s.kill_switch_enabled;
+  const dnsOn = s.dns_protected;
+  document.getElementById('pill-ks').className = 'pill ' + (ksOn ? 'pill-on' : 'pill-off');
+  document.getElementById('pill-ks').textContent = '🔒 Kill Switch: ' + (ksOn ? 'ON' : 'OFF');
+  document.getElementById('pill-dns').className = 'pill ' + (dnsOn ? 'pill-on' : 'pill-off');
+  document.getElementById('pill-dns').textContent = '🌐 DNS: ' + (dnsOn ? 'Protégé' : 'Non protégé');
+
+  if (s.public_ip) {
+    document.getElementById('pill-ip').textContent = '🌍 IP: ' + s.public_ip;
+    document.getElementById('dns-public-ip').textContent = s.public_ip;
+    document.getElementById('conn-ip').textContent = s.public_ip;
+  }
+
+  // Connection tab
+  document.getElementById('conn-profile-name').textContent = s.active_profile_name || s.active_profile || 'default';
+  document.getElementById('conn-profile-mode').textContent = 'Mode: ' + (s.mode === 'server' ? 'Serveur' : 'Client');
+  const btnConn = document.getElementById('btn-connect');
+  btnConn.textContent = on ? '⛔ Déconnecter' : '⚡ Connecter';
+  btnConn.className = on ? 'btn btn-red' : 'btn btn-cyan';
+  document.getElementById('conn-addr').textContent = s.wg_address || '—';
+  document.getElementById('conn-port').textContent = s.wg_listen_port || '—';
+  document.getElementById('conn-dns').textContent = s.dns_servers || '—';
+  document.getElementById('conn-iface').textContent = 'wg0';
+  document.getElementById('conn-duration').textContent = on ? fmtDuration(s.duration_s) : '—';
+
+  // Toggles
+  document.getElementById('ks-toggle').checked = ksOn;
+  document.getElementById('dns-toggle').checked = dnsOn;
+  document.getElementById('dns-servers').textContent = s.dns_servers || '—';
+  if (s.split_tunnel) document.getElementById('split-toggle').checked = s.split_tunnel.enabled || false;
+  document.getElementById('wifi-auto-toggle').checked = s.auto_connect_wifi || false;
+
+  // Kill switch status
+  const ksStatus = document.getElementById('ks-status');
+  if (ksOn && s.kill_switch_active) {
+    ksStatus.innerHTML = '<span class="pill pill-on">Actif</span><div class="mt-8" style="color:var(--text2);font-size:12px">Les règles de pare-feu VPN Guard sont en place. Tout le trafic hors VPN est bloqué.</div>';
+  } else if (ksOn) {
+    ksStatus.innerHTML = '<span class="pill pill-warn">En attente</span><div class="mt-8" style="color:var(--text2);font-size:12px">Le Kill Switch s\'activera si le VPN se déconnecte.</div>';
+  } else {
+    ksStatus.innerHTML = '<span class="pill pill-off">Inactif</span><div class="mt-8" style="color:var(--text3);font-size:12px">Aucune règle VPN Guard active dans le pare-feu Windows.</div>';
+  }
+
+  // Server tab
+  document.getElementById('srv-pubkey').textContent = s.wg_server_pubkey || '—';
+  document.getElementById('srv-wg-installed').textContent = 'WireGuard: ' + (s.wg_installed ? '✅ Installé' : '❌ Non installé');
+  document.getElementById('set-wg-status').textContent = s.wg_installed ? 'Installé' : 'Non installé';
+  const srvPill = document.getElementById('srv-status-pill');
+  if (on && s.mode === 'server') {
+    srvPill.className = 'pill pill-on'; srvPill.textContent = '🟢 Serveur actif';
+  } else {
+    srvPill.className = 'pill pill-off'; srvPill.textContent = '⚫ Serveur arrêté';
+  }
+  const btnSrv = document.getElementById('btn-srv-toggle');
+  btnSrv.textContent = on ? '⏹ Arrêter' : '▶ Démarrer';
+  btnSrv.className = on ? 'btn btn-red btn-sm' : 'btn btn-green btn-sm';
+  document.getElementById('srv-wg-status').textContent = 'Statut tunnel: ' + (on ? '🟢 Actif' : '⚫ Inactif');
+
+  // Wi-Fi
+  if (s.wifi && s.wifi.ssid) {
+    const w = s.wifi;
+    document.getElementById('wifi-current').innerHTML = `
+      <div class="wifi-card">
+        <div class="wifi-signal">${signalIcon(w.signal)}</div>
+        <div class="wifi-info">
+          <div class="wifi-ssid">${esc(w.ssid)}</div>
+          <div class="wifi-detail">${esc(w.security || '')} — Signal: ${w.signal || '?'}%</div>
+        </div>
+        <span class="pill ${w.trusted ? 'pill-on' : 'pill-warn'}">${w.trusted ? 'Fiable' : 'Non fiable'}</span>
+      </div>`;
+    document.getElementById('pill-wifi').textContent = '📶 ' + w.ssid;
+    document.getElementById('pill-wifi').className = 'pill ' + (w.trusted ? 'pill-on' : 'pill-warn');
+  }
+
+  // Trusted networks
+  if (s.trusted_networks) renderTrusted(s.trusted_networks);
+
+  // Peers badge
+  if (s.wg_peers) {
+    const badge = document.getElementById('peers-badge');
+    const count = s.wg_peers.length;
+    if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+    else badge.style.display = 'none';
+    renderPeers(s.wg_peers);
+  }
+
+  // Profiles
+  if (s.profiles) renderProfiles(s.profiles);
+
+  // History
+  if (s.timeline) renderHistory(s.timeline);
+
+  // Settings
+  if (s.auto_connect !== undefined) document.getElementById('set-autoconn').checked = s.auto_connect;
+
+  // Split tunnel apps
+  if (s.split_tunnel) {
+    renderSplitApps('split-vpn-apps', s.split_tunnel.apps || [], 'vpn');
+    renderSplitApps('split-bypass-apps', s.split_tunnel.bypass || [], 'bypass');
+  }
+}
+
+/* ─── TAB SWITCHING ─── */
+function showTab(id, el) {
+  activeTab = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tab = document.getElementById('tab-' + id);
+  if (tab) tab.classList.add('active');
+  if (el) el.classList.add('active');
+
+  // Lazy load
+  if (id === 'history') sendCmd({cmd:'get_history'});
+  if (id === 'settings') { sendCmd({cmd:'get_settings'}); checkStartup(); }
+  if (id === 'wifi') sendCmd({cmd:'get_network'});
+  if (id === 'dns') sendCmd({cmd:'get_public_ip'});
+  if (id === 'peers') sendCmd({cmd:'get_peers'});
+  if (id === 'profiles') sendCmd({cmd:'list_profiles'});
+  if (id === 'help') runDiagnostics();
+
+  if (lastState) renderState(lastState);
+}
+
+/* ─── VPN ACTIONS ─── */
+function toggleVPN() {
+  if (lastState && lastState.connected) sendCmd({cmd:'quick_disconnect'});
+  else sendCmd({cmd:'quick_connect'});
+}
+
+function toggleKillSwitch() { sendCmd({cmd:'toggle_kill_switch'}); }
+function toggleDNS() { sendCmd({cmd:'toggle_dns_protection'}); }
+function toggleSplit() { sendCmd({cmd:'toggle_split_tunnel'}); }
+function toggleAutoConnect() { sendCmd({cmd:'toggle_auto_connect'}); }
+
+function checkDNSLeak() { sendCmd({cmd:'check_dns_leak'}); }
+function checkIP() { sendCmd({cmd:'get_public_ip'}); }
+function checkLeaks() {
+  sendCmd({cmd:'check_dns_leak'});
+  sendCmd({cmd:'get_public_ip'});
+}
+
+function importConfig() {
+  const text = document.getElementById('import-conf-text').value.trim();
+  const name = document.getElementById('import-conf-name').value.trim() || 'Import';
+  if (!text) return showNotif('Collez un fichier .conf valide', 'error');
+  sendCmd({cmd:'import_config', content: text, name: name});
+}
+
+function scanNetworks() { sendCmd({cmd:'scan_networks'}); }
+function listApps() { sendCmd({cmd:'list_running_apps'}); }
+
+function addTrusted() {
+  const ssid = document.getElementById('wifi-add-ssid').value.trim();
+  if (!ssid) return;
+  sendCmd({cmd:'add_trusted', ssid: ssid});
+  document.getElementById('wifi-add-ssid').value = '';
+}
+
+function removeTrusted(ssid) { sendCmd({cmd:'remove_trusted', ssid: ssid}); }
+
+/* ─── PEERS ─── */
+function showAddPeer() { document.getElementById('peers-add-form').style.display = ''; }
+function addPeer() {
+  const name = document.getElementById('peer-name').value.trim();
+  if (!name) return showNotif('Nom du peer requis', 'error');
+  sendCmd({cmd:'add_peer', name: name, allowed_ip: document.getElementById('peer-ip').value.trim() || ''});
+  document.getElementById('peers-add-form').style.display = 'none';
+  document.getElementById('peer-name').value = '';
+  document.getElementById('peer-ip').value = '';
+}
+function removePeer(name) { if (confirm('Supprimer ce peer ?')) sendCmd({cmd:'remove_peer', name: name}); }
+function getPeerConfig(name) { sendCmd({cmd:'get_peer_config', name: name}); }
+function copyPeerConfig() {
+  const text = document.getElementById('peer-config-text').textContent;
+  navigator.clipboard.writeText(text).then(() => showNotif('Configuration copiée !', 'success'));
+}
+
+/* ─── PROFILES ─── */
+function showCreateProfile() { document.getElementById('profile-create-form').style.display = ''; }
+function createProfile() {
+  const name = document.getElementById('prof-name').value.trim();
+  if (!name) return showNotif('Nom requis', 'error');
+  const key = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  const mode = document.getElementById('prof-mode').value;
+  sendCmd({cmd:'create_profile', key: key, config: {name: name, type: mode, wg_address: '10.66.66.1/24', wg_dns: '1.1.1.1, 9.9.9.9', wg_endpoint: '', wg_listen_port: 51820}});
+  document.getElementById('profile-create-form').style.display = 'none';
+  document.getElementById('prof-name').value = '';
+}
+function deleteProfile(key) { if (confirm('Supprimer ce profil ?')) sendCmd({cmd:'delete_profile', key: key}); }
+function setActiveProfile(key) { sendCmd({cmd:'set_active_profile', key: key}); }
+
+/* ─── SERVER CONFIG ─── */
+function saveServerConfig() {
+  sendCmd({cmd:'wg_set_config',
+    wg_interface: document.getElementById('srv-iface').value,
+    wg_listen_port: parseInt(document.getElementById('srv-port').value) || 51820,
+    wg_address: document.getElementById('srv-addr').value,
+    wg_dns: document.getElementById('srv-dns').value,
+    wg_post_up: document.getElementById('srv-postup').value,
+    wg_post_down: document.getElementById('srv-postdown').value
+  });
+}
+
+/* ─── SETTINGS ─── */
+function saveSettings() {
+  sendCmd({cmd:'save_settings',
+    auto_connect: document.getElementById('set-autoconn').checked
+  });
+}
+function toggleStartup() {
+  if (_useNative && window.pywebview && window.pywebview.api) {
+    window.pywebview.api.toggle_startup_boot().then(r => {
+      if (r && r.enabled !== undefined) document.getElementById('set-startup').checked = r.enabled;
+    });
+  }
+}
+function checkStartup() {
+  if (_useNative && window.pywebview && window.pywebview.api) {
+    window.pywebview.api.get_startup_state().then(r => {
+      if (r && r.enabled !== undefined) document.getElementById('set-startup').checked = r.enabled;
+    });
+  }
+}
+function minimizeTray() {
+  if (_useNative && window.pywebview && window.pywebview.api) {
+    window.pywebview.api.minimize_to_tray_action();
+  }
+}
+
+/* ─── SPLIT TUNNEL ─── */
+function splitAddApp(path, mode) { sendCmd({cmd:'split_add_app', path: path, mode: mode}); }
+function splitRemoveApp(path) { sendCmd({cmd:'split_remove_app', path: path}); }
+
+/* ─── RENDER HELPERS ─── */
+function renderPeers(peers) {
+  const el = document.getElementById('peers-list');
+  if (!peers || !peers.length) {
+    el.innerHTML = '<div class="card" style="text-align:center;color:var(--text3);font-size:13px">Aucun peer configuré</div>';
+    return;
+  }
+  el.innerHTML = peers.map(p => `
+    <div class="card" style="padding:14px">
+      <div class="flex-between">
+        <div>
+          <div style="font-weight:600;font-size:14px">${esc(p.name || 'Peer')}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:monospace">${esc(p.pubkey || '').substring(0,20)}...</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">IP: ${esc(p.allowed_ip || p.allowed_ips || '—')}</div>
+        </div>
+        <div class="flex-row gap-8">
+          <button class="btn btn-outline btn-sm" onclick="getPeerConfig('${esc(p.name)}')">📋 Config</button>
+          <button class="btn btn-red btn-sm" onclick="removePeer('${esc(p.name)}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderProfiles(profiles) {
+  const el = document.getElementById('profiles-grid');
+  const active = lastState ? (lastState.active_profile || 'default') : 'default';
+  if (!profiles || !profiles.length) {
+    el.innerHTML = '<div class="profile-card" style="text-align:center;color:var(--text3);font-size:13px;grid-column:1/-1">Aucun profil</div>';
+    return;
+  }
+  el.innerHTML = profiles.map(p => {
+    const pkey = p.key || p.id || '';
+    const isActive = pkey === active;
+    return `<div class="profile-card${isActive ? ' active' : ''}" onclick="setActiveProfile('${esc(pkey)}')">
+      <div class="flex-between">
+        <div>
+          <div class="pname">${esc(p.name || pkey)}</div>
+          <div class="pmode">${(p.type || p.mode) === 'client' ? '📥 Client' : '🖥️ Serveur'}</div>
+        </div>
+        ${isActive ? '<span class="pill pill-on">Actif</span>' : `<button class="btn btn-red btn-sm" onclick="event.stopPropagation();deleteProfile('${esc(pkey)}')" style="padding:3px 8px;font-size:10px">✕</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(entries) {
+  const el = document.getElementById('history-list');
+  if (!entries || !entries.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Aucun historique</div>';
+    return;
+  }
+  el.innerHTML = entries.slice(0, 50).map(e => `
+    <div class="hist-row">
+      <span>${fmtDate(e.start)}</span>
+      <span>${esc(e.profile || '—')}</span>
+      <span style="font-family:monospace;font-size:11px">${esc(e.ip || '—')}</span>
+      <span>${fmtDuration(e.duration_s || 0)}</span>
+      <span>${fmtBytes((e.bytes_rx || 0) + (e.bytes_tx || 0))}</span>
+    </div>`).join('');
+}
+
+function renderNetworks(networks) {
+  const el = document.getElementById('wifi-networks');
+  if (!networks || !networks.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px">Aucun réseau trouvé</div>';
+    return;
+  }
+  el.innerHTML = networks.map(n => `
+    <div class="wifi-card">
+      <div class="wifi-signal">${signalIcon(n.signal)}</div>
+      <div class="wifi-info">
+        <div class="wifi-ssid">${esc(n.ssid)}</div>
+        <div class="wifi-detail">${esc(n.security || 'Ouvert')} — ${n.signal || '?'}%</div>
+      </div>
+      ${n.trusted
+        ? '<button class="btn btn-red btn-sm" onclick="removeTrusted(\'' + esc(n.ssid) + '\')">Retirer</button>'
+        : '<button class="btn btn-outline btn-sm" onclick="sendCmd({cmd:\'add_trusted\',ssid:\'' + esc(n.ssid) + '\'})">Faire confiance</button>'}
+    </div>`).join('');
+}
+
+function renderTrusted(list) {
+  const el = document.getElementById('wifi-trusted');
+  if (!list || !list.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px">Aucun réseau de confiance</div>';
+    return;
+  }
+  el.innerHTML = list.map(ssid => `
+    <div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>📶 ${esc(ssid)}</span>
+      <button class="btn btn-red btn-sm" onclick="removeTrusted('${esc(ssid)}')">✕</button>
+    </div>`).join('');
+}
+
+function renderRunningApps(apps) {
+  const el = document.getElementById('split-apps-list');
+  if (!apps || !apps.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px">Aucune application détectée</div>';
+    return;
+  }
+  el.innerHTML = apps.slice(0, 50).map(a => `
+    <div class="app-row">
+      <div class="app-name">${esc(a.name || a.exe || '?')}</div>
+      <button class="btn btn-outline btn-sm" onclick="splitAddApp('${esc(a.exe || a.name)}','vpn')">Via VPN</button>
+      <button class="btn btn-outline btn-sm" onclick="splitAddApp('${esc(a.exe || a.name)}','bypass')">Bypass</button>
+    </div>`).join('');
+}
+
+function renderSplitApps(containerId, apps, mode) {
+  const el = document.getElementById(containerId);
+  if (!apps || !apps.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px">Aucune application configurée</div>';
+    return;
+  }
+  el.innerHTML = apps.map(a => `
+    <div class="app-row">
+      <div class="app-name">${esc(typeof a === 'string' ? a : a.name || a.path || '?')}</div>
+      <button class="btn btn-red btn-sm" onclick="splitRemoveApp('${esc(typeof a === 'string' ? a : a.path || a.name)}')">✕</button>
+    </div>`).join('');
+}
+
+function showLeakResult(msg) {
+  const el = document.getElementById('leak-result-content');
+  const ok = msg.protected;
+  el.innerHTML = `
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:40px;margin-bottom:12px">${ok ? '✅' : '⚠️'}</div>
+      <div style="font-size:18px;font-weight:700;color:${ok ? 'var(--green)' : 'var(--red)'}">
+        ${ok ? 'Aucune fuite détectée' : 'Fuite potentielle détectée !'}
+      </div>
+      <div style="color:var(--text2);margin-top:8px;font-size:13px">${esc(msg.message || '')}</div>
+      ${msg.ip ? '<div style="margin-top:8px;font-family:monospace;color:var(--cyan)">IP: ' + esc(msg.ip) + '</div>' : ''}
+    </div>`;
+  document.getElementById('modal-leak').classList.add('show');
+
+  // Also update DNS tab
+  const r = document.getElementById('dns-leak-result');
+  r.innerHTML = `<span class="pill ${ok ? 'pill-on' : 'pill-off'}">${ok ? '✅ Protégé' : '⚠️ Fuite détectée'}</span> <span style="color:var(--text2)">${esc(msg.message || '')}</span>`;
+}
+
+function applySettings(s) {
+  if (s.auto_connect !== undefined) document.getElementById('set-autoconn').checked = s.auto_connect;
+}
+
+/* ─── NOTIFICATIONS ─── */
+function showNotif(text, type) {
+  const n = document.createElement('div');
+  n.style.cssText = 'position:fixed;top:60px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;animation:fadeIn .2s;'
+    + (type === 'error' ? 'background:var(--reddim);color:var(--red);border:1px solid var(--red)' : 'background:var(--greendim);color:var(--green);border:1px solid var(--green)');
+  n.textContent = text;
+  document.body.appendChild(n);
+  setTimeout(() => { n.style.opacity = '0'; n.style.transition = 'opacity .3s'; setTimeout(() => n.remove(), 300); }, 3000);
+}
+
+/* ─── FORMAT UTILS ─── */
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+  return (b / 1073741824).toFixed(2) + ' GB';
+}
+function fmtSpeed(bps) {
+  if (bps < 1024) return bps.toFixed(0) + ' B/s';
+  if (bps < 1048576) return (bps / 1024).toFixed(1) + ' KB/s';
+  return (bps / 1048576).toFixed(1) + ' MB/s';
+}
+function fmtDuration(s) {
+  if (!s || s < 0) return '00:00:00';
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+  return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
+}
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(typeof ts === 'number' ? ts * 1000 : ts);
+  return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function signalIcon(pct) {
+  pct = parseInt(pct) || 0;
+  if (pct > 75) return '📶';
+  if (pct > 50) return '📶';
+  if (pct > 25) return '📡';
+  return '📡';
+}
+
+/* ─── ACCORDION ─── */
+function toggleAcc(el) {
+  el.classList.toggle('open');
+}
+
+/* ─── DIAGNOSTICS ─── */
+let lastDiag = null;
+
+function runDiagnostics() {
+  document.getElementById('diag-results').innerHTML = '<div class="diag-row"><div class="diag-icon pulsing">⏳</div><div class="diag-label">Analyse en cours...</div></div>';
+  sendCmd({cmd:'get_diagnostics'});
+}
+
+function renderDiagnostics(d) {
+  lastDiag = d;
+  const el = document.getElementById('diag-results');
+  const checks = [
+    {ok: d.wg_installed, label: 'WireGuard installé', val: d.wg_installed ? (d.wg_version || '✅ Oui') : '❌ Non installé — <a href="https://wireguard.com/install/" target="_blank">Installer</a>'},
+    {ok: d.is_admin, label: 'Droits administrateur', val: d.is_admin ? '✅ Oui' : '⚠️ Non — relancez avec LANCER_VPNGUARD.bat'},
+    {ok: true, label: 'Python', val: d.python_version ? d.python_version.split(' ')[0] : '—'},
+    {ok: true, label: 'Système', val: d.os_info || '—'},
+    {ok: d.internet, label: 'Connexion internet', val: d.internet ? '✅ Connecté' : '❌ Pas de connexion'},
+    {ok: d.connected, label: 'Tunnel VPN', val: d.connected ? '🟢 Actif' : '⚫ Inactif'},
+    {ok: !d.kill_switch_active || d.connected, label: 'Kill Switch', val: d.kill_switch_active ? '🔒 Actif' : 'Inactif'},
+    {ok: true, label: 'Profils configurés', val: d.profiles_count || 0},
+    {ok: true, label: 'Peers configurés', val: d.peers_count || 0},
+    {ok: true, label: 'IP publique', val: d.public_ip || '—'},
+    {ok: true, label: 'Dossier configs', val: d.configs_dir || '—'},
+  ];
+
+  el.innerHTML = checks.map(c => `
+    <div class="diag-row">
+      <div class="diag-icon">${c.ok === false ? '❌' : c.ok === true ? '✅' : 'ℹ️'}</div>
+      <div class="diag-label">${c.label}</div>
+      <div class="diag-value">${c.val}</div>
+    </div>`).join('');
+
+  // Update guide step indicators
+  document.getElementById('step-1').className = 'step-num' + (d.wg_installed ? ' done' : '');
+  document.getElementById('step-2').className = 'step-num done'; // Keys always auto-generated
+  document.getElementById('step-3').className = 'step-num' + (d.peers_count > 0 ? ' done' : '');
+  document.getElementById('step-4').className = 'step-num' + (d.connected ? ' done' : '');
+  document.getElementById('step-5').className = 'step-num' + (d.kill_switch_active || d.dns_protected ? ' done' : '');
+
+  // Show/hide dashboard warning
+  updateDashboardWarning(d);
+}
+
+function updateDashboardWarning(d) {
+  let tipEl = document.getElementById('dashboard-tip');
+  if (!tipEl) {
+    // Create the tip element at the top of dashboard tab
+    const dashTab = document.getElementById('tab-dashboard');
+    tipEl = document.createElement('div');
+    tipEl.id = 'dashboard-tip';
+    dashTab.insertBefore(tipEl, dashTab.firstChild);
+  }
+
+  if (d && !d.wg_installed) {
+    tipEl.innerHTML = '<div class="info-tip error"><span class="tip-icon">⚠️</span> WireGuard n\'est pas installé ! Le VPN ne pourra pas fonctionner. <a href="https://wireguard.com/install/" target="_blank" style="color:var(--red);text-decoration:underline">Installer WireGuard</a> ou consultez l\'onglet <a href="#" onclick="showTab(\'help\',document.querySelectorAll(\'.nav-item\')[11]);return false" style="color:var(--red);text-decoration:underline">Aide & Guide</a></div>';
+  } else if (d && !d.is_admin) {
+    tipEl.innerHTML = '<div class="info-tip warn"><span class="tip-icon">⚠️</span> VPN Guard n\'est pas lancé en administrateur. Certaines fonctionnalités (tunnel, Kill Switch) ne marcheront pas. Utilisez <strong>LANCER_VPNGUARD.bat</strong></div>';
+  } else {
+    tipEl.innerHTML = '';
+  }
+}
+
+/* ─── INIT ─── */
+initConnection();
+// Show beta badge on split tunnel
+try { document.querySelector('.nav-item [style*="display:none"]').style.display = ''; } catch(e) {}
+</script>
+</body>
+</html>

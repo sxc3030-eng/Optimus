@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandbox v1.0 — Optimus Suite</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   SANDBOX — FILE ANALYSIS DASHBOARD
+   Dark theme with orange/amber accent
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #0f0f13;
+  --bg-deep: #0a0a0e;
+  --bg-card: #16161d;
+  --bg-card2: #1c1c26;
+  --bg-hover: #22222e;
+  --border: #2a2a3a;
+  --border-light: #3a3a4e;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #f59e0b;
+  --accent2: #d97706;
+  --accent-glow: rgba(245, 158, 11, 0.15);
+  --green: #22c55e;
+  --green-dim: rgba(34, 197, 94, 0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239, 68, 68, 0.12);
+  --yellow: #f59e0b;
+  --yellow-dim: rgba(245, 158, 11, 0.12);
+  --cyan: #06b6d4;
+  --purple: #a855f7;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* ─── TOP BAR ──────────────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+  -webkit-app-region: drag;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+.topbar-stats {
+  display: flex;
+  gap: 18px;
+  font-size: 12px;
+  color: var(--text-dim);
+  -webkit-app-region: no-drag;
+}
+
+.topbar-stat b { color: var(--text); margin-left: 4px; }
+
+/* ─── LAYOUT ───────────────────────────────────────────────────────── */
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── LEFT PANEL ───────────────────────────────────────────────────── */
+
+.left-panel {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.drop-zone {
+  margin: 12px;
+  padding: 30px 16px;
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.drop-zone-icon { font-size: 28px; margin-bottom: 8px; }
+.drop-zone-text { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.drop-zone-text b { color: var(--accent); cursor: pointer; }
+
+.browse-btn {
+  margin: 0 12px 12px;
+  padding: 8px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.browse-btn:hover { background: var(--accent2); }
+
+.section-label {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.submissions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px;
+}
+
+.submission-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.submission-item:hover { background: var(--bg-hover); }
+.submission-item.active { background: var(--accent-glow); border-left: 3px solid var(--accent); }
+
+.sub-badge {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.sub-badge.clean { background: var(--green); }
+.sub-badge.suspicious { background: var(--yellow); }
+.sub-badge.malicious { background: var(--red); }
+.sub-badge.queued, .sub-badge.analyzing { background: var(--cyan); animation: pulse 1.5s infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.sub-name {
+  flex: 1;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-score {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.sub-score.clean { background: var(--green-dim); color: var(--green); }
+.sub-score.suspicious { background: var(--yellow-dim); color: var(--yellow); }
+.sub-score.malicious { background: var(--red-dim); color: var(--red); }
+
+/* ─── CENTER PANEL ─────────────────────────────────────────────────── */
+
+.center-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  gap: 12px;
+}
+.empty-state-icon { font-size: 48px; opacity: 0.3; }
+.empty-state-text { font-size: 14px; }
+
+/* Report Cards */
+.report-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.report-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+/* File Info */
+.file-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fi-item { font-size: 12px; }
+.fi-label { color: var(--text-muted); }
+.fi-value { color: var(--text); font-family: 'Cascadia Code', 'Consolas', monospace; word-break: break-all; }
+
+/* Verdict Banner */
+.verdict-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+.verdict-banner.clean { background: var(--green-dim); border: 1px solid var(--green); }
+.verdict-banner.suspicious { background: var(--yellow-dim); border: 1px solid var(--yellow); }
+.verdict-banner.malicious { background: var(--red-dim); border: 1px solid var(--red); }
+
+.verdict-label { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+.verdict-banner.clean .verdict-label { color: var(--green); }
+.verdict-banner.suspicious .verdict-label { color: var(--yellow); }
+.verdict-banner.malicious .verdict-label { color: var(--red); }
+
+/* Risk Score Gauge */
+.score-gauge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.score-bar-outer {
+  flex: 1;
+  height: 12px;
+  background: var(--bg-deep);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.score-bar-inner {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+.score-number {
+  font-size: 28px;
+  font-weight: 800;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Entropy Visualization */
+.entropy-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 60px;
+  background: var(--bg-deep);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  overflow: hidden;
+}
+.entropy-bar {
+  flex: 1;
+  min-width: 1px;
+  max-width: 4px;
+  border-radius: 1px 1px 0 0;
+  transition: height 0.3s;
+}
+.entropy-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.entropy-legend span { display: flex; align-items: center; gap: 4px; }
+.entropy-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* Strings / IOC Table */
+.str-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+.str-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.str-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+.str-table tr:hover td { background: var(--bg-hover); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.tag.red { background: var(--red-dim); color: var(--red); }
+.tag.yellow { background: var(--yellow-dim); color: var(--yellow); }
+.tag.green { background: var(--green-dim); color: var(--green); }
+.tag.cyan { background: rgba(6, 182, 212, 0.12); color: var(--cyan); }
+.tag.purple { background: rgba(168, 85, 247, 0.12); color: var(--purple); }
+
+/* MITRE */
+.mitre-list { list-style: none; }
+.mitre-list li {
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: var(--bg-card2);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  color: var(--purple);
+}
+
+/* Delete button */
+.btn-delete {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.btn-delete:hover { background: rgba(239, 68, 68, 0.25); }
+
+/* ─── RIGHT PANEL ──────────────────────────────────────────────────── */
+
+.right-panel {
+  width: 200px;
+  min-width: 200px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-deep);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.module-badges {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mod-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.mod-dot { width: 6px; height: 6px; border-radius: 50%; }
+.mod-dot.on { background: var(--green); }
+.mod-dot.off { background: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TOP BAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-title">Sandbox v1.0 — Optimus Suite</div>
+  <div class="topbar-stats">
+    <span>Submissions: <b id="stat-total">0</b></span>
+    <span>Queue: <b id="stat-queue">0</b></span>
+    <span>Analyzing: <b id="stat-analyzing">0</b></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MAIN LAYOUT
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-zone-icon">&#128269;</div>
+      <div class="drop-zone-text">
+        Drag &amp; drop a file here<br>or <b id="browseLink">browse</b>
+      </div>
+    </div>
+    <button class="browse-btn" id="browseBtn">Browse File...</button>
+    <div class="section-label">Recent Submissions</div>
+    <div class="submissions-list" id="submissionsList"></div>
+  </div>
+
+  <!-- CENTER PANEL -->
+  <div class="center-panel" id="centerPanel">
+    <div class="empty-state">
+      <div class="empty-state-icon">&#128737;</div>
+      <div class="empty-state-text">Submit a file to begin analysis</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="section-label">Quick Stats</div>
+    <div class="stat-card">
+      <div class="stat-value" id="qs-today">0</div>
+      <div class="stat-label">Analyzed Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="qs-malicious" style="color:var(--red)">0</div>
+      <div class="stat-label">Malicious Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="qs-avgscore">0</div>
+      <div class="stat-label">Avg Risk Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="qs-total" style="color:var(--cyan)">0</div>
+      <div class="stat-label">Total Reports</div>
+    </div>
+
+    <div class="module-badges">
+      <div class="section-label" style="padding:0">Modules</div>
+      <div class="mod-badge"><span class="mod-dot on"></span> Hash Checker</div>
+      <div class="mod-badge"><span class="mod-dot on"></span> String Extractor</div>
+      <div class="mod-badge"><span class="mod-dot on"></span> Entropy Analyzer</div>
+      <div class="mod-badge"><span class="mod-dot" id="mod-yara"></span> YARA Scanner</div>
+      <div class="mod-badge"><span class="mod-dot" id="mod-pe"></span> PE Analyzer</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+/* ─── State ────────────────────────────────────────────────────────── */
+let STATE = {};
+let selectedReportId = null;
+let ws = null;
+
+/* ─── API abstraction ──────────────────────────────────────────────── */
+const API = {
+  _pywebview: () => typeof pywebview !== "undefined" && pywebview.api,
+
+  async getState() {
+    if (this._pywebview()) return pywebview.api.get_state();
+    return new Promise(r => { ws && ws.send(JSON.stringify({cmd:"get_state"})); r(STATE); });
+  },
+
+  async submitFile(path) {
+    if (this._pywebview()) return pywebview.api.submit_file(path);
+    if (ws) ws.send(JSON.stringify({cmd:"submit_file", path}));
+  },
+
+  async submitBase64(data, filename) {
+    if (this._pywebview()) return pywebview.api.submit_base64(data, filename);
+    if (ws) ws.send(JSON.stringify({cmd:"submit_base64", data, filename}));
+  },
+
+  async getReport(fileId) {
+    if (this._pywebview()) return pywebview.api.get_report(fileId);
+    if (ws) ws.send(JSON.stringify({cmd:"get_report", file_id:fileId}));
+    return STATE.recent_reports?.find(r => r.file_id === fileId);
+  },
+
+  async browseFile() {
+    if (this._pywebview()) return pywebview.api.browse_file();
+    return null;
+  },
+
+  async deleteReport(fileId) {
+    if (this._pywebview()) return pywebview.api.delete_report(fileId);
+    if (ws) ws.send(JSON.stringify({cmd:"delete_report", file_id:fileId}));
+  }
+};
+
+/* ─── Message handler (from pywebview or WebSocket) ───────────────── */
+function handleMsg(data) {
+  if (!data) return;
+  if (data.type === "state") {
+    STATE = data;
+    renderAll();
+  } else if (data.type === "report") {
+    if (data.report) renderReport(data.report);
+  } else if (data.type === "submitted") {
+    API.getState();
+  }
+}
+
+/* ─── WebSocket fallback ──────────────────────────────────────────── */
+function connectWS() {
+  if (API._pywebview()) return;
+  try {
+    ws = new WebSocket("ws://localhost:8890");
+    ws.onmessage = e => handleMsg(JSON.parse(e.data));
+    ws.onclose = () => setTimeout(connectWS, 3000);
+  } catch(e) { setTimeout(connectWS, 3000); }
+}
+
+/* ─── Render all ──────────────────────────────────────────────────── */
+function renderAll() {
+  if (!STATE.stats) return;
+  const s = STATE.stats;
+  const q = STATE.queue || [];
+  const analyzing = STATE.analyzing || [];
+
+  // Top bar stats
+  document.getElementById("stat-total").textContent = s.total_reports;
+  document.getElementById("stat-queue").textContent = q.filter(i => i.status === "queued").length;
+  document.getElementById("stat-analyzing").textContent = analyzing.length;
+
+  // Right panel
+  document.getElementById("qs-today").textContent = s.analyzed_today;
+  document.getElementById("qs-malicious").textContent = s.malicious_today;
+  document.getElementById("qs-avgscore").textContent = s.avg_score;
+  document.getElementById("qs-total").textContent = s.total_reports;
+
+  // Module badges
+  document.getElementById("mod-yara").className = "mod-dot " + (s.yara_available ? "on" : "off");
+  document.getElementById("mod-pe").className = "mod-dot " + (s.pefile_available ? "on" : "off");
+
+  // Submissions list
+  renderSubmissions();
+}
+
+function renderSubmissions() {
+  const list = document.getElementById("submissionsList");
+  const reports = STATE.recent_reports || [];
+  const queue = STATE.queue || [];
+
+  let html = "";
+
+  // Show analyzing/queued items first
+  queue.filter(q => q.status === "analyzing" || q.status === "queued").forEach(item => {
+    html += `<div class="submission-item" onclick="selectReport('${item.file_id}')">
+      <span class="sub-badge ${item.status}"></span>
+      <span class="sub-name">${esc(item.original_name)}</span>
+      <span class="sub-score" style="color:var(--cyan);font-size:10px">${item.status}</span>
+    </div>`;
+  });
+
+  // Completed reports
+  reports.forEach(r => {
+    const active = r.file_id === selectedReportId ? " active" : "";
+    html += `<div class="submission-item${active}" onclick="selectReport('${r.file_id}')">
+      <span class="sub-badge ${r.verdict}"></span>
+      <span class="sub-name">${esc(r.file_info?.name || r.file_id)}</span>
+      <span class="sub-score ${r.verdict}">${r.risk_score}</span>
+    </div>`;
+  });
+
+  if (!html) {
+    html = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px">No submissions yet</div>`;
+  }
+
+  list.innerHTML = html;
+}
+
+/* ─── Select and render report ────────────────────────────────────── */
+async function selectReport(fileId) {
+  selectedReportId = fileId;
+  renderSubmissions();
+  const report = await API.getReport(fileId);
+  if (report && !report.error) renderReport(report);
+}
+
+function renderReport(r) {
+  const panel = document.getElementById("centerPanel");
+  const fi = r.file_info || {};
+  const h = fi.hashes || {};
+
+  let html = "";
+
+  // Verdict Banner
+  html += `<div class="verdict-banner ${r.verdict}">
+    <span class="verdict-label">${r.verdict.toUpperCase()}</span>
+    <div class="score-gauge">
+      <div class="score-bar-outer"><div class="score-bar-inner" style="width:${r.risk_score}%;background:${scoreColor(r.risk_score)}"></div></div>
+      <div class="score-number" style="color:${scoreColor(r.risk_score)}">${r.risk_score}</div>
+    </div>
+  </div>`;
+
+  // File Info
+  html += `<div class="report-card"><h3>File Information</h3>
+    <div class="file-info-grid">
+      <div class="fi-item"><div class="fi-label">Name</div><div class="fi-value">${esc(fi.name)}</div></div>
+      <div class="fi-item"><div class="fi-label">Size</div><div class="fi-value">${formatSize(fi.size)}</div></div>
+      <div class="fi-item"><div class="fi-label">Type</div><div class="fi-value">${esc(fi.mime_type)}</div></div>
+      <div class="fi-item"><div class="fi-label">Analyzed</div><div class="fi-value">${r.timestamp ? new Date(r.timestamp).toLocaleString() : '-'}</div></div>
+      <div class="fi-item" style="grid-column:span 2"><div class="fi-label">MD5</div><div class="fi-value">${h.md5 || '-'}</div></div>
+      <div class="fi-item" style="grid-column:span 2"><div class="fi-label">SHA1</div><div class="fi-value">${h.sha1 || '-'}</div></div>
+      <div class="fi-item" style="grid-column:span 2"><div class="fi-label">SHA256</div><div class="fi-value">${h.sha256 || '-'}</div></div>
+    </div>
+  </div>`;
+
+  // Entropy
+  if (r.entropy) {
+    const e = r.entropy;
+    html += `<div class="report-card"><h3>Entropy Analysis &mdash; ${e.interpretation ? e.interpretation.replace(/_/g,' ') : ''} (${e.overall})</h3>`;
+    if (e.map && e.map.length > 0) {
+      const maxBlocks = 300;
+      const step = Math.max(1, Math.floor(e.map.length / maxBlocks));
+      html += `<div class="entropy-chart">`;
+      for (let i = 0; i < e.map.length; i += step) {
+        const val = e.map[i];
+        const h_pct = (val / 8) * 100;
+        const col = val > 7 ? "var(--red)" : val > 5 ? "var(--yellow)" : "var(--green)";
+        html += `<div class="entropy-bar" style="height:${h_pct}%;background:${col}" title="Block ${i}: ${val}"></div>`;
+      }
+      html += `</div>`;
+      html += `<div class="entropy-legend">
+        <span><span class="entropy-dot" style="background:var(--green)"></span> Normal (&lt;5)</span>
+        <span><span class="entropy-dot" style="background:var(--yellow)"></span> Compressed (5-7)</span>
+        <span><span class="entropy-dot" style="background:var(--red)"></span> Encrypted (&gt;7)</span>
+        <span style="margin-left:auto">Blocks: ${e.block_count} | Avg: ${e.avg_block}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Suspicious Strings
+  if (r.strings_found && Object.keys(r.strings_found).length > 0) {
+    html += `<div class="report-card"><h3>Suspicious Strings</h3>
+      <table class="str-table"><thead><tr><th>Category</th><th>Count</th><th>Weight</th><th>Samples</th></tr></thead><tbody>`;
+    for (const [cat, data] of Object.entries(r.strings_found)) {
+      const sev = data.weight >= 20 ? "red" : data.weight >= 15 ? "yellow" : "cyan";
+      const samples = (data.matches || []).slice(0, 3).map(s => esc(s.substring(0, 60))).join(", ");
+      html += `<tr><td><span class="tag ${sev}">${cat.replace(/_/g,' ')}</span></td><td>${data.count}</td><td>${data.weight}</td><td>${samples}</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+  }
+
+  // IOC List
+  if (r.ioc_list) {
+    const iocs = r.ioc_list;
+    const total = (iocs.ips||[]).length + (iocs.urls||[]).length + (iocs.domains||[]).length + (iocs.emails||[]).length;
+    if (total > 0) {
+      html += `<div class="report-card"><h3>Indicators of Compromise (${total})</h3>
+        <table class="str-table"><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody>`;
+      for (const ip of (iocs.ips||[]).slice(0,20)) html += `<tr><td><span class="tag red">IP</span></td><td>${esc(ip)}</td></tr>`;
+      for (const url of (iocs.urls||[]).slice(0,20)) html += `<tr><td><span class="tag yellow">URL</span></td><td>${esc(url)}</td></tr>`;
+      for (const dom of (iocs.domains||[]).slice(0,20)) html += `<tr><td><span class="tag cyan">Domain</span></td><td>${esc(dom)}</td></tr>`;
+      for (const em of (iocs.emails||[]).slice(0,10)) html += `<tr><td><span class="tag purple">Email</span></td><td>${esc(em)}</td></tr>`;
+      html += `</tbody></table></div>`;
+    }
+  }
+
+  // PE Info
+  if (r.pe_info) {
+    const pe = r.pe_info;
+    html += `<div class="report-card"><h3>PE Analysis</h3>
+      <div class="file-info-grid">
+        <div class="fi-item"><div class="fi-label">Machine</div><div class="fi-value">${pe.machine || '-'}</div></div>
+        <div class="fi-item"><div class="fi-label">Entry Point</div><div class="fi-value">${pe.entry_point || '-'}</div></div>
+        <div class="fi-item"><div class="fi-label">Compiled</div><div class="fi-value">${pe.compilation_timestamp || '-'}</div></div>
+        <div class="fi-item"><div class="fi-label">Packer</div><div class="fi-value">${(pe.packer_detected||[]).join(', ') || 'None'}</div></div>
+      </div>`;
+    if (pe.suspicious_imports && pe.suspicious_imports.length > 0) {
+      html += `<div style="margin-top:10px"><div class="fi-label" style="margin-bottom:6px">Suspicious Imports (${pe.suspicious_imports.length})</div>`;
+      pe.suspicious_imports.forEach(imp => { html += `<span class="tag red" style="margin:2px">${esc(imp)}</span>`; });
+      html += `</div>`;
+    }
+    if (pe.sections && pe.sections.length > 0) {
+      html += `<table class="str-table" style="margin-top:10px"><thead><tr><th>Section</th><th>VSize</th><th>RawSize</th><th>Entropy</th></tr></thead><tbody>`;
+      pe.sections.forEach(s => {
+        const ecol = s.entropy > 7 ? "color:var(--red)" : s.entropy > 6 ? "color:var(--yellow)" : "";
+        html += `<tr><td>${esc(s.name)}</td><td>${s.virtual_size}</td><td>${s.raw_size}</td><td style="${ecol}">${s.entropy}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+  }
+
+  // Script Info
+  if (r.script_info) {
+    const si = r.script_info;
+    html += `<div class="report-card"><h3>Script Analysis (${si.language}) &mdash; ${si.lines} lines</h3>`;
+    if (si.dangerous_calls && si.dangerous_calls.length > 0) {
+      html += `<table class="str-table"><thead><tr><th>Pattern</th><th>Line</th><th>Context</th></tr></thead><tbody>`;
+      si.dangerous_calls.forEach(c => {
+        html += `<tr><td><span class="tag red">${esc(c.pattern)}</span></td><td>${c.line}</td><td>${esc(c.context)}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    if (si.obfuscation_indicators && si.obfuscation_indicators.length > 0) {
+      html += `<div style="margin-top:8px"><div class="fi-label">Obfuscation Indicators</div>`;
+      si.obfuscation_indicators.forEach(o => { html += `<span class="tag yellow" style="margin:3px">${esc(o)}</span>`; });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // YARA Matches
+  if (r.yara_matches && r.yara_matches.length > 0) {
+    html += `<div class="report-card"><h3>YARA Matches (${r.yara_matches.length})</h3>
+      <table class="str-table"><thead><tr><th>Rule</th><th>Severity</th><th>Strings</th></tr></thead><tbody>`;
+    r.yara_matches.forEach(m => {
+      const sev = m.meta?.severity || "medium";
+      const sevClass = sev === "critical" ? "red" : sev === "high" ? "yellow" : "cyan";
+      html += `<tr><td>${esc(m.rule)}</td><td><span class="tag ${sevClass}">${sev}</span></td><td>${m.strings_matched}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  // MITRE ATT&CK
+  if (r.mitre_techniques && r.mitre_techniques.length > 0) {
+    html += `<div class="report-card"><h3>MITRE ATT&CK Techniques (${r.mitre_techniques.length})</h3>
+      <ul class="mitre-list">`;
+    r.mitre_techniques.forEach(t => { html += `<li>${esc(t)}</li>`; });
+    html += `</ul></div>`;
+  }
+
+  // Delete button
+  html += `<button class="btn-delete" onclick="deleteReport('${r.file_id}')">Delete Report &amp; Quarantined File</button>`;
+
+  panel.innerHTML = html;
+}
+
+/* ─── Actions ─────────────────────────────────────────────────────── */
+async function deleteReport(fileId) {
+  await API.deleteReport(fileId);
+  selectedReportId = null;
+  document.getElementById("centerPanel").innerHTML = `<div class="empty-state">
+    <div class="empty-state-icon">&#128737;</div>
+    <div class="empty-state-text">Report deleted</div>
+  </div>`;
+  setTimeout(() => API.getState(), 300);
+}
+
+/* ─── Drag-and-Drop ───────────────────────────────────────────────── */
+const dropZone = document.getElementById("dropZone");
+
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const files = e.dataTransfer.files;
+  if (files.length > 0) handleDroppedFile(files[0]);
+});
+
+dropZone.addEventListener("click", () => document.getElementById("browseBtn").click());
+
+function handleDroppedFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const b64 = reader.result.split(",")[1];
+    API.submitBase64(b64, file.name);
+    setTimeout(() => API.getState(), 500);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Browse button */
+document.getElementById("browseBtn").addEventListener("click", async () => {
+  if (API._pywebview()) {
+    await API.browseFile();
+    setTimeout(() => API.getState(), 500);
+  } else {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = () => { if (input.files[0]) handleDroppedFile(input.files[0]); };
+    input.click();
+  }
+});
+
+/* ─── Helpers ─────────────────────────────────────────────────────── */
+function esc(s) {
+  if (!s) return "";
+  const d = document.createElement("div");
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function formatSize(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  let size = bytes;
+  while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+  return size.toFixed(1) + " " + units[i];
+}
+
+function scoreColor(score) {
+  if (score >= 70) return "var(--red)";
+  if (score >= 30) return "var(--yellow)";
+  return "var(--green)";
+}
+
+/* ─── Init ────────────────────────────────────────────────────────── */
+window.addEventListener("DOMContentLoaded", () => {
+  connectWS();
+  // Poll for initial state in pywebview mode
+  if (typeof pywebview !== "undefined") {
+    const poll = setInterval(async () => {
+      if (pywebview.api) {
+        clearInterval(poll);
+        const st = await pywebview.api.get_state();
+        handleMsg(st);
+      }
+    }, 200);
+  }
+});
+</script>
+</body>
+</html>

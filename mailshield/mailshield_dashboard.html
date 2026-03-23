@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MailShield Pro - Client Email Securise</title>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<style>
+:root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --bg4: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+    --accent: #58a6ff; --accent2: #388bfd; --green: #3fb950; --red: #f85149;
+    --orange: #d29922; --purple: #bc8cff; --pink: #f778ba;
+    --border: #30363d; --hover: #1c2128;
+    --radius: 8px; --shadow: 0 2px 12px rgba(0,0,0,.4);
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::selection { background: var(--accent); color: #fff; }
+[contenteditable]:empty:before { content: attr(data-placeholder); color: var(--text3); pointer-events: none; }
+[contenteditable] { outline: none; }
+input, textarea, select, button { font-family: inherit; font-size: inherit; }
+
+/* Layout */
+.app { display: grid; grid-template-columns: 260px 380px 1fr; grid-template-rows: 56px 1fr; height: 100vh; }
+.toolbar { grid-column: 1 / -1; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 10; }
+.sidebar { grid-row: 2; background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+.email-list { grid-row: 2; border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+.reading-pane { grid-row: 2; overflow-y: auto; background: var(--bg); }
+
+/* Toolbar */
+.toolbar .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: var(--accent); }
+.toolbar .logo svg { width: 28px; height: 28px; }
+.toolbar .search-box { flex: 1; max-width: 500px; position: relative; }
+.toolbar .search-box input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); outline: none; font-size: 13px; }
+.toolbar .search-box input:focus { border-color: var(--accent); }
+.toolbar .search-box svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: var(--text2); }
+.toolbar-actions { display: flex; gap: 4px; margin-left: auto; }
+
+/* Buttons */
+.btn { padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg3); color: var(--text); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; white-space: nowrap; }
+.btn:hover { background: var(--bg4); border-color: var(--text3); }
+.btn-primary { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn-primary:hover { background: var(--accent); }
+.btn-danger { background: var(--red); border-color: var(--red); color: #fff; }
+.btn-sm { padding: 4px 8px; font-size: 12px; }
+.btn-icon { padding: 6px; border: none; background: transparent; color: var(--text2); cursor: pointer; border-radius: 4px; display: flex; align-items: center; }
+.btn-icon:hover { background: var(--bg3); color: var(--text); }
+
+/* Context Menu */
+.ctx-menu { position: fixed; z-index: 9999; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 30px rgba(0,0,0,.5); padding: 4px 0; min-width: 200px; display: none; animation: ctxFadeIn .12s ease; }
+.ctx-menu.show { display: block; }
+@keyframes ctxFadeIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+.ctx-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 13px; color: var(--text); cursor: pointer; transition: background .1s; }
+.ctx-item:hover { background: var(--bg3); }
+.ctx-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.ctx-item.danger { color: var(--red); }
+.ctx-item.danger:hover { background: rgba(248,81,73,.1); }
+.ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* Drag & Drop */
+.email-item { cursor: grab; user-select: none; }
+.email-item.dragging { opacity: .4; cursor: grabbing; }
+.nav-item.drop-hover { background: var(--accent) !important; color: #fff !important; border-radius: var(--radius); transition: background .15s; }
+.nav-item.drop-hover .nav-text { color: #fff !important; }
+.email-item.selected { background: rgba(88,166,255,.15) !important; border-left: 3px solid var(--accent); }
+.btn svg { width: 16px; height: 16px; }
+
+/* Sidebar */
+.sidebar-section { padding: 8px; }
+.sidebar-section h3 { font-size: 11px; text-transform: uppercase; color: var(--text2); padding: 8px 12px 4px; letter-spacing: .5px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text2); transition: all .15s; }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--accent2); color: #fff; }
+.nav-item .badge { margin-left: auto; background: var(--accent2); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
+.nav-item.active .badge { background: rgba(255,255,255,.3); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.compose-btn { margin: 12px; padding: 10px 16px; justify-content: center; font-weight: 600; font-size: 14px; }
+
+/* Category Tabs */
+.category-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
+.cat-tab { flex: 1; padding: 10px 8px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.cat-tab:hover { color: var(--text); background: var(--bg3); }
+.cat-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.cat-tab .count { font-size: 10px; background: var(--bg4); padding: 1px 5px; border-radius: 8px; }
+.cat-tab.active .count { background: var(--accent2); color: #fff; }
+
+/* Email List */
+.email-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; position: relative; }
+.email-item:hover { background: var(--hover); }
+.email-item.active { background: var(--bg3); }
+.email-item.unread { background: rgba(88,166,255,.04); }
+.email-item.unread .email-subject { font-weight: 700; color: var(--text); }
+.email-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+.email-content { flex: 1; min-width: 0; }
+.email-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.email-sender { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.email-time { margin-left: auto; font-size: 11px; color: var(--text2); white-space: nowrap; }
+.email-subject { font-size: 13px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.email-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.email-badges { display: flex; gap: 4px; margin-top: 4px; }
+.email-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
+.badge-attachment { background: rgba(188,140,255,.15); color: var(--purple); }
+.badge-filtered { background: rgba(248,81,73,.15); color: var(--red); }
+.trust-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.trust-high { background: var(--green); }
+.trust-mid { background: var(--orange); }
+.trust-low { background: var(--red); }
+
+/* Reading Pane */
+.reading-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text3); gap: 12px; }
+.reading-empty svg { width: 64px; height: 64px; opacity: .3; }
+.reading-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.reading-header h2 { font-size: 20px; margin-bottom: 8px; line-height: 1.3; }
+.reading-meta { display: flex; align-items: center; gap: 10px; color: var(--text2); font-size: 13px; }
+.reading-meta .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 16px; }
+.reading-meta-text { flex: 1; }
+.reading-meta-text .name { font-weight: 600; color: var(--text); }
+.reading-security { display: flex; gap: 8px; margin-top: 12px; }
+.security-badge { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+.security-safe { background: rgba(63,185,80,.15); color: var(--green); }
+.security-warn { background: rgba(210,153,34,.15); color: var(--orange); }
+.security-danger { background: rgba(248,81,73,.15); color: var(--red); }
+.reading-body { padding: 24px; font-size: 14px; line-height: 1.7; }
+.reading-body a { color: var(--accent); }
+.reading-attachments { padding: 12px 24px; border-top: 1px solid var(--border); }
+.reading-attachments h4 { font-size: 13px; margin-bottom: 8px; color: var(--text2); }
+.att-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 4px; }
+.att-item .att-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--bg4); display: flex; align-items: center; justify-content: center; }
+.att-item .att-info { flex: 1; }
+.att-item .att-name { font-size: 13px; font-weight: 500; }
+.att-item .att-size { font-size: 11px; color: var(--text2); }
+.att-blocked { opacity: .5; border-color: var(--red); }
+.att-quarantined { border-color: var(--orange); }
+
+/* Compose Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; display: none; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--bg2); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); width: 90%; max-width: 700px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal-lg { max-width: 900px; }
+.modal-header { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); gap: 10px; }
+.modal-header h3 { flex: 1; font-size: 16px; }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+.form-input { width: 100%; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg3); color: var(--text); outline: none; font-size: 13px; }
+.form-input:focus { border-color: var(--accent); }
+textarea.form-input { min-height: 200px; resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Autocomplete */
+.autocomplete-wrap { position: relative; }
+.autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); max-height: 200px; overflow-y: auto; z-index: 20; display: none; box-shadow: var(--shadow); }
+.autocomplete-list.show { display: block; }
+.ac-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+.ac-item:hover { background: var(--bg3); }
+.ac-item .ac-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.ac-item .ac-name { font-weight: 500; }
+.ac-item .ac-email { color: var(--text2); font-size: 12px; }
+
+/* Filter Config */
+.filter-category { background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden; }
+.filter-cat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.filter-cat-header:hover { background: var(--bg3); }
+.filter-cat-header .dot { width: 12px; height: 12px; border-radius: 50%; }
+.filter-cat-body { padding: 10px 14px; border-top: 1px solid var(--border); display: none; }
+.filter-cat-body.show { display: block; }
+.keyword-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.keyword-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: var(--bg3); border-radius: 4px; font-size: 12px; border: 1px solid var(--border); }
+.keyword-tag .remove-kw { cursor: pointer; color: var(--text3); font-size: 14px; line-height: 1; }
+.keyword-tag .remove-kw:hover { color: var(--red); }
+.add-kw-row { display: flex; gap: 6px; margin-top: 8px; }
+.add-kw-row input { flex: 1; }
+
+/* Contacts Panel */
+.contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.contact-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .15s; }
+.contact-card:hover { border-color: var(--accent); background: var(--bg3); }
+.contact-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; flex-shrink: 0; }
+.contact-info { flex: 1; min-width: 0; }
+.contact-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contact-email { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contact-group-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--bg4); color: var(--text2); margin-top: 2px; display: inline-block; }
+
+/* Settings Panel */
+.settings-section { margin-bottom: 24px; }
+.settings-section h3 { font-size: 14px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.setting-row label { font-size: 13px; }
+.toggle { position: relative; width: 40px; height: 22px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--bg4); border-radius: 11px; cursor: pointer; transition: .2s; }
+.toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: .2s; }
+.toggle input:checked + .toggle-slider { background: var(--accent2); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+/* Toast Notification */
+.toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: var(--radius); color: #fff; font-size: 13px; z-index: 200; animation: slideIn .3s; display: none; max-width: 360px; box-shadow: var(--shadow); }
+.toast.show { display: flex; align-items: center; gap: 8px; }
+.toast-success { background: var(--green); }
+.toast-error { background: var(--red); }
+.toast-info { background: var(--accent2); }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Loading */
+.spinner { width: 24px; height: 24px; border: 3px solid var(--bg4); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .app { grid-template-columns: 220px 320px 1fr; }
+}
+@media (max-width: 900px) {
+    .app { grid-template-columns: 60px 1fr; }
+    .sidebar .nav-text, .sidebar h3, .compose-text { display: none; }
+    .reading-pane { display: none; }
+    .sidebar .nav-item { justify-content: center; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span>MailShield Pro</span>
+        </div>
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Rechercher des emails, contacts..." oninput="handleSearch(this.value)">
+        </div>
+        <div class="toolbar-actions">
+            <button class="btn" onclick="syncEmails()" id="refreshBtn" title="Actualiser les emails">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                <span data-i18n="refresh">Actualiser</span>
+            </button>
+            <button class="btn-icon" onclick="toggleSandbox()" id="sandboxBtn" title="Mode protege (sandbox)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+            <button class="btn-icon" onclick="toggleLang()" id="langBtn" title="FR / EN">
+                <span style="font-size:13px;font-weight:700" id="langLabel">FR</span>
+            </button>
+            <button class="btn-icon" onclick="showSettings()" title="Parametres">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button class="btn btn-primary compose-btn" onclick="showCompose()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="compose-text">Nouveau message</span>
+        </button>
+
+        <div class="sidebar-section">
+            <h3>Boite de reception</h3>
+            <div class="nav-item active" data-cat="all" onclick="selectCategory('all', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+                <span class="nav-text">Tous les emails</span>
+                <span class="badge" id="badge-all">0</span>
+            </div>
+            <div class="nav-item" data-cat="primary" onclick="selectCategory('primary', this)">
+                <div class="dot" style="background:#3498db"></div>
+                <span class="nav-text">Principal</span>
+                <span class="badge" id="badge-primary" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="social" onclick="selectCategory('social', this)">
+                <div class="dot" style="background:#e74c3c"></div>
+                <span class="nav-text">Social</span>
+                <span class="badge" id="badge-social" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="promotions" onclick="selectCategory('promotions', this)">
+                <div class="dot" style="background:#e67e22"></div>
+                <span class="nav-text">Promotions</span>
+                <span class="badge" id="badge-promotions" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="notifications" onclick="selectCategory('notifications', this)">
+                <div class="dot" style="background:#9b59b6"></div>
+                <span class="nav-text">Notifications</span>
+                <span class="badge" id="badge-notifications" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="starred" onclick="selectCategory('starred', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span class="nav-text">Favoris</span>
+                <span class="badge" id="badge-starred" style="display:none">0</span>
+            </div>
+            <div class="nav-item" onclick="showDrafts()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span class="nav-text" data-i18n="drafts">Brouillons</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3 data-i18n="inbox">Filtrage</h3>
+            <div class="nav-item" data-cat="spam" onclick="selectCategory('spam', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                <span class="nav-text" data-i18n="spam">Spam</span>
+                <span class="badge" id="badge-spam" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="junk" onclick="selectCategory('junk', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span class="nav-text" data-i18n="junk">Indesirables</span>
+                <span class="badge" id="badge-junk" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-cat="trash" onclick="selectCategory('trash', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                <span class="nav-text" data-i18n="trash">Corbeille</span>
+                <span class="badge" id="badge-trash" style="display:none">0</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Securite</h3>
+            <div class="nav-item" onclick="showBlacklist()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span class="nav-text" data-i18n="blacklist">Liste noire</span>
+            </div>
+            <div class="nav-item" onclick="showThreats()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span class="nav-text" data-i18n="threats">Menaces</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section" style="margin-top:auto; border-top: 1px solid var(--border); padding-top: 8px;">
+            <div class="nav-item" onclick="showContacts()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <span class="nav-text" data-i18n="contacts">Contacts</span>
+            </div>
+            <div class="nav-item" onclick="showFilters()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span class="nav-text" data-i18n="filters">Filtres</span>
+            </div>
+            <div class="nav-item" onclick="showSettings()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09"/></svg>
+                <span class="nav-text" data-i18n="settings">Parametres</span>
+            </div>
+            <!-- Privacy Badge -->
+            <div style="margin:8px;padding:10px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:var(--radius);cursor:pointer" onclick="showPrivacyInfo()">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span style="font-size:11px;font-weight:700;color:var(--green)" data-i18n="privacy_local">100% LOCAL</span>
+                </div>
+                <div style="font-size:10px;color:var(--text3);line-height:1.4" data-i18n="privacy_desc">Aucune donnee ne quitte votre ordinateur. Zero cloud, zero tracking.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email List -->
+    <div class="email-list" id="emailListPanel">
+        <div class="category-tabs" id="categoryTabs">
+            <div class="cat-tab active" data-cat="all" onclick="selectCatTab('all', this)">Tous</div>
+            <div class="cat-tab" data-cat="primary" onclick="selectCatTab('primary', this)">Principal</div>
+            <div class="cat-tab" data-cat="social" onclick="selectCatTab('social', this)">Social</div>
+            <div class="cat-tab" data-cat="promotions" onclick="selectCatTab('promotions', this)">Promos</div>
+            <div class="cat-tab" data-cat="notifications" onclick="selectCatTab('notifications', this)">Notifs</div>
+        </div>
+        <div id="emailList" style="flex:1; overflow-y:auto;"></div>
+    </div>
+
+    <!-- Reading Pane -->
+    <div class="reading-pane" id="readingPane">
+        <div class="reading-empty" id="readingEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <p>Selectionnez un email pour le lire</p>
+            <p style="font-size:12px">Ou cliquez sur "Nouveau message" pour composer</p>
+        </div>
+        <div id="readingContent" style="display:none"></div>
+    </div>
+</div>
+
+<!-- Compose Modal -->
+<div class="modal-overlay" id="composeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <h3>Nouveau message</h3>
+            <button class="btn-icon" onclick="hideModal('composeModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group autocomplete-wrap">
+                <label>A</label>
+                <input type="text" class="form-input" id="composeTo" placeholder="destinataire@email.com" oninput="searchContacts(this.value, 'composeToAC')">
+                <div class="autocomplete-list" id="composeToAC"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group autocomplete-wrap">
+                    <label>Cc</label>
+                    <input type="text" class="form-input" id="composeCc" placeholder="cc@email.com" oninput="searchContacts(this.value, 'composeCcAC')">
+                    <div class="autocomplete-list" id="composeCcAC"></div>
+                </div>
+                <div class="form-group">
+                    <label>Bcc</label>
+                    <input type="text" class="form-input" id="composeBcc" placeholder="bcc@email.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sujet</label>
+                <input type="text" class="form-input" id="composeSubject" placeholder="Sujet du message">
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <!-- Rich text toolbar -->
+                <div style="display:flex;gap:2px;padding:4px;background:var(--bg3);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0">
+                    <button class="btn-icon" onclick="document.execCommand('bold')" title="Gras"><b>B</b></button>
+                    <button class="btn-icon" onclick="document.execCommand('italic')" title="Italique"><i>I</i></button>
+                    <button class="btn-icon" onclick="document.execCommand('underline')" title="Souligne"><u>U</u></button>
+                    <span style="width:1px;background:var(--border);margin:2px 4px"></span>
+                    <button class="btn-icon" onclick="document.execCommand('insertUnorderedList')" title="Liste">&#8226;</button>
+                    <button class="btn-icon" onclick="document.execCommand('insertOrderedList')" title="Liste numerotee">1.</button>
+                    <span style="width:1px;background:var(--border);margin:2px 4px"></span>
+                    <button class="btn-icon" onclick="var u=prompt('URL du lien:');if(u)document.execCommand('createLink',false,u)" title="Lien">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    </button>
+                </div>
+                <div class="form-input" id="composeBody" contenteditable="true" style="min-height:200px;max-height:400px;overflow-y:auto;border-radius:0 0 var(--radius) var(--radius);line-height:1.6;font-size:14px" data-placeholder="Ecrivez votre message ici..."></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="hideModal('composeModal')">Annuler</button>
+            <button class="btn" onclick="saveDraft()" title="Sauvegarder comme brouillon" style="gap:4px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Brouillon
+            </button>
+            <button class="btn btn-primary" onclick="sendEmail()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Envoyer
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Contacts Modal -->
+<div class="modal-overlay" id="contactsModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" width="20" height="20"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <h3>Carnet d'adresses</h3>
+            <input type="text" class="form-input" style="max-width:200px" placeholder="Rechercher..." oninput="filterContacts(this.value)">
+            <button class="btn btn-primary btn-sm" onclick="showAddContact()">+ Ajouter</button>
+            <button class="btn btn-sm" onclick="importContactsPrompt()">Importer</button>
+            <button class="btn btn-sm" onclick="window.open('/api/contacts/export','_blank')">Exporter CSV</button>
+            <button class="btn-icon" onclick="hideModal('contactsModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="contacts-grid" id="contactsGrid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal-overlay" id="addContactModal">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <h3 id="contactModalTitle">Ajouter un contact</h3>
+            <button class="btn-icon" onclick="hideModal('addContactModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group"><label>Nom</label><input type="text" class="form-input" id="contactName"></div>
+            <div class="form-group"><label>Email</label><input type="email" class="form-input" id="contactEmail"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Telephone</label><input type="text" class="form-input" id="contactPhone"></div>
+                <div class="form-group"><label>Entreprise</label><input type="text" class="form-input" id="contactCompany"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Groupe</label>
+                    <select class="form-input" id="contactGroup">
+                        <option>General</option><option>Famille</option><option>Travail</option><option>Amis</option><option>VIP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contact de confiance</label>
+                    <label class="toggle" style="margin-top:4px">
+                        <input type="checkbox" id="contactTrusted">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group"><label>Notes</label><textarea class="form-input" id="contactNotes" style="min-height:60px"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="hideModal('addContactModal')">Annuler</button>
+            <button class="btn btn-primary" onclick="saveContact()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Modal -->
+<div class="modal-overlay" id="filtersModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" width="20" height="20"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <h3>Gestion des filtres par mots-cles</h3>
+            <button class="btn-icon" onclick="hideModal('filtersModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body" id="filtersBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveFilters()">Sauvegarder les filtres</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h3>Parametres</h3>
+            <button class="btn-icon" onclick="hideModal('settingsModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body" id="settingsBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveSettingsForm()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
+<!-- Blacklist Modal -->
+<div class="modal-overlay" id="blacklistModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <h3 data-i18n="blacklist">Liste noire</h3>
+            <button class="btn btn-sm" onclick="exportBlacklist()">Exporter</button>
+            <button class="btn btn-sm" onclick="showImportBlacklist()">Importer</button>
+            <button class="btn-icon" onclick="hideModal('blacklistModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:8px;margin-bottom:16px">
+                <input type="text" class="form-input" id="blAddEmail" placeholder="email@example.com ou domaine.com" style="flex:1">
+                <input type="text" class="form-input" id="blAddReason" placeholder="Raison (optionnel)" style="width:200px">
+                <button class="btn btn-danger" onclick="addToBlacklist()">Bloquer</button>
+            </div>
+            <div id="importBlacklistArea" style="display:none;margin-bottom:16px;background:var(--bg);padding:12px;border-radius:var(--radius);border:1px solid var(--border)">
+                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Collez une liste d'emails/domaines (un par ligne) :</p>
+                <textarea class="form-input" id="blImportText" style="min-height:100px" placeholder="spam@example.com&#10;annoying-domain.com&#10;scammer@phish.net"></textarea>
+                <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="importBlacklist()">Importer la liste</button>
+            </div>
+            <div id="blacklistGrid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Threats Modal -->
+<div class="modal-overlay" id="threatsModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <h3 data-i18n="threats">Menaces detectees</h3>
+            <button class="btn-icon" onclick="hideModal('threatsModal')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div id="threatStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+            <div id="threatsList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Sandbox Banner -->
+<div id="sandboxBanner" style="display:none;position:fixed;top:56px;left:0;right:0;background:linear-gradient(90deg,#d29922,#e67e22);color:#000;padding:8px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;display:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span data-i18n="virtual_mode">MODE PROTEGE</span> - <span data-i18n="virtual_desc">Liens et scripts desactives, connexion isolee</span>
+    <button onclick="toggleSandbox()" style="margin-left:12px;background:#000;color:#fff;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px">Desactiver</button>
+</div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctxMenu">
+    <div class="ctx-item" onclick="ctxAction('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Ouvrir
+    </div>
+    <div class="ctx-item" onclick="ctxAction('reply')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>
+        Repondre
+    </div>
+    <div class="ctx-item" onclick="ctxAction('forward')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 014-4h12"/></svg>
+        Transferer
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="ctxAction('star')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span id="ctxStarLabel">Ajouter aux favoris</span>
+    </div>
+    <div class="ctx-item" onclick="ctxAction('move_primary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="22 12 16 12"/><polyline points="12 22 12 16"/><path d="M22 2L13.5 10.5"/></svg>
+        Deplacer vers Principal
+    </div>
+    <div class="ctx-item" onclick="ctxAction('move_social')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Deplacer vers Social
+    </div>
+    <div class="ctx-item" onclick="ctxAction('move_promotions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Deplacer vers Promotions
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="ctxAction('mark_read')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span id="ctxReadLabel">Marquer comme lu</span>
+    </div>
+    <div class="ctx-item" onclick="ctxAction('block')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Bloquer l'expediteur
+    </div>
+    <div class="ctx-item danger" onclick="ctxAction('spam')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Signaler comme indesirable
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item danger" onclick="ctxAction('delete')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Supprimer
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────
+let currentCategory = 'all';
+let currentEmailId = null;
+let emails = [];
+let allContacts = [];
+let filterData = {};
+let ws = null;
+
+const API = '';
+
+// ─── Init ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    await initApiToken();
+    loadEmails();
+    loadCounts();
+    connectWebSocket();
+});
+
+// ─── WebSocket (auto-detect port) ─────────────────────────────────────
+function connectWebSocket(port) {
+    port = port || 8801;
+    if (port > 8810) return; // Give up after 10 attempts
+    try {
+        ws = new WebSocket(`ws://127.0.0.1:${port}`);
+        ws.onopen = () => console.log(`WebSocket connected on port ${port}`);
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.cmd === 'sync' && data.success) {
+                showToast(data.message, 'success');
+                loadEmails();
+                loadCounts();
+            }
+            if (data.cmd === 'get_counts') updateBadges(data.counts);
+            if (data.cmd === 'search_contacts') showContactResults(data.contacts);
+        };
+        ws.onerror = () => {
+            // Try next port
+            setTimeout(() => connectWebSocket(port + 1), 500);
+        };
+        ws.onclose = () => setTimeout(() => connectWebSocket(port), 3000);
+    } catch(e) {
+        setTimeout(() => connectWebSocket(port + 1), 500);
+    }
+}
+
+// ─── API Token & Calls ────────────────────────────────────────────────
+let apiToken = '';
+
+async function initApiToken() {
+    try {
+        const r = await fetch(API + '/api/token');
+        const data = await r.json();
+        apiToken = data.token || '';
+    } catch(e) { console.error('Token init failed:', e); }
+}
+
+async function apiGet(url) {
+    try {
+        const r = await fetch(API + url, { headers: { 'X-API-Token': apiToken } });
+        if (r.status === 401) { showToast('Session expiree - rechargez la page', 'error'); return {}; }
+        return r.json();
+    } catch(e) { showToast('Erreur reseau', 'error'); return {}; }
+}
+async function apiPost(url, body) {
+    try {
+        const r = await fetch(API + url, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'X-API-Token': apiToken},
+            body: JSON.stringify(body)
+        });
+        if (r.status === 401) { showToast('Session expiree - rechargez la page', 'error'); return {}; }
+        return r.json();
+    } catch(e) { showToast('Erreur reseau', 'error'); return {}; }
+}
+
+// ─── Load Emails ──────────────────────────────────────────────────────
+async function loadEmails(search) {
+    const params = new URLSearchParams();
+    if (currentCategory !== 'all') params.set('category', currentCategory);
+    if (search) params.set('search', search);
+    const data = await apiGet('/api/emails?' + params.toString());
+    emails = data.emails || [];
+    renderEmailList();
+}
+
+function renderEmailList() {
+    const el = document.getElementById('emailList');
+    if (!emails.length) {
+        el.innerHTML = '<div class="reading-empty" style="padding:40px"><p style="color:var(--text3)">Aucun email dans cette categorie</p><p style="font-size:12px;color:var(--text3);margin-top:4px">Cliquez sur Sync pour verifier les nouveaux messages</p></div>';
+        return;
+    }
+    el.innerHTML = emails.map(e => {
+        const initials = (e.from_name || e.from_email || '?').substring(0, 2).toUpperCase();
+        const color = '#' + hashCode(e.from_email || '').toString(16).padStart(6, '0').slice(0,6);
+        const trustClass = e.trust_score >= 70 ? 'trust-high' : e.trust_score >= 40 ? 'trust-mid' : 'trust-low';
+        const unread = e.is_read ? '' : ' unread';
+        const active = e.id === currentEmailId ? ' active' : '';
+        const time = formatDate(e.date_sent || e.date_received);
+        const badges = [];
+        if (e.has_attachments) badges.push('<span class="email-badge badge-attachment">PJ</span>');
+        if (e.filter_matched) badges.push(`<span class="email-badge badge-filtered">${e.filter_matched.split(':')[0]}</span>`);
+
+        return `<div class="email-item${unread}${active}" onclick="openEmail(${e.id})" oncontextmenu="showCtxMenu(event, ${e.id})" draggable="true" ondragstart="onEmailDragStart(event, ${e.id})" ondragend="onEmailDragEnd(event)">
+            <div class="trust-dot ${trustClass}" title="Confiance: ${e.trust_score}%"></div>
+            <div class="email-avatar" style="background:${color}">${initials}</div>
+            <div class="email-content">
+                <div class="email-header">
+                    <span class="email-sender">${escHtml(e.from_name || e.from_email)}</span>
+                    <span class="email-time">${time}</span>
+                </div>
+                <div class="email-subject">${escHtml(e.subject)}</div>
+                <div class="email-preview">${escHtml(e.preview || '')}</div>
+                ${badges.length ? '<div class="email-badges">' + badges.join('') + '</div>' : ''}
+            </div>
+            ${e.is_starred ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#d29922" stroke="#d29922" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' : ''}
+        </div>`;
+    }).join('');
+}
+
+// ─── Open Email ───────────────────────────────────────────────────────
+async function openEmail(id) {
+    currentEmailId = id;
+    const data = await apiGet(`/api/email/${id}`);
+    if (!data || data.error) return;
+
+    document.getElementById('readingEmpty').style.display = 'none';
+    const el = document.getElementById('readingContent');
+    el.style.display = 'block';
+
+    const initials = (data.from_name || data.from_email || '?').substring(0, 2).toUpperCase();
+    const color = '#' + hashCode(data.from_email || '').toString(16).padStart(6, '0').slice(0,6);
+    const trustClass = data.trust_score >= 70 ? 'security-safe' : data.trust_score >= 40 ? 'security-warn' : 'security-danger';
+    const trustLabel = data.trust_score >= 70 ? 'Securise' : data.trust_score >= 40 ? 'Attention' : 'Suspect';
+    const secFlags = JSON.parse(data.security_flags || '{}');
+
+    let secBadges = `<span class="security-badge ${trustClass}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        ${trustLabel} (${data.trust_score}%)
+    </span>`;
+    if (secFlags.is_contact) secBadges += '<span class="security-badge security-safe">Contact connu</span>';
+    if (secFlags.has_dangerous_attachments) secBadges += '<span class="security-badge security-danger">PJ dangereuse !</span>';
+    if (data.filter_matched) secBadges += `<span class="security-badge security-warn">Filtre: ${escHtml(data.filter_matched)}</span>`;
+
+    let attHtml = '';
+    if (data.attachments && data.attachments.length) {
+        attHtml = `<div class="reading-attachments"><h4>Pieces jointes (${data.attachments.length})</h4>`;
+        data.attachments.forEach(a => {
+            const cls = a.is_blocked ? 'att-blocked' : a.is_quarantined ? 'att-quarantined' : '';
+            const status = a.is_blocked ? ' [BLOQUE]' : a.is_quarantined ? ' [QUARANTAINE]' : '';
+            const size = formatSize(a.size_bytes);
+            attHtml += `<div class="att-item ${cls}">
+                <div class="att-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                <div class="att-info">
+                    <div class="att-name">${escHtml(a.filename)}${status}</div>
+                    <div class="att-size">${size} - Score: ${a.trust_score}% ${a.scan_result !== 'clean' ? '- ' + escHtml(a.scan_result) : ''}</div>
+                </div>
+                ${!a.is_blocked ? `<button class="btn btn-sm" onclick="downloadAtt(${a.id})">Telecharger</button>` : '<span style="color:var(--red);font-size:12px">Bloque</span>'}
+            </div>`;
+        });
+        attHtml += '</div>';
+    }
+
+    let body = data.body_html || ('<pre style="white-space:pre-wrap;font-family:inherit">' + escHtml(data.body_text || '(Aucun contenu)') + '</pre>');
+
+    // DOMPurify sanitization (always active for security)
+    if (typeof DOMPurify !== 'undefined') {
+        const purifyConfig = sandboxMode ?
+            { FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'], FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'], ALLOW_DATA_ATTR: false } :
+            { FORBID_TAGS: ['script', 'iframe', 'object', 'embed'], FORBID_ATTR: ['onerror', 'onload'] };
+        body = DOMPurify.sanitize(body, purifyConfig);
+    }
+
+    // Apply additional sandbox restrictions if enabled
+    let sandboxWarning = '';
+    if (sandboxMode) {
+        body = sanitizeHtmlForSandbox(body);
+        sandboxWarning = `<div style="background:rgba(210,153,34,.1);border:1px solid var(--orange);border-radius:var(--radius);padding:10px;margin:12px 24px 0;font-size:12px;color:var(--orange);display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <b>Mode protege actif</b> - Liens, scripts et images externes desactives pour votre securite
+        </div>`;
+    }
+
+    // Run phishing analysis
+    let phishWarning = '';
+    try {
+        const phishResult = await apiPost('/api/phishing/scan', {
+            from_email: data.from_email || '',
+            from_name: data.from_name || '',
+            subject: data.subject || '',
+            body_text: data.body_text || '',
+            body_html: data.body_html || ''
+        });
+        if (phishResult.is_phishing) {
+            const threatDetails = phishResult.threats.map(t => escHtml(t.detail)).join('<br>');
+            phishWarning = `<div style="background:rgba(248,81,73,.1);border:1px solid var(--red);border-radius:var(--radius);padding:12px;margin:12px 24px 0;font-size:12px;color:var(--red)">
+                <div style="font-weight:700;margin-bottom:6px;font-size:13px">⚠️ ALERTE PHISHING - Score: ${phishResult.score}/100 (${phishResult.severity})</div>
+                ${threatDetails}
+                <div style="margin-top:8px;display:flex;gap:8px">
+                    <button class="btn btn-sm btn-danger" onclick="reportSpam(${data.id})">Signaler et bloquer</button>
+                    <button class="btn btn-sm" onclick="blockSender('${escHtml(data.from_email)}')">Bloquer l'expediteur</button>
+                </div>
+            </div>`;
+            // Log the threat
+            apiPost('/api/phishing/scan', {
+                from_email: data.from_email, from_name: data.from_name,
+                subject: data.subject, body_text: data.body_text, body_html: data.body_html
+            });
+        }
+    } catch(e) {}
+
+    el.innerHTML = `
+        <div class="reading-header">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <h2 style="flex:1">${escHtml(data.subject)}</h2>
+                <button class="btn-icon" onclick="toggleStar(${data.id})" title="Favori">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${data.is_starred ? '#d29922' : 'none'}" stroke="#d29922" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+                <button class="btn btn-sm" onclick="replyEmail(${data.id})" title="Repondre" style="gap:4px">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>
+                    Repondre
+                </button>
+                <button class="btn btn-sm" onclick="replyAllEmail(${data.id})" title="Repondre a tous">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 17 2 12 7 7"/><polyline points="12 17 7 12 12 7"/><path d="M22 18v-2a4 4 0 00-4-4H7"/></svg>
+                </button>
+                <button class="btn btn-sm" onclick="forwardEmail(${data.id})" title="Transferer" style="gap:4px">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 014-4h12"/></svg>
+                    Transferer
+                </button>
+                <button class="btn-icon" onclick="reportSpam(${data.id})" title="Signaler comme spam">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                </button>
+                <button class="btn-icon" onclick="blockSender('${escHtml(data.from_email)}')" title="Bloquer l'expediteur">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </button>
+                <button class="btn-icon" onclick="deleteEmail(${data.id})" title="Supprimer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+            </div>
+            <div class="reading-meta">
+                <div class="avatar" style="background:${color}">${initials}</div>
+                <div class="reading-meta-text">
+                    <div class="name">${escHtml(data.from_name || data.from_email)}
+                        ${!secFlags.is_contact ? `<button class="btn btn-sm" style="margin-left:8px" onclick="quickAddContact('${escHtml(data.from_name)}','${escHtml(data.from_email)}')">+ Contacts</button>` : ''}
+                    </div>
+                    <div>&lt;${escHtml(data.from_email)}&gt; &rarr; ${escHtml(data.to_email)}</div>
+                    <div style="font-size:12px">${formatDate(data.date_sent, true)}</div>
+                </div>
+            </div>
+            <div class="reading-security">${secBadges}</div>
+        </div>
+        ${phishWarning}
+        ${sandboxWarning}
+        <div class="reading-body">${body}</div>
+        ${attHtml}
+    `;
+
+    // Refresh list to update read status
+    renderEmailList();
+    loadCounts();
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────
+async function syncEmails() {
+    showToast('Synchronisation en cours...', 'info');
+    const r = await apiPost('/api/sync', { account_index: 0 });
+    if (r.success) {
+        showToast(`${r.fetched} nouveaux emails synchronises`, 'success');
+        loadEmails();
+        loadCounts();
+    } else {
+        showToast(r.message || 'Erreur de synchronisation', 'error');
+    }
+}
+
+async function toggleStar(id) {
+    await apiPost('/api/email/star', { id });
+    openEmail(id);
+    loadEmails();
+}
+
+async function deleteEmail(id) {
+    await apiPost('/api/email/delete', { id });
+    currentEmailId = null;
+    document.getElementById('readingContent').style.display = 'none';
+    document.getElementById('readingEmpty').style.display = 'flex';
+    loadEmails();
+    loadCounts();
+    showToast('Email supprime', 'success');
+}
+
+function downloadAtt(id) {
+    window.open(`/api/attachment/${id}?token=${apiToken}`, '_blank');
+}
+
+// ─── Categories ───────────────────────────────────────────────────────
+function selectCategory(cat, el) {
+    currentCategory = cat;
+    document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+    // Sync tabs
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    loadEmails();
+}
+
+function selectCatTab(cat, el) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    // Sync sidebar
+    document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.toggle('active', n.dataset.cat === cat));
+    loadEmails();
+}
+
+async function loadCounts() {
+    const counts = await apiGet('/api/categories/counts');
+    updateBadges(counts);
+}
+
+function updateBadges(counts) {
+    if (!counts) return;
+    let total = 0;
+    for (const [cat, data] of Object.entries(counts)) {
+        const badge = document.getElementById(`badge-${cat}`);
+        if (badge) {
+            const val = data.unread || 0;
+            badge.textContent = val;
+            badge.style.display = val > 0 ? '' : 'none';
+            total += val;
+        }
+    }
+    document.getElementById('badge-all').textContent = total;
+    document.getElementById('badge-all').style.display = total > 0 ? '' : 'none';
+}
+
+// ─── Search ───────────────────────────────────────────────────────────
+let searchTimer;
+function handleSearch(val) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadEmails(val), 300);
+}
+
+// ─── Compose / Reply / Forward / Drafts ───────────────────────────────
+let composeMode = 'new'; // 'new', 'reply', 'reply_all', 'forward'
+let composeOriginalId = null;
+let currentDraftId = null;
+
+function showCompose(mode = 'new', prefill = {}) {
+    composeMode = mode;
+    composeOriginalId = prefill.originalId || null;
+    currentDraftId = prefill.draftId || null;
+    document.getElementById('composeTo').value = prefill.to || '';
+    document.getElementById('composeCc').value = prefill.cc || '';
+    document.getElementById('composeBcc').value = prefill.bcc || '';
+    document.getElementById('composeSubject').value = prefill.subject || '';
+    document.getElementById('composeBody').innerHTML = prefill.body || '';
+
+    // Update title based on mode
+    const titles = { new: 'Nouveau message', reply: 'Repondre', reply_all: 'Repondre a tous', forward: 'Transferer' };
+    const titleEl = document.querySelector('#composeModal .modal-header h3');
+    if (titleEl) titleEl.textContent = titles[mode] || 'Nouveau message';
+
+    // Focus the right field
+    showModal('composeModal');
+    setTimeout(() => {
+        if (mode === 'forward') {
+            document.getElementById('composeTo').focus();
+        } else {
+            document.getElementById('composeBody').focus();
+        }
+    }, 100);
+}
+
+async function replyEmail(emailId) {
+    const data = await apiGet(`/api/email/${emailId}`);
+    if (!data || data.error) return;
+    const subject = data.subject.toLowerCase().startsWith('re:') ? data.subject : `Re: ${data.subject}`;
+    const quoteDate = data.date_sent || data.date_received || '';
+    const quotedBody = `<br><br><hr style="border:none;border-top:1px solid #444;margin:12px 0">
+<div style="color:#8b949e;font-size:12px;margin-bottom:8px">Le ${quoteDate}, ${escHtml(data.from_name || data.from_email)} a ecrit :</div>
+<blockquote style="margin:0 0 0 12px;padding:0 0 0 12px;border-left:3px solid #30363d;color:#8b949e">${data.body_html || escHtml(data.body_text || '')}</blockquote>`;
+    showCompose('reply', { to: data.from_email, subject, body: quotedBody, originalId: emailId });
+}
+
+async function replyAllEmail(emailId) {
+    const data = await apiGet(`/api/email/${emailId}`);
+    if (!data || data.error) return;
+    const subject = data.subject.toLowerCase().startsWith('re:') ? data.subject : `Re: ${data.subject}`;
+    const quoteDate = data.date_sent || data.date_received || '';
+    const quotedBody = `<br><br><hr style="border:none;border-top:1px solid #444;margin:12px 0">
+<div style="color:#8b949e;font-size:12px;margin-bottom:8px">Le ${quoteDate}, ${escHtml(data.from_name || data.from_email)} a ecrit :</div>
+<blockquote style="margin:0 0 0 12px;padding:0 0 0 12px;border-left:3px solid #30363d;color:#8b949e">${data.body_html || escHtml(data.body_text || '')}</blockquote>`;
+    showCompose('reply_all', { to: data.from_email, cc: data.cc || '', subject, body: quotedBody, originalId: emailId });
+}
+
+async function forwardEmail(emailId) {
+    const data = await apiGet(`/api/email/${emailId}`);
+    if (!data || data.error) return;
+    const subject = (data.subject.toLowerCase().startsWith('fwd:') || data.subject.toLowerCase().startsWith('tr:')) ? data.subject : `Fwd: ${data.subject}`;
+    const fwdBody = `<br><br><hr style="border:none;border-top:1px solid #444;margin:12px 0">
+<div style="color:#8b949e;font-size:12px;margin-bottom:8px">
+---------- Message transfere ----------<br>
+De : ${escHtml(data.from_name || '')} &lt;${escHtml(data.from_email)}&gt;<br>
+Date : ${data.date_sent || data.date_received || ''}<br>
+Objet : ${escHtml(data.subject)}<br>
+A : ${escHtml(data.to_email)}<br>
+</div>
+<div>${data.body_html || escHtml(data.body_text || '')}</div>`;
+    showCompose('forward', { subject, body: fwdBody, originalId: emailId });
+}
+
+async function sendEmail() {
+    const to = document.getElementById('composeTo').value.trim();
+    const subject = document.getElementById('composeSubject').value.trim();
+    const bodyEl = document.getElementById('composeBody');
+    const body = bodyEl.innerHTML;
+    const cc = document.getElementById('composeCc').value.trim();
+    const bcc = document.getElementById('composeBcc').value.trim();
+
+    if (!to) return showToast('Veuillez entrer un destinataire', 'error');
+    if (!subject) return showToast('Veuillez entrer un sujet', 'error');
+
+    let r;
+    if (composeMode === 'reply' || composeMode === 'reply_all') {
+        r = await apiPost('/api/email/reply', {
+            original_id: composeOriginalId,
+            body: body,
+            reply_all: composeMode === 'reply_all'
+        });
+    } else if (composeMode === 'forward') {
+        r = await apiPost('/api/email/forward', {
+            original_id: composeOriginalId,
+            to: to,
+            body: body
+        });
+    } else {
+        const htmlBody = `<div style="font-family:sans-serif;font-size:14px">${body}</div>`;
+        r = await apiPost('/api/send', { to, subject, body: htmlBody, cc, bcc });
+    }
+
+    if (r.success) {
+        // Delete draft if exists
+        if (currentDraftId) {
+            await apiPost('/api/drafts/delete', { id: currentDraftId });
+            currentDraftId = null;
+        }
+        hideModal('composeModal');
+        showToast('Email envoye avec succes', 'success');
+    } else {
+        showToast(r.message || 'Erreur d\'envoi', 'error');
+    }
+}
+
+async function saveDraft() {
+    const draft = {
+        id: currentDraftId,
+        to: document.getElementById('composeTo').value.trim(),
+        cc: document.getElementById('composeCc').value.trim(),
+        bcc: document.getElementById('composeBcc').value.trim(),
+        subject: document.getElementById('composeSubject').value.trim(),
+        body: document.getElementById('composeBody').innerHTML,
+        original_id: composeOriginalId,
+        draft_type: composeMode
+    };
+    const r = await apiPost('/api/drafts/save', draft);
+    if (r.success) {
+        currentDraftId = r.id;
+        showToast('Brouillon sauvegarde', 'success');
+    }
+}
+
+async function showDrafts() {
+    const drafts = await apiGet('/api/drafts');
+    if (!drafts || !drafts.length) {
+        showToast('Aucun brouillon', 'info');
+        return;
+    }
+    // Show drafts in a simple list
+    let html = '<div style="padding:16px"><h3 style="margin-bottom:12px">Brouillons</h3>';
+    drafts.forEach(d => {
+        html += `<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDraft(${d.id})">
+            <div style="flex:1">
+                <div style="font-weight:600;font-size:13px">${escHtml(d.subject || '(Sans objet)')}</div>
+                <div style="font-size:12px;color:var(--text2)">${escHtml(d.to_email || 'Aucun destinataire')} - ${formatDate(d.date_modified)}</div>
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteDraft(${d.id})">Supprimer</button>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('readingContent').style.display = 'block';
+    document.getElementById('readingEmpty').style.display = 'none';
+    document.getElementById('readingContent').innerHTML = html;
+}
+
+async function openDraft(id) {
+    const d = await apiGet(`/api/draft/${id}`);
+    if (!d || d.error) return;
+    showCompose(d.draft_type || 'new', {
+        to: d.to_email || '',
+        cc: d.cc || '',
+        bcc: d.bcc || '',
+        subject: d.subject || '',
+        body: d.body_html || '',
+        originalId: d.original_id,
+        draftId: d.id
+    });
+}
+
+async function deleteDraft(id) {
+    await apiPost('/api/drafts/delete', { id });
+    showToast('Brouillon supprime', 'success');
+    showDrafts();
+}
+
+// ─── Contact Autocomplete ─────────────────────────────────────────────
+async function searchContacts(query, acId) {
+    const acEl = document.getElementById(acId);
+    if (query.length < 2) { acEl.classList.remove('show'); return; }
+    const contacts = await apiGet(`/api/contacts?q=${encodeURIComponent(query)}`);
+    if (!contacts.length) { acEl.classList.remove('show'); return; }
+    acEl.innerHTML = contacts.map(c => {
+        const initials = (c.name || c.email).substring(0, 2).toUpperCase();
+        return `<div class="ac-item" onclick="selectContact('${escHtml(c.email)}', '${acId}')">
+            <div class="ac-avatar" style="background:${c.color || '#3498db'}">${initials}</div>
+            <div><div class="ac-name">${escHtml(c.name)}</div><div class="ac-email">${escHtml(c.email)}</div></div>
+        </div>`;
+    }).join('');
+    acEl.classList.add('show');
+}
+
+function selectContact(emailAddr, acId) {
+    // Find the input associated with this autocomplete
+    const acEl = document.getElementById(acId);
+    const input = acEl.previousElementSibling;
+    input.value = emailAddr;
+    acEl.classList.remove('show');
+}
+
+// Close autocomplete on click outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.autocomplete-wrap')) {
+        document.querySelectorAll('.autocomplete-list').forEach(l => l.classList.remove('show'));
+    }
+});
+
+// ─── Contacts Panel ───────────────────────────────────────────────────
+async function showContacts() {
+    allContacts = await apiGet('/api/contacts');
+    renderContacts(allContacts);
+    showModal('contactsModal');
+}
+
+function renderContacts(list) {
+    const grid = document.getElementById('contactsGrid');
+    if (!list.length) {
+        grid.innerHTML = '<p style="color:var(--text3);text-align:center;padding:40px">Aucun contact. Cliquez sur "+ Ajouter" pour commencer.</p>';
+        return;
+    }
+    grid.innerHTML = list.map(c => {
+        const initials = (c.name || c.email).substring(0, 2).toUpperCase();
+        return `<div class="contact-card" onclick="editContact(${c.id})">
+            <div class="contact-avatar" style="background:${c.color || '#3498db'}">${initials}</div>
+            <div class="contact-info">
+                <div class="contact-name">${escHtml(c.name || c.email)} ${c.trusted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="var(--green)" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' : ''}</div>
+                <div class="contact-email">${escHtml(c.email)}</div>
+                <span class="contact-group-badge">${escHtml(c.group)}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function filterContacts(q) {
+    const filtered = allContacts.filter(c =>
+        (c.name || '').toLowerCase().includes(q.toLowerCase()) ||
+        c.email.toLowerCase().includes(q.toLowerCase()) ||
+        (c.company || '').toLowerCase().includes(q.toLowerCase())
+    );
+    renderContacts(filtered);
+}
+
+function showAddContact() {
+    document.getElementById('contactModalTitle').textContent = 'Ajouter un contact';
+    document.getElementById('contactName').value = '';
+    document.getElementById('contactEmail').value = '';
+    document.getElementById('contactPhone').value = '';
+    document.getElementById('contactCompany').value = '';
+    document.getElementById('contactGroup').value = 'General';
+    document.getElementById('contactTrusted').checked = false;
+    document.getElementById('contactNotes').value = '';
+    showModal('addContactModal');
+}
+
+function editContact(id) {
+    const c = allContacts.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('contactModalTitle').textContent = 'Modifier le contact';
+    document.getElementById('contactName').value = c.name || '';
+    document.getElementById('contactEmail').value = c.email;
+    document.getElementById('contactPhone').value = c.phone || '';
+    document.getElementById('contactCompany').value = c.company || '';
+    document.getElementById('contactGroup').value = c.group || 'General';
+    document.getElementById('contactTrusted').checked = c.trusted;
+    document.getElementById('contactNotes').value = c.notes || '';
+    showModal('addContactModal');
+}
+
+async function saveContact() {
+    const data = {
+        name: document.getElementById('contactName').value.trim(),
+        email: document.getElementById('contactEmail').value.trim(),
+        phone: document.getElementById('contactPhone').value.trim(),
+        company: document.getElementById('contactCompany').value.trim(),
+        group: document.getElementById('contactGroup').value,
+        trusted: document.getElementById('contactTrusted').checked,
+        notes: document.getElementById('contactNotes').value.trim()
+    };
+    if (!data.email) return showToast('Email requis', 'error');
+    await apiPost('/api/contacts/add', data);
+    hideModal('addContactModal');
+    showToast('Contact enregistre', 'success');
+    showContacts();
+}
+
+async function quickAddContact(name, addr) {
+    await apiPost('/api/contacts/add', { name, email: addr, trusted: false });
+    showToast(`${name || addr} ajoute aux contacts`, 'success');
+    if (currentEmailId) openEmail(currentEmailId);
+}
+
+// ─── Filters Panel ────────────────────────────────────────────────────
+async function showFilters() {
+    filterData = await apiGet('/api/settings/filters');
+    renderFilters();
+    showModal('filtersModal');
+}
+
+function renderFilters() {
+    const body = document.getElementById('filtersBody');
+    body.innerHTML = '<p style="color:var(--text2);margin-bottom:16px;font-size:13px">Ajoutez ou supprimez des mots-cles pour chaque categorie. Les emails contenant ces mots seront automatiquement classes.</p>';
+
+    for (const [key, cat] of Object.entries(filterData)) {
+        const kwTags = (cat.keywords || []).map((kw, i) =>
+            `<span class="keyword-tag"><span>${escHtml(kw)}</span><span class="remove-kw" onclick="removeKeyword('${key}', ${i})">&times;</span></span>`
+        ).join('');
+
+        body.innerHTML += `
+            <div class="filter-category">
+                <div class="filter-cat-header" onclick="toggleFilterCat(this)">
+                    <div class="dot" style="background:${cat.color || '#ccc'}"></div>
+                    <span>${escHtml(cat.label || key)}</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--text2)">${(cat.keywords || []).length} mots-cles</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="filter-cat-body" id="filter-${key}">
+                    <div class="keyword-tags">${kwTags}</div>
+                    <div class="add-kw-row">
+                        <input type="text" class="form-input" placeholder="Ajouter un mot-cle..." id="kw-input-${key}" onkeydown="if(event.key==='Enter')addKeyword('${key}')">
+                        <button class="btn btn-sm btn-primary" onclick="addKeyword('${key}')">+</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+}
+
+function toggleFilterCat(header) {
+    const body = header.nextElementSibling;
+    body.classList.toggle('show');
+}
+
+function addKeyword(catKey) {
+    const input = document.getElementById(`kw-input-${catKey}`);
+    const kw = input.value.trim();
+    if (!kw) return;
+    if (!filterData[catKey].keywords) filterData[catKey].keywords = [];
+    if (!filterData[catKey].keywords.includes(kw)) {
+        filterData[catKey].keywords.push(kw);
+        input.value = '';
+        renderFilters();
+        // Re-open the category
+        const catBody = document.getElementById(`filter-${catKey}`);
+        if (catBody) catBody.classList.add('show');
+    }
+}
+
+function removeKeyword(catKey, index) {
+    filterData[catKey].keywords.splice(index, 1);
+    renderFilters();
+    const catBody = document.getElementById(`filter-${catKey}`);
+    if (catBody) catBody.classList.add('show');
+}
+
+async function saveFilters() {
+    await apiPost('/api/settings/filters/update', filterData);
+    hideModal('filtersModal');
+    showToast('Filtres sauvegardes', 'success');
+}
+
+// ─── Settings Panel ───────────────────────────────────────────────────
+async function showSettings() {
+    const settings = await apiGet('/api/settings');
+    const accStatus = await apiGet('/api/account/status');
+    const body = document.getElementById('settingsBody');
+    const acc = (settings.accounts && settings.accounts[0]) || {};
+    const sec = settings.attachment_security || {};
+    const iface = settings.interface || {};
+    const status = (accStatus && accStatus[0]) || {};
+
+    // Build connection status display
+    let statusHtml = '';
+    if (status.connected) {
+        statusHtml = `
+            <div style="background:rgba(63,185,80,.1);border:1px solid var(--green);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <div style="flex:1">
+                    <div style="font-weight:600;color:var(--green)">Connecte - ${escHtml(status.provider_name)}</div>
+                    <div style="font-size:12px;color:var(--text2)">${escHtml(status.email)}</div>
+                </div>
+                <button class="btn btn-sm" style="border-color:var(--red);color:var(--red)" onclick="disconnectAccount()">Deconnecter</button>
+            </div>`;
+    }
+
+    body.innerHTML = `
+        <div class="settings-section">
+            <h3>Connexion rapide</h3>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Choisissez votre fournisseur et suivez les etapes. Hotmail/Outlook : connexion directe en 1 clic. Gmail : assistant guide en 3 etapes.</p>
+            ${statusHtml}
+            ${!status.connected ? `
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <!-- Microsoft - 1 clic OAuth2 -->
+                <button class="btn" id="msOAuthBtn" style="background:#0078d4;border-color:#0078d4;color:#fff;padding:12px 24px;font-size:15px;font-weight:600;flex:1;min-width:200px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="connectMicrosoft()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="10" height="10"/><rect x="13" y="1" width="10" height="10"/><rect x="1" y="13" width="10" height="10"/><rect x="13" y="13" width="10" height="10"/></svg>
+                    Se connecter avec Microsoft
+                </button>
+                <!-- Gmail - assistant guide -->
+                <button class="btn" style="background:#ea4335;border-color:#ea4335;color:#fff;padding:12px 24px;font-size:15px;font-weight:600;flex:1;min-width:200px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="showGmailWizard()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Se connecter avec Gmail
+                </button>
+            </div>
+            <div style="text-align:center;margin-bottom:12px">
+                <button class="btn" style="font-size:12px;color:var(--text2);padding:6px 12px" onclick="quickConnect('yahoo')">Yahoo Mail</button>
+                <button class="btn" style="font-size:12px;color:var(--text2);padding:6px 12px" onclick="quickConnect('icloud')">iCloud Mail</button>
+            </div>
+
+            <!-- Microsoft OAuth Status -->
+            <div id="msOAuthStatus" style="display:none;background:rgba(0,120,212,.1);border:1px solid #0078d4;border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:#5bc0de"></div>
+
+            <!-- Gmail Wizard -->
+            <div id="gmailWizard" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+                <h4 style="margin-bottom:12px;font-size:15px;color:#ea4335">Connexion Gmail - 3 etapes simples</h4>
+
+                <div style="background:rgba(234,67,53,.05);border-left:3px solid #ea4335;padding:12px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px">
+                    <div style="font-weight:600;margin-bottom:8px;font-size:13px">Etape 1 : Activer la verification en 2 etapes</div>
+                    <p style="font-size:12px;color:var(--text2);margin-bottom:6px">Si ce n'est pas deja fait, activez-la sur votre compte Google.</p>
+                    <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" class="btn btn-sm" style="background:#ea4335;border-color:#ea4335;color:#fff;font-size:12px">Ouvrir les parametres Google</a>
+                </div>
+
+                <div style="background:rgba(234,67,53,.05);border-left:3px solid #ea4335;padding:12px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px">
+                    <div style="font-weight:600;margin-bottom:8px;font-size:13px">Etape 2 : Creer un mot de passe d'application</div>
+                    <p style="font-size:12px;color:var(--text2);margin-bottom:6px">Cliquez ci-dessous, nommez l'app "MailShield", puis copiez le mot de passe genere (16 caracteres).</p>
+                    <a href="https://myaccount.google.com/apppasswords" target="_blank" class="btn btn-sm" style="background:#ea4335;border-color:#ea4335;color:#fff;font-size:12px">Generer le mot de passe</a>
+                </div>
+
+                <div style="background:rgba(234,67,53,.05);border-left:3px solid #ea4335;padding:12px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px">
+                    <div style="font-weight:600;margin-bottom:8px;font-size:13px">Etape 3 : Collez vos informations</div>
+                    <div class="form-group" style="margin-bottom:8px"><label style="font-size:12px">Adresse Gmail</label><input type="email" class="form-input" id="qcEmail" placeholder="votre.email@gmail.com"></div>
+                    <div class="form-group" style="margin-bottom:8px"><label style="font-size:12px">Mot de passe d'application (16 caracteres de l'etape 2)</label><input type="password" class="form-input" id="qcPassword" placeholder="abcd efgh ijkl mnop"></div>
+                </div>
+
+                <div id="qcError" style="display:none;background:rgba(248,81,73,.1);border:1px solid var(--red);border-radius:var(--radius);padding:10px;margin-bottom:10px;font-size:12px;color:var(--red)"></div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-primary" id="qcSubmitBtn" style="background:#ea4335;border-color:#ea4335" onclick="submitQuickConnect()">Connecter Gmail</button>
+                    <button class="btn" onclick="document.getElementById('gmailWizard').style.display='none'">Annuler</button>
+                </div>
+            </div>
+
+            <!-- Yahoo/iCloud form (simple) -->
+            <div id="quickConnectForm" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">
+                <h4 style="margin-bottom:4px;font-size:14px" id="qcTitle2">Connexion</h4>
+                <p style="font-size:12px;color:var(--text2);margin-bottom:10px" id="qcHelp2"></p>
+                <a href="#" id="qcHelpLink2" target="_blank" style="font-size:12px;color:var(--accent);display:block;margin-bottom:10px">Obtenir un mot de passe d'application</a>
+                <div class="form-group"><label>Adresse email</label><input type="email" class="form-input" id="qcEmail2" placeholder="email@example.com"></div>
+                <div class="form-group"><label>Mot de passe d'application</label><input type="password" class="form-input" id="qcPassword2" placeholder="Mot de passe d'application"></div>
+                <div id="qcError2" style="display:none;background:rgba(248,81,73,.1);border:1px solid var(--red);border-radius:var(--radius);padding:10px;margin-bottom:10px;font-size:12px;color:var(--red)"></div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-primary" id="qcSubmitBtn2" onclick="submitQuickConnect2()">Se connecter</button>
+                    <button class="btn" onclick="document.getElementById('quickConnectForm').style.display='none'">Annuler</button>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+
+        <div class="settings-section">
+            <h3 style="cursor:pointer" onclick="document.getElementById('manualConfig').style.display = document.getElementById('manualConfig').style.display === 'none' ? 'block' : 'none'">
+                Configuration manuelle IMAP/SMTP
+                <span style="font-size:11px;color:var(--text2);font-weight:400"> (pour les autres providers)</span>
+            </h3>
+            <div id="manualConfig" style="display:none">
+                <div class="form-group"><label>Adresse email</label><input type="email" class="form-input" id="setEmail" value="${escHtml(acc.email || '')}"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Serveur IMAP</label><input type="text" class="form-input" id="setImapServer" value="${escHtml(acc.imap_server || '')}"></div>
+                    <div class="form-group"><label>Port IMAP</label><input type="number" class="form-input" id="setImapPort" value="${acc.imap_port || 993}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Serveur SMTP</label><input type="text" class="form-input" id="setSmtpServer" value="${escHtml(acc.smtp_server || '')}"></div>
+                    <div class="form-group"><label>Port SMTP</label><input type="number" class="form-input" id="setSmtpPort" value="${acc.smtp_port || 587}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Nom d'utilisateur</label><input type="text" class="form-input" id="setUsername" value="${escHtml(acc.username || '')}"></div>
+                    <div class="form-group"><label>Mot de passe</label><input type="password" class="form-input" id="setPassword" value="${escHtml(acc.password || '')}"></div>
+                </div>
+                <button class="btn" style="margin-top:8px" onclick="testConnection()">Tester la connexion</button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Securite des pieces jointes</h3>
+            <div class="setting-row"><label>Activer le scan des PJ</label><label class="toggle"><input type="checkbox" id="setAttScan" ${sec.enabled ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Taille max (Mo)</label><input type="number" class="form-input" style="width:80px" id="setMaxSize" value="${sec.max_size_mb || 25}"></div>
+            <div class="setting-row"><label>Quarantaine PJ expediteurs inconnus</label><label class="toggle"><input type="checkbox" id="setQuarantine" ${sec.quarantine_unknown_sender_attachments ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Seuil de confiance (%)</label><input type="number" class="form-input" style="width:80px" id="setThreshold" value="${sec.trust_score_threshold || 50}"></div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Interface</h3>
+            <div class="setting-row"><label>Notifications bureau</label><label class="toggle"><input type="checkbox" id="setDesktopNotif" ${iface.desktop_notifications ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Afficher les avatars</label><label class="toggle"><input type="checkbox" id="setAvatars" ${iface.show_avatars !== false ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Badges de securite</label><label class="toggle"><input type="checkbox" id="setSecBadges" ${iface.show_security_badges !== false ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Securite avancee</h3>
+            <div class="setting-row"><label>Bloquer pixels de tracking</label><label class="toggle"><input type="checkbox" id="setBlockTracking" ${(settings.security || {}).block_tracking_pixels ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Bloquer images externes</label><label class="toggle"><input type="checkbox" id="setBlockImages" ${(settings.security || {}).block_external_images_by_default ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+            <div class="setting-row"><label>Detection phishing</label><label class="toggle"><input type="checkbox" id="setPhishing" ${(settings.security || {}).phishing_detection !== false ? 'checked' : ''}><span class="toggle-slider"></span></label></div>
+        </div>
+    `;
+    showModal('settingsModal');
+}
+
+// ─── Quick Connect ────────────────────────────────────────────────────
+const providerInfo = {
+    yahoo: {
+        title: 'Connexion Yahoo Mail',
+        placeholder: 'votre.email@yahoo.com',
+        help: 'Yahoo necessite un <b>mot de passe d\'application</b>.<br>Allez dans Securite du compte Yahoo et generez-en un.',
+        helpUrl: 'https://login.yahoo.com/account/security'
+    },
+    icloud: {
+        title: 'Connexion iCloud Mail',
+        placeholder: 'votre.email@icloud.com',
+        help: 'iCloud necessite un <b>mot de passe specifique a l\'app</b>.<br>Allez dans appleid.apple.com > Securite.',
+        helpUrl: 'https://appleid.apple.com/account/manage'
+    }
+};
+
+function showGmailWizard() {
+    document.getElementById('quickConnectForm').style.display = 'none';
+    document.getElementById('msOAuthStatus').style.display = 'none';
+    const wiz = document.getElementById('gmailWizard');
+    wiz.style.display = 'block';
+    document.getElementById('qcEmail').value = '';
+    document.getElementById('qcPassword').value = '';
+    document.getElementById('qcError').style.display = 'none';
+    document.getElementById('qcEmail').focus();
+}
+
+function quickConnect(provider) {
+    const info = providerInfo[provider] || {};
+    document.getElementById('gmailWizard').style.display = 'none';
+    document.getElementById('msOAuthStatus').style.display = 'none';
+    const form = document.getElementById('quickConnectForm');
+    document.getElementById('qcTitle2').textContent = info.title || 'Connexion';
+    document.getElementById('qcHelp2').innerHTML = info.help || '';
+    document.getElementById('qcEmail2').placeholder = info.placeholder || 'email@example.com';
+    document.getElementById('qcEmail2').value = '';
+    document.getElementById('qcPassword2').value = '';
+    document.getElementById('qcError2').style.display = 'none';
+
+    const link = document.getElementById('qcHelpLink2');
+    if (info.helpUrl) {
+        link.href = info.helpUrl;
+        link.style.display = 'block';
+    } else {
+        link.style.display = 'none';
+    }
+
+    form.style.display = 'block';
+    document.getElementById('qcEmail2').focus();
+}
+
+async function submitQuickConnect() {
+    // Gmail wizard submit
+    const email = document.getElementById('qcEmail').value.trim();
+    const password = document.getElementById('qcPassword').value.trim();
+    const errEl = document.getElementById('qcError');
+    const btn = document.getElementById('qcSubmitBtn');
+
+    if (!email) return showToast('Entrez votre adresse Gmail', 'error');
+    if (!password) return showToast('Collez le mot de passe d\'application de l\'etape 2', 'error');
+
+    btn.textContent = 'Connexion en cours...';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    const r = await apiPost('/api/quickconnect', { email, password });
+
+    btn.textContent = 'Connecter Gmail';
+    btn.disabled = false;
+
+    if (r.success) {
+        showToast(`Gmail connecte : ${r.email}`, 'success');
+        hideModal('settingsModal');
+        setTimeout(() => showSettings(), 300);
+    } else {
+        errEl.innerHTML = `<b>Echec :</b> ${escHtml(r.message || 'Erreur')}`;
+        if (r.message && r.message.includes('Application-specific password')) {
+            errEl.innerHTML = '<b>Mot de passe refuse par Google.</b><br>Assurez-vous d\'utiliser le mot de passe d\'application genere a l\'etape 2 (16 caracteres), et non votre mot de passe Gmail normal.';
+        }
+        errEl.style.display = 'block';
+    }
+}
+
+async function submitQuickConnect2() {
+    // Yahoo/iCloud submit
+    const email = document.getElementById('qcEmail2').value.trim();
+    const password = document.getElementById('qcPassword2').value.trim();
+    const errEl = document.getElementById('qcError2');
+    const btn = document.getElementById('qcSubmitBtn2');
+
+    if (!email) return showToast('Entrez votre adresse email', 'error');
+    if (!password) return showToast('Mot de passe d\'application requis', 'error');
+
+    btn.textContent = 'Connexion en cours...';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    const r = await apiPost('/api/quickconnect', { email, password });
+
+    btn.textContent = 'Se connecter';
+    btn.disabled = false;
+
+    if (r.success) {
+        showToast(`${r.provider} - ${r.email} connecte !`, 'success');
+        hideModal('settingsModal');
+        setTimeout(() => showSettings(), 300);
+    } else {
+        errEl.innerHTML = `<b>Echec :</b> ${escHtml(r.message || 'Erreur')}`;
+        if (r.help_url) {
+            errEl.innerHTML += `<br><a href="${r.help_url}" target="_blank" style="color:var(--accent);margin-top:6px;display:inline-block">Comment obtenir un mot de passe d'application</a>`;
+        }
+        errEl.style.display = 'block';
+    }
+}
+
+async function connectMicrosoft() {
+    const btn = document.getElementById('msOAuthBtn');
+    const statusEl = document.getElementById('msOAuthStatus');
+    document.getElementById('gmailWizard').style.display = 'none';
+    document.getElementById('quickConnectForm').style.display = 'none';
+
+    btn.textContent = 'Ouverture du navigateur...';
+    btn.disabled = true;
+    statusEl.innerHTML = '<b>Une fenetre Microsoft va s\'ouvrir.</b><br>Connectez-vous avec votre compte Hotmail/Outlook/Live, autorisez l\'acces, puis revenez ici. Ne fermez pas cette fenetre.';
+    statusEl.style.display = 'block';
+
+    try {
+        const r = await apiPost('/api/ms-oauth/connect', { email: '' });
+
+        if (r.success) {
+            showToast(`Microsoft connecte : ${r.email}`, 'success');
+            statusEl.innerHTML = `<span style="color:var(--green)"><b>Connecte avec succes !</b> ${escHtml(r.email)}</span>`;
+            hideModal('settingsModal');
+            setTimeout(() => showSettings(), 300);
+        } else {
+            statusEl.innerHTML = `<span style="color:var(--red)"><b>Echec :</b> ${escHtml(r.message || 'Erreur de connexion')}</span>`;
+            showToast('Echec connexion Microsoft', 'error');
+        }
+    } catch (e) {
+        statusEl.innerHTML = `<span style="color:var(--red)"><b>Erreur :</b> ${escHtml(e.message)}</span>`;
+    }
+
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="10" height="10"/><rect x="13" y="1" width="10" height="10"/><rect x="1" y="13" width="10" height="10"/><rect x="13" y="13" width="10" height="10"/></svg> Se connecter avec Microsoft';
+    btn.disabled = false;
+}
+
+async function disconnectAccount() {
+    if (!confirm('Deconnecter ce compte ?')) return;
+    await apiPost('/api/account/disconnect', { index: 0 });
+    showToast('Compte deconnecte', 'success');
+    hideModal('settingsModal');
+    setTimeout(() => showSettings(), 300);
+}
+
+async function testConnection() {
+    const acc = {
+        imap_server: document.getElementById('setImapServer').value,
+        imap_port: parseInt(document.getElementById('setImapPort').value),
+        username: document.getElementById('setUsername').value,
+        password: document.getElementById('setPassword').value,
+        use_ssl: true
+    };
+    showToast('Test de connexion...', 'info');
+    const r = await apiPost('/api/account/test', { account: acc });
+    showToast(r.success ? 'Connexion reussie !' : `Echec: ${r.message}`, r.success ? 'success' : 'error');
+}
+
+async function saveSettingsForm() {
+    // Only save manual config if not using OAuth
+    const setEmail = document.getElementById('setEmail');
+    if (setEmail) {
+        const account = {
+            email: setEmail.value,
+            imap_server: document.getElementById('setImapServer').value,
+            imap_port: parseInt(document.getElementById('setImapPort').value),
+            smtp_server: document.getElementById('setSmtpServer').value,
+            smtp_port: parseInt(document.getElementById('setSmtpPort').value),
+            username: document.getElementById('setUsername').value,
+            password: document.getElementById('setPassword').value,
+            use_ssl: true
+        };
+        await apiPost('/api/account/save', { index: 0, account });
+    }
+
+    await apiPost('/api/settings/update', {
+        attachment_security: {
+            enabled: document.getElementById('setAttScan').checked,
+            max_size_mb: parseInt(document.getElementById('setMaxSize').value),
+            quarantine_unknown_sender_attachments: document.getElementById('setQuarantine').checked,
+            trust_score_threshold: parseInt(document.getElementById('setThreshold').value)
+        },
+        interface: {
+            desktop_notifications: document.getElementById('setDesktopNotif').checked,
+            show_avatars: document.getElementById('setAvatars').checked,
+            show_security_badges: document.getElementById('setSecBadges').checked
+        },
+        security: {
+            block_tracking_pixels: document.getElementById('setBlockTracking').checked,
+            block_external_images_by_default: document.getElementById('setBlockImages').checked,
+            phishing_detection: document.getElementById('setPhishing').checked
+        }
+    });
+
+    hideModal('settingsModal');
+    showToast('Parametres sauvegardes', 'success');
+}
+
+// ─── Modals ───────────────────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ─── Toast ────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show toast-${type}`;
+    setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+}
+
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash;
+    }
+    return Math.abs(hash);
+}
+
+function formatDate(dateStr, full) {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(dateStr);
+        const now = new Date();
+        if (full) return d.toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+        const diff = now - d;
+        if (diff < 86400000 && d.getDate() === now.getDate()) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        if (diff < 604800000) return d.toLocaleDateString('fr-FR', { weekday: 'short' });
+        return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    } catch { return dateStr; }
+}
+
+function formatSize(bytes) {
+    if (!bytes) return '0 o';
+    const units = ['o', 'Ko', 'Mo', 'Go'];
+    let i = 0;
+    while (bytes >= 1024 && i < 3) { bytes /= 1024; i++; }
+    return bytes.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+}
+
+// ─── i18n / Language ──────────────────────────────────────────────────
+let currentLang = localStorage.getItem('mailshield_lang') || 'fr';
+let i18nData = {};
+
+async function loadI18n() {
+    const data = await apiGet('/api/i18n/all');
+    i18nData = data;
+    applyI18n();
+}
+
+function applyI18n() {
+    const t = i18nData[currentLang] || {};
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && t.search) searchInput.placeholder = t.search;
+    document.getElementById('langLabel').textContent = currentLang.toUpperCase();
+}
+
+function toggleLang() {
+    currentLang = currentLang === 'fr' ? 'en' : 'fr';
+    localStorage.setItem('mailshield_lang', currentLang);
+    applyI18n();
+    showToast(currentLang === 'fr' ? 'Langue : Francais' : 'Language: English', 'info');
+}
+
+// Load i18n on start
+loadI18n();
+
+// ─── Sandbox / Virtual Mode ──────────────────────────────────────────
+let sandboxMode = false;
+
+function toggleSandbox() {
+    sandboxMode = !sandboxMode;
+    const banner = document.getElementById('sandboxBanner');
+    const btn = document.getElementById('sandboxBtn');
+    banner.style.display = sandboxMode ? 'block' : 'none';
+    btn.style.color = sandboxMode ? 'var(--orange)' : 'var(--text2)';
+    if (sandboxMode) {
+        btn.title = 'Mode protege ACTIF - cliquer pour desactiver';
+    } else {
+        btn.title = 'Mode protege (sandbox) - cliquer pour activer';
+    }
+    apiPost('/api/sandbox/toggle', { enabled: sandboxMode });
+    showToast(sandboxMode ?
+        (currentLang === 'fr' ? 'Mode protege active - emails ouverts en sandbox' : 'Protected mode ON - emails open in sandbox') :
+        (currentLang === 'fr' ? 'Mode protege desactive' : 'Protected mode OFF'),
+        sandboxMode ? 'info' : 'success'
+    );
+    // Re-render current email if open
+    if (currentEmailId) openEmail(currentEmailId);
+}
+
+function sanitizeHtmlForSandbox(html) {
+    if (!html) return html;
+    // Remove scripts
+    html = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    // Remove event handlers
+    html = html.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+    // Neutralize all links - make them non-clickable with warning
+    html = html.replace(/<a\s+([^>]*?)href\s*=\s*["']([^"']*)["']/gi,
+        '<a $1href="#" data-original-url="$2" onclick="event.preventDefault();showToast(\'Lien bloque en mode protege: \'+this.dataset.originalUrl,\'info\')" style="color:var(--orange);text-decoration:line-through"');
+    // Remove iframes
+    html = html.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '<div style="background:var(--bg3);padding:8px;border-radius:4px;color:var(--orange);font-size:12px">[iframe bloque - mode protege]</div>');
+    // Remove tracking pixels (1x1 images)
+    html = html.replace(/<img[^>]*(?:width|height)\s*=\s*["']?1["']?[^>]*>/gi, '');
+    // Remove external images
+    html = html.replace(/<img\s+([^>]*?)src\s*=\s*["'](https?:\/\/[^"']*)["']/gi,
+        '<img $1src="" data-blocked-src="$2" alt="[Image bloquee]" style="background:var(--bg3);padding:4px;border:1px dashed var(--orange)"');
+    return html;
+}
+
+// ─── Blacklist ────────────────────────────────────────────────────────
+async function showBlacklist() {
+    const items = await apiGet('/api/blacklist');
+    const grid = document.getElementById('blacklistGrid');
+    if (!items.length) {
+        grid.innerHTML = '<p style="color:var(--text3);text-align:center;padding:30px">Aucune adresse bloquee. Ajoutez des emails ou domaines ci-dessus.</p>';
+    } else {
+        grid.innerHTML = '<table style="width:100%;font-size:13px;border-collapse:collapse">' +
+            '<tr style="color:var(--text2);border-bottom:1px solid var(--border);text-align:left"><th style="padding:8px">Email / Domaine</th><th style="padding:8px">Raison</th><th style="padding:8px">Date</th><th style="padding:8px"></th></tr>' +
+            items.map(item => `<tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:8px;color:var(--red)">${escHtml(item.email || item.domain)}</td>
+                <td style="padding:8px;color:var(--text2)">${escHtml(item.reason || '-')}</td>
+                <td style="padding:8px;color:var(--text2);font-size:12px">${formatDate(item.date_added)}</td>
+                <td style="padding:8px"><button class="btn btn-sm" onclick="removeBlacklist(${item.id})">Retirer</button></td>
+            </tr>`).join('') + '</table>';
+    }
+    showModal('blacklistModal');
+}
+
+async function addToBlacklist() {
+    const input = document.getElementById('blAddEmail').value.trim();
+    const reason = document.getElementById('blAddReason').value.trim();
+    if (!input) return showToast('Entrez un email ou domaine', 'error');
+    const isEmail = input.includes('@');
+    await apiPost('/api/blacklist/add', {
+        email: isEmail ? input : '',
+        domain: isEmail ? '' : input,
+        reason: reason
+    });
+    document.getElementById('blAddEmail').value = '';
+    document.getElementById('blAddReason').value = '';
+    showToast(`${input} ajoute a la liste noire`, 'success');
+    showBlacklist();
+}
+
+async function removeBlacklist(id) {
+    await apiPost('/api/blacklist/remove', { id });
+    showToast('Retire de la liste noire', 'success');
+    showBlacklist();
+}
+
+function showImportBlacklist() {
+    const area = document.getElementById('importBlacklistArea');
+    area.style.display = area.style.display === 'none' ? 'block' : 'none';
+}
+
+async function importBlacklist() {
+    const text = document.getElementById('blImportText').value.trim();
+    if (!text) return;
+    const entries = text.split('\n').filter(e => e.trim());
+    const r = await apiPost('/api/blacklist/import', { entries });
+    showToast(`${r.imported} entrees importees`, 'success');
+    document.getElementById('blImportText').value = '';
+    document.getElementById('importBlacklistArea').style.display = 'none';
+    showBlacklist();
+}
+
+function exportBlacklist() {
+    window.open(`/api/blacklist/export?token=${apiToken}`, '_blank');
+}
+
+async function blockSender(emailAddr) {
+    await apiPost('/api/blacklist/add', { email: emailAddr, reason: 'Blocked from email view' });
+    showToast(`${emailAddr} bloque`, 'success');
+}
+
+async function reportSpam(emailId) {
+    await apiPost('/api/email/report-spam', { id: emailId });
+    showToast('Signale comme spam et expediteur bloque', 'success');
+    loadEmails();
+    loadCounts();
+}
+
+// ─── Threats Dashboard ────────────────────────────────────────────────
+async function showThreats() {
+    const [threats, stats] = await Promise.all([
+        apiGet('/api/threats?limit=50'),
+        apiGet('/api/threats/stats')
+    ]);
+
+    // Stats cards
+    const statsEl = document.getElementById('threatStats');
+    const t = i18nData[currentLang] || {};
+    statsEl.innerHTML = `
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--red)">${stats.total || 0}</div>
+            <div style="font-size:12px;color:var(--text2)">${t.threats_detected || 'Menaces detectees'}</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--orange)">${stats.recent_7d || 0}</div>
+            <div style="font-size:12px;color:var(--text2)">${t.threats_recent || 'Recentes (7j)'}</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--purple)">${stats.phishing || 0}</div>
+            <div style="font-size:12px;color:var(--text2)">${t.phishing || 'Phishing'}</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--green)">${stats.severity_low || 0}</div>
+            <div style="font-size:12px;color:var(--text2)">${t.threats_blocked || 'Bloquees'}</div>
+        </div>
+    `;
+
+    // Threats list
+    const listEl = document.getElementById('threatsList');
+    if (!threats.length) {
+        listEl.innerHTML = `<p style="color:var(--text3);text-align:center;padding:30px">${t.no_threats || 'Aucune menace detectee'}</p>`;
+    } else {
+        listEl.innerHTML = threats.map(th => {
+            const sevColors = { critical: 'var(--red)', high: '#f85149', medium: 'var(--orange)', low: 'var(--text2)' };
+            const sevColor = sevColors[th.severity] || 'var(--text2)';
+            const icon = th.threat_type === 'phishing' ? '🎣' : th.threat_type === 'malware' ? '🦠' :
+                         th.threat_type === 'blacklisted' ? '🚫' : th.threat_type === 'suspicious_attachment' ? '📎' : '⚠️';
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
+                <span style="font-size:20px">${icon}</span>
+                <div style="flex:1">
+                    <div style="font-weight:600;font-size:13px">${escHtml(th.description)}</div>
+                    <div style="font-size:12px;color:var(--text2)">${escHtml(th.from_email || '')} ${th.subject ? '- ' + escHtml(th.subject) : ''}</div>
+                </div>
+                <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${sevColor}20;color:${sevColor};font-weight:600;text-transform:uppercase">${th.severity}</span>
+                <span style="font-size:11px;color:var(--text3)">${formatDate(th.date_detected)}</span>
+            </div>`;
+        }).join('');
+    }
+    showModal('threatsModal');
+}
+
+// ─── Import Contacts ──────────────────────────────────────────────────
+function importContactsPrompt() {
+    const csv = prompt('Collez vos contacts au format CSV (name,email,phone,company,group):\nExemple: Jean Dupont,jean@email.com,5551234,Acme,Travail');
+    if (!csv) return;
+    const lines = csv.split('\n').filter(l => l.trim() && !l.startsWith('name,'));
+    const contacts = lines.map(line => {
+        const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+        return { name: parts[0] || '', email: parts[1] || '', phone: parts[2] || '', company: parts[3] || '', group: parts[4] || 'General' };
+    }).filter(c => c.email);
+
+    if (!contacts.length) return showToast('Aucun contact valide trouve', 'error');
+
+    apiPost('/api/contacts/import', { contacts }).then(r => {
+        showToast(`${r.imported} contact(s) importe(s)`, 'success');
+        showContacts();
+    });
+}
+
+// ─── Privacy Info Modal ───────────────────────────────────────────────
+function showPrivacyInfo() {
+    const lang = currentLang || 'fr';
+    const content = lang === 'fr' ? `
+        <div style="padding:24px;max-width:600px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div>
+                    <h2 style="color:var(--green);margin-bottom:2px">100% Local - Zero Cloud</h2>
+                    <div style="font-size:12px;color:var(--text2)">Vos donnees ne quittent JAMAIS votre ordinateur</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">🔒</div>
+                    <div style="font-size:12px;font-weight:600">Mots de passe chiffres</div>
+                    <div style="font-size:11px;color:var(--text3)">Cle unique a votre machine</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">🛡️</div>
+                    <div style="font-size:12px;font-weight:600">API securisee</div>
+                    <div style="font-size:11px;color:var(--text3)">Token 64 caracteres par session</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">📡</div>
+                    <div style="font-size:12px;font-weight:600">Zero telemetrie</div>
+                    <div style="font-size:11px;color:var(--text3)">Aucun tracking, aucun analytics</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">💾</div>
+                    <div style="font-size:12px;font-weight:600">Stockage local</div>
+                    <div style="font-size:11px;color:var(--text3)">SQLite sur votre disque uniquement</div>
+                </div>
+            </div>
+
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+                <h4 style="margin-bottom:8px;font-size:13px;color:var(--text)">Ce que MailShield Pro ne fait PAS :</h4>
+                <div style="font-size:12px;color:var(--text2);line-height:1.8">
+                    ❌ Ne collecte PAS de donnees personnelles<br>
+                    ❌ N'envoie PAS de statistiques d'utilisation<br>
+                    ❌ Ne partage PAS vos contacts ou emails avec des tiers<br>
+                    ❌ Ne stocke PAS vos donnees dans le cloud<br>
+                    ❌ N'affiche PAS de publicites<br>
+                    ❌ Ne vend PAS vos donnees
+                </div>
+            </div>
+
+            <div style="font-size:11px;color:var(--text3);text-align:center">
+                Conforme RGPD / CCPA / PIPEDA — Consultez PRIVACY_POLICY.md pour la politique complete
+            </div>
+        </div>
+    ` : `
+        <div style="padding:24px;max-width:600px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div>
+                    <h2 style="color:var(--green);margin-bottom:2px">100% Local - Zero Cloud</h2>
+                    <div style="font-size:12px;color:var(--text2)">Your data NEVER leaves your computer</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">🔒</div>
+                    <div style="font-size:12px;font-weight:600">Encrypted Passwords</div>
+                    <div style="font-size:11px;color:var(--text3)">Machine-unique key</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">🛡️</div>
+                    <div style="font-size:12px;font-weight:600">Secured API</div>
+                    <div style="font-size:11px;color:var(--text3)">64-char token per session</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">📡</div>
+                    <div style="font-size:12px;font-weight:600">Zero Telemetry</div>
+                    <div style="font-size:11px;color:var(--text3)">No tracking, no analytics</div>
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center">
+                    <div style="font-size:24px;margin-bottom:4px">💾</div>
+                    <div style="font-size:12px;font-weight:600">Local Storage Only</div>
+                    <div style="font-size:11px;color:var(--text3)">SQLite on your disk only</div>
+                </div>
+            </div>
+
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+                <h4 style="margin-bottom:8px;font-size:13px;color:var(--text)">What MailShield Pro does NOT do:</h4>
+                <div style="font-size:12px;color:var(--text2);line-height:1.8">
+                    ❌ Does NOT collect personal data<br>
+                    ❌ Does NOT send usage statistics<br>
+                    ❌ Does NOT share your contacts or emails<br>
+                    ❌ Does NOT store data in the cloud<br>
+                    ❌ Does NOT display advertisements<br>
+                    ❌ Does NOT sell your data
+                </div>
+            </div>
+
+            <div style="font-size:11px;color:var(--text3);text-align:center">
+                GDPR / CCPA / PIPEDA compliant — See PRIVACY_POLICY.md for full policy
+            </div>
+        </div>
+    `;
+
+    document.getElementById('readingContent').style.display = 'block';
+    document.getElementById('readingEmpty').style.display = 'none';
+    document.getElementById('readingContent').innerHTML = content;
+}
+
+// ─── Context Menu (Right-Click) ───────────────────────────────────────
+let ctxEmailId = null;
+let ctxEmailData = null;
+
+function showCtxMenu(e, emailId) {
+    e.preventDefault();
+    e.stopPropagation();
+    ctxEmailId = emailId;
+    ctxEmailData = emails.find(em => em.id === emailId);
+
+    const menu = document.getElementById('ctxMenu');
+
+    // Update labels based on email state
+    if (ctxEmailData) {
+        document.getElementById('ctxStarLabel').textContent = ctxEmailData.is_starred ? 'Retirer des favoris' : 'Ajouter aux favoris';
+        document.getElementById('ctxReadLabel').textContent = ctxEmailData.is_read ? 'Marquer comme non lu' : 'Marquer comme lu';
+    }
+
+    // Position - keep within viewport
+    let x = e.clientX;
+    let y = e.clientY;
+    menu.classList.add('show');
+    const rect = menu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 8;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 8;
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+}
+
+async function ctxAction(action) {
+    hideCtxMenu();
+    if (!ctxEmailId) return;
+
+    switch (action) {
+        case 'open':
+            openEmail(ctxEmailId);
+            break;
+        case 'reply':
+            replyEmail(ctxEmailId);
+            break;
+        case 'forward':
+            forwardEmail(ctxEmailId);
+            break;
+        case 'star':
+            await apiPost('/api/email/star', { id: ctxEmailId });
+            loadEmails();
+            showToast(ctxEmailData?.is_starred ? 'Retire des favoris' : 'Ajoute aux favoris', 'success');
+            break;
+        case 'move_primary':
+            await apiPost('/api/email/move', { id: ctxEmailId, category: 'primary' });
+            loadEmails(); loadCounts();
+            showToast('Deplace vers Principal', 'success');
+            break;
+        case 'move_social':
+            await apiPost('/api/email/move', { id: ctxEmailId, category: 'social' });
+            loadEmails(); loadCounts();
+            showToast('Deplace vers Social', 'success');
+            break;
+        case 'move_promotions':
+            await apiPost('/api/email/move', { id: ctxEmailId, category: 'promotions' });
+            loadEmails(); loadCounts();
+            showToast('Deplace vers Promotions', 'success');
+            break;
+        case 'mark_read':
+            // Toggle read status
+            if (ctxEmailData && !ctxEmailData.is_read) {
+                openEmail(ctxEmailId); // Opening marks as read
+            }
+            showToast('Statut mis a jour', 'success');
+            break;
+        case 'block':
+            if (ctxEmailData) {
+                await apiPost('/api/blacklist/add', { email: ctxEmailData.from_email, reason: 'Blocked via context menu' });
+                showToast(`${ctxEmailData.from_email} bloque`, 'success');
+            }
+            break;
+        case 'spam':
+            await apiPost('/api/email/report-spam', { id: ctxEmailId });
+            loadEmails(); loadCounts();
+            showToast('Signale comme indesirable', 'success');
+            break;
+        case 'delete':
+            await apiPost('/api/email/delete', { id: ctxEmailId });
+            if (currentEmailId === ctxEmailId) {
+                currentEmailId = null;
+                document.getElementById('readingContent').style.display = 'none';
+                document.getElementById('readingEmpty').style.display = 'flex';
+            }
+            loadEmails(); loadCounts();
+            showToast('Email supprime', 'success');
+            break;
+    }
+}
+
+function hideCtxMenu() {
+    document.getElementById('ctxMenu').classList.remove('show');
+}
+
+// Close context menu on click anywhere or Escape
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('contextmenu', (e) => {
+    // Only show custom menu on email items
+    if (!e.target.closest('.email-item')) hideCtxMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideCtxMenu();
+});
+document.addEventListener('scroll', hideCtxMenu, true);
+
+// ─── Drag & Drop ──────────────────────────────────────────────────────
+let dragEmailId = null;
+
+function onEmailDragStart(e, emailId) {
+    dragEmailId = emailId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', emailId);
+    e.target.classList.add('dragging');
+
+    // Custom drag image
+    const ghost = e.target.cloneNode(true);
+    ghost.style.width = '300px';
+    ghost.style.opacity = '0.8';
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-9999px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 150, 20);
+    setTimeout(() => ghost.remove(), 0);
+}
+
+function onEmailDragEnd(e) {
+    e.target.classList.remove('dragging');
+    dragEmailId = null;
+    // Remove all drop-hover
+    document.querySelectorAll('.nav-item.drop-hover').forEach(n => n.classList.remove('drop-hover'));
+}
+
+function initDropZones() {
+    // Make sidebar nav-items drop targets
+    document.querySelectorAll('.sidebar .nav-item[data-cat]').forEach(navItem => {
+        navItem.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            navItem.classList.add('drop-hover');
+        });
+        navItem.addEventListener('dragleave', (e) => {
+            navItem.classList.remove('drop-hover');
+        });
+        navItem.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            navItem.classList.remove('drop-hover');
+            const cat = navItem.dataset.cat;
+            if (!dragEmailId || !cat) return;
+
+            if (cat === 'trash') {
+                await apiPost('/api/email/delete', { id: dragEmailId });
+                showToast('Email supprime', 'success');
+            } else if (cat === 'junk' || cat === 'spam') {
+                await apiPost('/api/email/report-spam', { id: dragEmailId });
+                showToast('Marque comme indesirable', 'success');
+            } else if (cat === 'starred') {
+                await apiPost('/api/email/star', { id: dragEmailId });
+                showToast('Ajoute aux favoris', 'success');
+            } else {
+                await apiPost('/api/email/move', { id: dragEmailId, category: cat });
+                showToast(`Deplace vers ${cat}`, 'success');
+            }
+            loadEmails();
+            loadCounts();
+        });
+    });
+}
+
+// Init drop zones on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initDropZones, 500);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.key === 'n' || e.key === 'N') showCompose();
+    if (e.key === 'r' || e.key === 'R') syncEmails();
+    if (e.key === 'Delete' && currentEmailId) deleteEmail(currentEmailId);
+});
+</script>
+</body>
+</html>

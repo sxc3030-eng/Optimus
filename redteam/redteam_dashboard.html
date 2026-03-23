@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedTeam Simulator v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161d;--bg3:#1c1c26;--bg4:#22222f;
+  --border:#ffffff0f;--border2:#ffffff1a;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;
+  --blue:#4d9fff;--bluedim:#1a3a6e;
+  --red:#ff4d6a;--reddim:#3d1220;
+  --green:#3dffb4;--greendim:#0d3326;
+  --amber:#ffb347;--amberdim:#3d2800;
+  --purple:#b47dff;--purpledim:#2a1a4d;
+  --cyan:#00d4ff;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+code,pre,.mono{font-family:'Geist Mono',monospace}
+
+/* ── Safety Warning Banner ───────────────────────────── */
+.safety-banner{background:linear-gradient(90deg,#3d2800,#4d1a00);border-bottom:2px solid var(--amber);padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--amber);flex-shrink:0}
+.safety-banner .icon{font-size:18px}
+.safety-banner strong{color:#ffcc00}
+
+/* ── Top Bar ─────────────────────────────────────────── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);height:49px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.logo-text{font-size:14px;font-weight:600}
+.logo-accent{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.version-tag{font-size:10px;background:var(--reddim);color:var(--red);padding:2px 7px;border-radius:6px;font-weight:600}
+.agent-indicators{display:flex;gap:10px;align-items:center}
+.agent-dot{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.agent-dot .dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.agent-dot .dot.online{background:var(--green);box-shadow:0 0 6px var(--green)}
+.agent-dot .dot.offline{background:var(--red);opacity:.5}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-family:'Outfit',sans-serif;cursor:pointer;transition:.15s;font-weight:500;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2)}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-red{background:var(--reddim);border-color:#ff4d6a44;color:var(--red);font-weight:700}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-blue{background:var(--bluedim);border-color:#4d9fff44;color:var(--blue)}
+.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-green{background:var(--greendim);border-color:#3dffb444;color:var(--green)}
+.btn-green:hover{background:var(--green);color:#000}
+.btn-amber{background:var(--amberdim);border-color:#ffb34744;color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#000}
+.btn-lg{padding:10px 20px;font-size:13px}
+
+/* ── Main Layout ─────────────────────────────────────── */
+.main-layout{display:grid;grid-template-columns:300px 1fr;flex:1;overflow:hidden}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
+.sidebar-section{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+
+/* Target IP */
+.target-group{display:flex;flex-direction:column;gap:6px}
+.target-group label{font-size:11px;color:var(--text2)}
+.target-input{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-family:'Geist Mono',monospace;font-size:13px;width:100%}
+.target-input:focus{outline:none;border-color:var(--blue)}
+
+/* Scenario Cards */
+.scenario-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:.15s}
+.scenario-card:hover{border-color:var(--blue);background:var(--bg4)}
+.scenario-card.active{border-color:var(--cyan);background:#0d2a3a}
+.scenario-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.scenario-name{font-size:13px;font-weight:600}
+.difficulty-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+.difficulty-easy{background:var(--greendim);color:var(--green)}
+.difficulty-medium{background:var(--amberdim);color:var(--amber)}
+.difficulty-hard{background:var(--reddim);color:var(--red)}
+.scenario-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.scenario-attacks{font-size:10px;color:var(--text3);margin-top:4px;font-family:'Geist Mono',monospace}
+
+/* Attack Checkboxes */
+.attack-list{display:flex;flex-direction:column;gap:4px}
+.attack-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:.1s;font-size:12px}
+.attack-item:hover{background:var(--bg4)}
+.attack-item input[type="checkbox"]{accent-color:var(--blue);width:14px;height:14px;cursor:pointer}
+.attack-item .risk{font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;text-transform:uppercase}
+.risk-low{background:var(--greendim);color:var(--green)}
+.risk-medium{background:var(--amberdim);color:var(--amber)}
+.risk-high{background:var(--reddim);color:var(--red)}
+.risk-critical{background:#4d0020;color:#ff2060}
+
+/* ── Main Content ────────────────────────────────────── */
+.content{overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600}
+.card-body{padding:14px}
+
+/* Results Table */
+.results-table{width:100%;border-collapse:collapse;font-size:12px}
+.results-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border2);color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.results-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+.results-table tr:hover td{background:var(--bg3)}
+.results-table .attack-name{color:var(--text);font-weight:500}
+.results-table .detected-yes{color:var(--green);font-weight:600}
+.results-table .detected-no{color:var(--red);font-weight:600}
+
+/* Scorecard */
+.scorecard{display:flex;align-items:center;gap:30px}
+.gauge-wrap{position:relative;width:130px;height:130px}
+.gauge-wrap canvas{width:130px;height:130px}
+.gauge-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-value{font-size:32px;font-weight:700;font-family:'Geist Mono',monospace}
+.gauge-sub{font-size:11px;color:var(--text3)}
+.score-details{display:flex;flex-direction:column;gap:8px}
+.score-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.score-dot{width:10px;height:10px;border-radius:50%}
+
+/* Timeline */
+.timeline-list{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.tl-item{display:flex;align-items:flex-start;gap:10px;padding:6px 8px;border-radius:6px;font-size:12px}
+.tl-item:hover{background:var(--bg3)}
+.tl-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.tl-time{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text3);flex-shrink:0;min-width:70px}
+.tl-text{color:var(--text2);line-height:1.4}
+
+/* ── Bottom Bar ──────────────────────────────────────── */
+.bottombar{background:var(--bg2);border-top:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:14px;flex-shrink:0;height:42px}
+.progress-wrap{flex:1;background:var(--bg4);border-radius:4px;height:6px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--red),var(--amber));border-radius:4px;transition:width .4s;width:0%}
+.status-text{font-size:11px;color:var(--text3);white-space:nowrap;min-width:200px;text-align:right}
+
+/* ── Confirmation Modal ──────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.visible{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:420px;max-width:90vw}
+.modal h3{font-size:16px;margin-bottom:12px;color:var(--amber)}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.modal .confirm-check{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:12px;color:var(--text2)}
+.modal .confirm-check input{accent-color:var(--amber);width:16px;height:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+
+/* Metric row */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.metric-value{font-size:24px;font-weight:700;font-family:'Geist Mono',monospace}
+.metric-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- Safety Warning Banner -->
+<div class="safety-banner">
+    <span class="icon">&#9888;</span>
+    <span><strong>WARNING:</strong> This is a <strong>PENETRATION TESTING</strong> tool. It will actively attack Optimus agents to test their defenses. Only use on systems you own. Attacks are restricted to localhost and private IP ranges.</span>
+</div>
+
+<!-- Top Bar -->
+<div class="topbar">
+    <div class="topbar-left">
+        <span class="logo-text"><span class="logo-accent">RedTeam Simulator</span></span>
+        <span class="version-tag">v1.0</span>
+        <div class="agent-indicators" id="agentIndicators">
+            <div class="agent-dot"><span class="dot" id="dot-netguard"></span>NetGuard</div>
+            <div class="agent-dot"><span class="dot" id="dot-honeypot"></span>HoneyPot</div>
+            <div class="agent-dot"><span class="dot" id="dot-strikeback"></span>StrikeBack</div>
+            <div class="agent-dot"><span class="dot" id="dot-fim"></span>FIM</div>
+            <div class="agent-dot"><span class="dot" id="dot-cortex"></span>Cortex</div>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="btn btn-red" id="btnEmergencyStop" onclick="emergencyStop()">&#9632; EMERGENCY STOP</button>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Target IP -->
+        <div>
+            <div class="sidebar-section">Target</div>
+            <div class="target-group">
+                <label>Target IP (private only)</label>
+                <input type="text" class="target-input" id="targetIp" value="127.0.0.1" placeholder="127.0.0.1">
+                <button class="btn btn-blue" style="width:100%;justify-content:center;margin-top:4px" onclick="setTarget()">Set Target</button>
+            </div>
+        </div>
+
+        <!-- Scenario Presets -->
+        <div>
+            <div class="sidebar-section">Scenario Presets</div>
+            <div class="scenario-card" data-scenario="script_kiddie" onclick="selectScenario('script_kiddie')">
+                <div class="scenario-header">
+                    <span class="scenario-name">Script Kiddie</span>
+                    <span class="difficulty-badge difficulty-easy">Easy</span>
+                </div>
+                <div class="scenario-desc">Basic port scan + brute force attempts</div>
+                <div class="scenario-attacks">2 attacks</div>
+            </div>
+            <div class="scenario-card" data-scenario="apt_simulation" onclick="selectScenario('apt_simulation')" style="margin-top:8px">
+                <div class="scenario-header">
+                    <span class="scenario-name">APT Simulation</span>
+                    <span class="difficulty-badge difficulty-medium">Medium</span>
+                </div>
+                <div class="scenario-desc">Advanced persistent threat with recon, tunneling, and evasion</div>
+                <div class="scenario-attacks">5 attacks</div>
+            </div>
+            <div class="scenario-card" data-scenario="full_redteam" onclick="selectScenario('full_redteam')" style="margin-top:8px">
+                <div class="scenario-header">
+                    <span class="scenario-name">Full RedTeam</span>
+                    <span class="difficulty-badge difficulty-hard">Hard</span>
+                </div>
+                <div class="scenario-desc">Complete penetration test: all 9 attack vectors</div>
+                <div class="scenario-attacks">9 attacks</div>
+            </div>
+        </div>
+
+        <!-- Attack Checkboxes -->
+        <div>
+            <div class="sidebar-section">Individual Attacks</div>
+            <div class="attack-list" id="attackList">
+                <label class="attack-item"><input type="checkbox" value="port_scan" checked> Port Scan <span class="risk risk-medium">MED</span></label>
+                <label class="attack-item"><input type="checkbox" value="brute_force"> Brute Force <span class="risk risk-high">HIGH</span></label>
+                <label class="attack-item"><input type="checkbox" value="syn_flood"> SYN Flood <span class="risk risk-critical">CRIT</span></label>
+                <label class="attack-item"><input type="checkbox" value="dns_tunnel"> DNS Tunnel <span class="risk risk-high">HIGH</span></label>
+                <label class="attack-item"><input type="checkbox" value="honeypot_prober"> Honeypot Prober <span class="risk risk-medium">MED</span></label>
+                <label class="attack-item"><input type="checkbox" value="decoy_trigger"> Decoy Trigger <span class="risk risk-high">HIGH</span></label>
+                <label class="attack-item"><input type="checkbox" value="dpi_trigger"> DPI Trigger <span class="risk risk-high">HIGH</span></label>
+                <label class="attack-item"><input type="checkbox" value="fim_tamper"> FIM Tamper <span class="risk risk-medium">MED</span></label>
+                <label class="attack-item"><input type="checkbox" value="network_scan_flood"> Net Scan Flood <span class="risk risk-high">HIGH</span></label>
+            </div>
+            <button class="btn btn-amber btn-lg" style="width:100%;justify-content:center;margin-top:10px" id="btnLaunch" onclick="launchSelected()">&#9889; Launch Selected</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Metrics Row -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-value" id="metricTotal" style="color:var(--blue)">0</div>
+                <div class="metric-label">Attacks Run</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricSuccess" style="color:var(--green)">0</div>
+                <div class="metric-label">Successful</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricFailed" style="color:var(--red)">0</div>
+                <div class="metric-label">Failed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricScapy" style="color:var(--purple)">--</div>
+                <div class="metric-label">Scapy</div>
+            </div>
+        </div>
+
+        <!-- Defense Scorecard -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Defense Scorecard</span>
+                <button class="btn" onclick="clearResults()" style="font-size:11px">Clear Results</button>
+            </div>
+            <div class="card-body">
+                <div class="scorecard">
+                    <div class="gauge-wrap">
+                        <canvas id="gaugeCanvas" width="130" height="130"></canvas>
+                        <div class="gauge-label">
+                            <div class="gauge-value" id="gaugeValue">--</div>
+                            <div class="gauge-sub">Detection %</div>
+                        </div>
+                    </div>
+                    <div class="score-details" id="scoreDetails">
+                        <div class="score-row"><span class="score-dot" style="background:var(--green)"></span> Detected: <strong id="scoreDetected">0</strong></div>
+                        <div class="score-row"><span class="score-dot" style="background:var(--red)"></span> Missed: <strong id="scoreMissed">0</strong></div>
+                        <div class="score-row"><span class="score-dot" style="background:var(--blue)"></span> Total: <strong id="scoreTotal">0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Attack Results</span>
+                <span class="card-title" style="color:var(--text3);font-weight:400" id="resultCount">0 results</span>
+            </div>
+            <div class="card-body" style="padding:0;max-height:220px;overflow-y:auto">
+                <table class="results-table">
+                    <thead>
+                        <tr><th>Attack</th><th>Target Agent</th><th>Duration</th><th>Status</th><th>Detected?</th></tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr><td colspan="5" class="empty-state">No attacks run yet. Select attacks and click Launch.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card" style="flex:1;min-height:0">
+            <div class="card-header">
+                <span class="card-title">Timeline</span>
+            </div>
+            <div class="card-body" style="padding:8px;overflow-y:auto;max-height:260px">
+                <div class="timeline-list" id="timelineList">
+                    <div class="empty-state">Timeline events will appear here...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Bar -->
+<div class="bottombar">
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="status-text" id="statusText">Ready</div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <h3>&#9888; Confirm Attack Launch</h3>
+        <p id="modalDesc">You are about to launch penetration testing attacks against local agents. These attacks will generate real network traffic and may trigger security alerts.</p>
+        <div class="confirm-check">
+            <input type="checkbox" id="confirmCheck">
+            <label for="confirmCheck">I understand this is a test and I have authorization to proceed</label>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-amber" id="btnConfirmLaunch" onclick="confirmLaunch()" disabled>Confirm Launch</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────
+let state = {};
+let selectedScenario = null;
+let pendingAction = null; // { type: 'scenario'|'attacks', payload: ... }
+let refreshTimer = null;
+
+// ── API helpers ─────────────────────────────────────────
+async function api(method, ...args) {
+    if (!window.pywebview || !window.pywebview.api) return null;
+    try {
+        const raw = await window.pywebview.api[method](...args);
+        return typeof raw === 'string' ? JSON.parse(raw) : raw;
+    } catch (e) {
+        console.error('API error:', method, e);
+        return null;
+    }
+}
+
+// ── Refresh State ───────────────────────────────────────
+async function refreshState() {
+    const s = await api('get_state');
+    if (s) {
+        state = s;
+        renderAll();
+    }
+}
+
+function renderAll() {
+    renderAgentDots();
+    renderMetrics();
+    renderResults();
+    renderTimeline();
+    renderGauge();
+    renderBottomBar();
+}
+
+// ── Agent Dots ──────────────────────────────────────────
+function renderAgentDots() {
+    const agents = state.agents || {};
+    ['netguard','honeypot','strikeback','fim','cortex'].forEach(name => {
+        const dot = document.getElementById('dot-' + name);
+        if (dot) {
+            const online = agents[name] && agents[name].online;
+            dot.className = 'dot ' + (online ? 'online' : 'offline');
+        }
+    });
+}
+
+// ── Metrics ─────────────────────────────────────────────
+function renderMetrics() {
+    const s = state.stats || {};
+    document.getElementById('metricTotal').textContent = s.total_attacks_run || 0;
+    document.getElementById('metricSuccess').textContent = s.successful || 0;
+    document.getElementById('metricFailed').textContent = s.failed || 0;
+    document.getElementById('metricScapy').textContent = s.has_scapy ? 'YES' : 'NO';
+    document.getElementById('metricScapy').style.color = s.has_scapy ? 'var(--green)' : 'var(--text3)';
+}
+
+// ── Results Table ───────────────────────────────────────
+function renderResults() {
+    const results = state.results || [];
+    const tbody = document.getElementById('resultsBody');
+    document.getElementById('resultCount').textContent = results.length + ' results';
+
+    if (results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No attacks run yet. Select attacks and click Launch.</td></tr>';
+        return;
+    }
+
+    let html = '';
+    for (let i = results.length - 1; i >= 0; i--) {
+        const r = results[i];
+        const dur = r.duration_s ? r.duration_s + 's' : '--';
+        const status = r.success ? '<span style="color:var(--green)">Success</span>' : '<span style="color:var(--red)">Failed</span>';
+        // Heuristic: if agent was online, assume detected
+        const agentInfo = state.agents ? state.agents[r.target_agent] : null;
+        const detected = agentInfo && agentInfo.online;
+        const detectedHtml = detected
+            ? '<span class="detected-yes">&#10003; Yes</span>'
+            : '<span class="detected-no">&#10007; No</span>';
+
+        html += '<tr>';
+        html += '<td class="attack-name">' + (r.attack || '--') + '</td>';
+        html += '<td>' + (r.target_agent || '--') + '</td>';
+        html += '<td class="mono">' + dur + '</td>';
+        html += '<td>' + status + '</td>';
+        html += '<td>' + detectedHtml + '</td>';
+        html += '</tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+// ── Timeline ────────────────────────────────────────────
+function renderTimeline() {
+    const events = state.timeline || [];
+    const container = document.getElementById('timelineList');
+
+    if (events.length === 0) {
+        container.innerHTML = '<div class="empty-state">Timeline events will appear here...</div>';
+        return;
+    }
+
+    let html = '';
+    for (let i = events.length - 1; i >= Math.max(0, events.length - 60); i--) {
+        const e = events[i];
+        const sev = e.severity || 'info';
+        let icon = '&#9675;'; // circle
+        if (sev === 'info') icon = '&#8505;';
+        else if (sev === 'warning') icon = '&#9888;';
+        else if (sev === 'error' || sev === 'critical') icon = '&#10060;';
+
+        const t = e.ts ? new Date(e.ts * 1000) : new Date();
+        const timeStr = t.toLocaleTimeString('en-US', { hour12: false });
+
+        let color = 'var(--text2)';
+        if (sev === 'warning') color = 'var(--amber)';
+        else if (sev === 'error') color = 'var(--red)';
+        else if (sev === 'critical') color = '#ff2060';
+
+        html += '<div class="tl-item">';
+        html += '<span class="tl-icon" style="color:' + color + '">' + icon + '</span>';
+        html += '<span class="tl-time">' + timeStr + '</span>';
+        html += '<span class="tl-text" style="color:' + color + '">[' + (e.source || '') + '] ' + (e.description || '') + '</span>';
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+// ── Gauge ───────────────────────────────────────────────
+function renderGauge() {
+    const results = state.results || [];
+    const agents = state.agents || {};
+    let total = results.length;
+    let detected = 0;
+
+    results.forEach(r => {
+        const agentInfo = agents[r.target_agent];
+        if (agentInfo && agentInfo.online) detected++;
+    });
+
+    const pct = total > 0 ? Math.round((detected / total) * 100) : 0;
+
+    document.getElementById('gaugeValue').textContent = total > 0 ? pct + '%' : '--';
+    document.getElementById('scoreDetected').textContent = detected;
+    document.getElementById('scoreMissed').textContent = total - detected;
+    document.getElementById('scoreTotal').textContent = total;
+
+    // Draw circular gauge
+    const canvas = document.getElementById('gaugeCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = 65, cy = 65, r = 52, lw = 8;
+    ctx.clearRect(0, 0, 130, 130);
+
+    // Background arc
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, -Math.PI * 0.75, Math.PI * 0.75);
+    ctx.strokeStyle = '#22222f';
+    ctx.lineWidth = lw;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Value arc
+    if (total > 0) {
+        const angle = -Math.PI * 0.75 + (Math.PI * 1.5) * (pct / 100);
+        let color = '#ff4d6a';
+        if (pct >= 80) color = '#3dffb4';
+        else if (pct >= 50) color = '#ffb347';
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, -Math.PI * 0.75, angle);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lw;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        document.getElementById('gaugeValue').style.color = color;
+    }
+}
+
+// ── Bottom Bar ──────────────────────────────────────────
+function renderBottomBar() {
+    const running = state.running;
+    const current = state.current_attack;
+    const statusEl = document.getElementById('statusText');
+    const progressEl = document.getElementById('progressBar');
+
+    if (running && current) {
+        statusEl.textContent = 'Running: ' + current + '...';
+        statusEl.style.color = 'var(--amber)';
+        progressEl.style.width = '60%';
+        progressEl.style.animation = 'none';
+    } else {
+        const total = (state.stats || {}).total_attacks_run || 0;
+        statusEl.textContent = total > 0 ? ('Idle -- ' + total + ' attacks completed') : 'Ready';
+        statusEl.style.color = 'var(--text3)';
+        progressEl.style.width = '0%';
+    }
+}
+
+// ── Actions ─────────────────────────────────────────────
+function selectScenario(name) {
+    selectedScenario = name;
+    document.querySelectorAll('.scenario-card').forEach(c => {
+        c.classList.toggle('active', c.dataset.scenario === name);
+    });
+    // Uncheck all individual attacks
+    document.querySelectorAll('#attackList input[type="checkbox"]').forEach(cb => cb.checked = false);
+}
+
+function getSelectedAttacks() {
+    const checks = document.querySelectorAll('#attackList input[type="checkbox"]:checked');
+    return Array.from(checks).map(c => c.value);
+}
+
+function launchSelected() {
+    if (selectedScenario) {
+        pendingAction = { type: 'scenario', payload: selectedScenario };
+        document.getElementById('modalDesc').textContent =
+            'You are about to run the "' + selectedScenario + '" scenario. This will launch multiple attacks against your local agents.';
+    } else {
+        const attacks = getSelectedAttacks();
+        if (attacks.length === 0) {
+            alert('Select at least one attack or scenario');
+            return;
+        }
+        pendingAction = { type: 'attacks', payload: attacks };
+        document.getElementById('modalDesc').textContent =
+            'You are about to launch ' + attacks.length + ' attack(s) against ' + document.getElementById('targetIp').value + '. This will generate real network traffic.';
+    }
+    document.getElementById('confirmCheck').checked = false;
+    document.getElementById('btnConfirmLaunch').disabled = true;
+    document.getElementById('confirmModal').classList.add('visible');
+}
+
+function closeModal() {
+    document.getElementById('confirmModal').classList.remove('visible');
+    pendingAction = null;
+}
+
+document.getElementById('confirmCheck').addEventListener('change', function() {
+    document.getElementById('btnConfirmLaunch').disabled = !this.checked;
+});
+
+async function confirmLaunch() {
+    closeModal();
+    if (!pendingAction) return;
+
+    if (pendingAction.type === 'scenario') {
+        await api('run_scenario', pendingAction.payload);
+    } else {
+        // Launch individual attacks sequentially
+        for (const name of pendingAction.payload) {
+            await api('run_attack', name);
+        }
+    }
+    pendingAction = null;
+    setTimeout(refreshState, 500);
+}
+
+async function setTarget() {
+    const ip = document.getElementById('targetIp').value.trim();
+    if (!ip) return;
+    const result = await api('set_target_ip', ip);
+    if (result && !result.success) {
+        alert(result.error || 'Failed to set target');
+    }
+    setTimeout(refreshState, 300);
+}
+
+async function emergencyStop() {
+    await api('stop_attack');
+    setTimeout(refreshState, 300);
+}
+
+async function clearResults() {
+    await api('clear_results');
+    setTimeout(refreshState, 300);
+}
+
+// ── Init ────────────────────────────────────────────────
+async function init() {
+    // Wait for pywebview API to be ready
+    let retries = 0;
+    while ((!window.pywebview || !window.pywebview.api) && retries < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        retries++;
+    }
+    // Check agents on startup
+    await api('check_agents_online');
+    await refreshState();
+
+    // Auto-refresh every 2 seconds
+    refreshTimer = setInterval(refreshState, 2000);
+}
+
+// Start when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+</script>
+</body>
+</html>
