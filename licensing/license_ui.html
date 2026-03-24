@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimus — License Activation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0e17;
+            color: #c8d6e5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 520px;
+            max-width: 95vw;
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%);
+            padding: 28px 32px 20px;
+            border-bottom: 1px solid #1e293b;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: .5px;
+        }
+
+        .header .subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .badge.community { background: #1e3a5f; color: #60a5fa; }
+        .badge.pro       { background: #1e3a2e; color: #4ade80; }
+        .badge.earlybird { background: #3b2e1e; color: #fbbf24; }
+        .badge.enterprise{ background: #3b1e3b; color: #c084fc; }
+
+        .body { padding: 24px 32px; }
+
+        /* --- Status panel --- */
+        .status-panel {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-panel .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .status-panel .label { color: #64748b; }
+        .status-panel .value { color: #e2e8f0; font-weight: 500; }
+        .status-panel .value.active { color: #4ade80; }
+        .status-panel .value.expired { color: #f87171; }
+
+        /* --- Activation form --- */
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+        }
+
+        .key-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 15px;
+            letter-spacing: 1.5px;
+            text-align: center;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .key-input::placeholder { color: #475569; letter-spacing: 1px; }
+        .key-input:focus { border-color: #3b82f6; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: .3px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+        }
+        .btn-primary:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: transparent;
+            color: #64748b;
+            border: 1px solid #1e293b;
+            margin-top: 8px;
+        }
+        .btn-ghost:hover { color: #94a3b8; border-color: #334155; }
+
+        /* --- Message --- */
+        .message {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+        .message.success { display: block; background: #052e16; color: #4ade80; border: 1px solid #166534; }
+        .message.error   { display: block; background: #2a0a0a; color: #f87171; border: 1px solid #7f1d1d; }
+
+        /* --- Tier cards --- */
+        .tiers-section {
+            margin-top: 20px;
+            border-top: 1px solid #1e293b;
+            padding-top: 18px;
+        }
+
+        .tiers-section h3 {
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 12px;
+        }
+
+        .tier-cards { display: flex; flex-direction: column; gap: 8px; }
+
+        .tier-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+        .tier-card:hover { border-color: #334155; }
+
+        .tier-card .tier-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .tier-card .tier-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .tier-card .tier-price {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tier-card .tier-price.free      { color: #60a5fa; }
+        .tier-card .tier-price.pro        { color: #4ade80; }
+        .tier-card .tier-price.earlybird  { color: #fbbf24; }
+        .tier-card .tier-price.enterprise { color: #c084fc; }
+
+        .footer {
+            padding: 14px 32px;
+            border-top: 1px solid #1e293b;
+            text-align: center;
+        }
+
+        .footer a {
+            color: #475569;
+            font-size: 11px;
+            text-decoration: none;
+        }
+        .footer a:hover { color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Optimus Cybersecurity Defense Suite</h1>
+            <div class="subtitle">License Activation</div>
+            <span class="badge community" id="tierBadge">COMMUNITY</span>
+        </div>
+
+        <div class="body">
+            <!-- Current Status -->
+            <div class="status-panel" id="statusPanel">
+                <div class="row">
+                    <span class="label">Status</span>
+                    <span class="value active" id="statusValue">Active</span>
+                </div>
+                <div class="row">
+                    <span class="label">Tier</span>
+                    <span class="value" id="tierValue">Community (Free)</span>
+                </div>
+                <div class="row">
+                    <span class="label">Programs</span>
+                    <span class="value" id="programsValue">5 of 14</span>
+                </div>
+                <div class="row">
+                    <span class="label">Expires</span>
+                    <span class="value" id="expiryValue">N/A</span>
+                </div>
+            </div>
+
+            <!-- Activation Form -->
+            <div class="form-group">
+                <label for="licenseKey">License Key</label>
+                <input type="text" class="key-input" id="licenseKey"
+                       placeholder="OPTMS-XXXXX-XXXXX-XXXXX-XXXXX"
+                       maxlength="29" spellcheck="false" autocomplete="off">
+            </div>
+
+            <button class="btn btn-primary" id="activateBtn" onclick="activateLicense()">
+                Activate License
+            </button>
+
+            <button class="btn btn-ghost" onclick="continueFree()">
+                Continue with Community (Free)
+            </button>
+
+            <div class="message" id="message"></div>
+
+            <!-- Tier Overview -->
+            <div class="tiers-section">
+                <h3>Available Tiers</h3>
+                <div class="tier-cards">
+                    <div class="tier-card" onclick="window.open('https://github.com/sxc3030-eng','_blank')">
+                        <div>
+                            <div class="tier-name">Community</div>
+                            <div class="tier-desc">5 core programs — personal use</div>
+                        </div>
+                        <div class="tier-price free">Free</div>
+                    </div>
+                    <div class="tier-card" onclick="window.open('https://github.com/sxc3030-eng','_blank')">
+                        <div>
+                            <div class="tier-name">Pro</div>
+                            <div class="tier-desc">All 14 programs — 5 devices</div>
+                        </div>
+                        <div class="tier-price pro">$29/yr</div>
+                    </div>
+                    <div class="tier-card" onclick="window.open('https://github.com/sxc3030-eng','_blank')">
+                        <div>
+                            <div class="tier-name">Early Bird</div>
+                            <div class="tier-desc">All 14 programs — lifetime — 10 devices</div>
+                        </div>
+                        <div class="tier-price earlybird">$14.99</div>
+                    </div>
+                    <div class="tier-card" onclick="window.open('https://github.com/sxc3030-eng','_blank')">
+                        <div>
+                            <div class="tier-name">Enterprise</div>
+                            <div class="tier-desc">All programs + SIEM/SOAR — unlimited devices</div>
+                        </div>
+                        <div class="tier-price enterprise">$99/yr</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="https://github.com/sxc3030-eng">sxc3030-eng</a>
+            &nbsp;&middot;&nbsp;
+            <a href="#">Terms of Service</a>
+            &nbsp;&middot;&nbsp;
+            <a href="#">Privacy Policy</a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-format key input with dashes
+        const keyInput = document.getElementById('licenseKey');
+        keyInput.addEventListener('input', function (e) {
+            let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            let parts = [];
+            for (let i = 0; i < raw.length && parts.length < 5; i += 5) {
+                parts.push(raw.substring(i, i + 5));
+            }
+            this.value = parts.join('-');
+        });
+
+        // Activate via pywebview bridge or standalone display
+        function activateLicense() {
+            const key = keyInput.value.trim();
+            if (!key) {
+                showMessage('Please enter a license key.', 'error');
+                return;
+            }
+
+            // Validate format client-side
+            const pattern = /^OPTMS-[CPEX][A-Z2-7]{4}-[A-Z2-7]{5}-[A-Z2-7]{5}-[A-Z2-7]{5}$/;
+            if (!pattern.test(key)) {
+                showMessage('Invalid key format. Expected: OPTMS-XXXXX-XXXXX-XXXXX-XXXXX', 'error');
+                return;
+            }
+
+            // Try pywebview bridge
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.activate_license(key).then(function (result) {
+                    if (result && result.success) {
+                        showMessage('License activated! Tier: ' + result.tier_name, 'success');
+                        updateStatus(result);
+                    } else {
+                        showMessage(result ? result.message : 'Activation failed.', 'error');
+                    }
+                });
+            } else {
+                // Standalone mode — show parsed info
+                const tierCode = key.charAt(6);
+                const tierMap = { C: 'Community', P: 'Pro', E: 'Early Bird', X: 'Enterprise' };
+                const tierName = tierMap[tierCode] || 'Unknown';
+                showMessage(
+                    'Key accepted (offline). Tier: ' + tierName +
+                    '. Restart the suite to apply.',
+                    'success'
+                );
+            }
+        }
+
+        function continueFree() {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.continue_free();
+            } else {
+                showMessage('Continuing with Community (Free) license.', 'success');
+            }
+        }
+
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.textContent = text;
+            el.className = 'message ' + type;
+        }
+
+        function updateStatus(info) {
+            const badge = document.getElementById('tierBadge');
+            const tierMap = {
+                community: 'COMMUNITY', pro: 'PRO',
+                earlybird: 'EARLY BIRD', enterprise: 'ENTERPRISE'
+            };
+
+            if (info.tier) {
+                badge.textContent = tierMap[info.tier] || info.tier.toUpperCase();
+                badge.className = 'badge ' + info.tier;
+            }
+            if (info.tier_name) {
+                document.getElementById('tierValue').textContent = info.tier_name;
+            }
+            if (info.active !== undefined) {
+                const sv = document.getElementById('statusValue');
+                sv.textContent = info.active ? 'Active' : 'Expired';
+                sv.className = 'value ' + (info.active ? 'active' : 'expired');
+            }
+            if (info.programs_count) {
+                document.getElementById('programsValue').textContent =
+                    info.programs_count + ' of 14';
+            }
+            if (info.expires_at) {
+                document.getElementById('expiryValue').textContent = info.expires_at;
+            }
+        }
+
+        // Load current status on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.get_license_info().then(function (info) {
+                    if (info) updateStatus(info);
+                });
+            }
+        });
+
+        // Enter key to activate
+        keyInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') activateLicense();
+        });
+    </script>
+</body>
+</html>
