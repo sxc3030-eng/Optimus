@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "optimus-desktop",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8085", "--directory", "D:\\NetGuardPro-Linux\\optimus_desktop"],
+      "port": 8085
+    }
+  ]
+}
