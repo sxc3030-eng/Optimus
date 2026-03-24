@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimus — Cybersecurity Defense Suite</title>
+    <meta name="description" content="14 integrated security tools. One platform. Linux native. The ultimate cybersecurity defense suite.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg-light: #12121a;
+            --bg-card: rgba(255,255,255,0.03);
+            --green: #00ff88;
+            --blue: #00ccff;
+            --purple: #a855f7;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --border: rgba(255,255,255,0.06);
+            --glow-green: 0 0 30px rgba(0,255,136,0.15);
+            --glow-blue: 0 0 30px rgba(0,204,255,0.15);
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(10,10,15,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+        .nav-logo { font-weight: 800; font-size: 1.25rem; color: var(--green); text-decoration: none; letter-spacing: 2px; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color .2s; }
+        .nav-links a:hover { color: var(--green); }
+        .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.4rem; cursor: pointer; }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,255,136,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 70% 60%, rgba(0,204,255,0.04) 0%, transparent 60%);
+            animation: heroPulse 8s ease-in-out infinite alternate;
+        }
+        @keyframes heroPulse {
+            0% { opacity: .6; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+        .hero-grid {
+            position: absolute; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+        }
+        .hero-content { position: relative; z-index: 1; max-width: 800px; }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.2);
+            color: var(--green);
+            padding: .35rem 1rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 { font-size: clamp(3rem,8vw,5.5rem); font-weight: 800; letter-spacing: 4px; margin-bottom: .5rem; }
+        .hero h1 span { color: var(--green); }
+        .hero h2 { font-size: clamp(1.1rem,3vw,1.6rem); font-weight: 400; color: var(--text-dim); margin-bottom: 1rem; }
+        .hero p { font-size: 1.1rem; color: var(--text-dim); max-width: 540px; margin: 0 auto 2.5rem; }
+        .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .75rem 1.75rem;
+            border-radius: 8px;
+            font-family: inherit; font-weight: 600; font-size: .95rem;
+            text-decoration: none;
+            cursor: pointer; border: none;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: var(--green); color: #0a0a0f; box-shadow: var(--glow-green); }
+        .btn-primary:hover { box-shadow: 0 0 50px rgba(0,255,136,0.3); }
+        .btn-secondary { background: transparent; color: var(--blue); border: 1px solid rgba(0,204,255,0.3); }
+        .btn-secondary:hover { border-color: var(--blue); box-shadow: var(--glow-blue); }
+        .btn-accent { background: linear-gradient(135deg, var(--green), var(--blue)); color: #0a0a0f; }
+
+        /* ── SECTIONS ── */
+        section { padding: 5rem 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            display: inline-block;
+            color: var(--green); font-size: .8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: .5rem;
+        }
+        .section-title { font-size: clamp(1.8rem,4vw,2.6rem); font-weight: 700; margin-bottom: 1rem; }
+        .section-sub { color: var(--text-dim); max-width: 600px; margin-bottom: 3rem; }
+
+        /* ── FEATURES GRID ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform .25s, border-color .25s, box-shadow .25s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,255,136,0.2);
+            box-shadow: var(--glow-green);
+        }
+        .feature-icon { font-size: 1.8rem; margin-bottom: .75rem; }
+        .feature-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: .25rem; }
+        .feature-card .port { font-size: .75rem; color: var(--blue); font-weight: 500; margin-bottom: .5rem; }
+        .feature-card p { font-size: .88rem; color: var(--text-dim); line-height: 1.5; }
+
+        /* ── PRICING ── */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .price-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+            transition: transform .25s, box-shadow .25s;
+        }
+        .price-card:hover { transform: translateY(-4px); }
+        .price-card.featured {
+            border-color: var(--green);
+            box-shadow: var(--glow-green);
+            transform: scale(1.04);
+        }
+        .price-card.featured:hover { transform: scale(1.06) translateY(-4px); }
+        .price-badge {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--green); color: #0a0a0f;
+            padding: .25rem .9rem; border-radius: 999px;
+            font-size: .7rem; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+        }
+        .price-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: .75rem; }
+        .price-amount { font-size: 2.4rem; font-weight: 800; margin-bottom: .25rem; }
+        .price-amount span { font-size: .9rem; font-weight: 400; color: var(--text-dim); }
+        .price-card ul { list-style: none; margin: 1.25rem 0; text-align: left; }
+        .price-card li { padding: .35rem 0; font-size: .9rem; color: var(--text-dim); }
+        .price-card li i { color: var(--green); margin-right: .5rem; width: 16px; text-align: center; }
+
+        /* ── HOW IT WORKS ── */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .step {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .step-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(0,255,136,0.1);
+            color: var(--green);
+            font-weight: 700; font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .step h3 { margin-bottom: .5rem; font-size: 1.1rem; }
+        .step p { font-size: .9rem; color: var(--text-dim); }
+
+        /* ── ARCHITECTURE ── */
+        .arch-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2.5rem;
+            overflow-x: auto;
+        }
+        .arch-visual {
+            display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+            min-width: 600px;
+        }
+        .arch-core {
+            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.1));
+            border: 2px solid var(--green);
+            border-radius: 16px;
+            padding: 1.25rem 2.5rem;
+            text-align: center;
+            box-shadow: var(--glow-green);
+        }
+        .arch-core h3 { color: var(--green); font-size: 1.2rem; }
+        .arch-core p { font-size: .8rem; color: var(--text-dim); }
+        .arch-connector { width: 2px; height: 28px; background: linear-gradient(to bottom, var(--green), var(--blue)); }
+        .arch-bus {
+            width: 80%; height: 2px;
+            background: linear-gradient(to right, transparent, var(--blue), var(--green), var(--blue), transparent);
+            position: relative;
+        }
+        .arch-ring {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem;
+            max-width: 900px;
+        }
+        .arch-node {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .5rem 1rem;
+            font-size: .78rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .arch-node:hover { border-color: rgba(0,204,255,0.4); box-shadow: var(--glow-blue); }
+        .arch-node span { margin-right: .35rem; }
+
+        /* ── STATS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .stat-number { font-size: 2.2rem; font-weight: 800; color: var(--green); }
+        .stat-label { font-size: .9rem; color: var(--text-dim); margin-top: .25rem; }
+
+        /* ── COMPARISON ── */
+        .comparison-wrap { overflow-x: auto; }
+        .comparison-table {
+            width: 100%; border-collapse: collapse;
+            min-width: 600px;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: .85rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: .92rem;
+        }
+        .comparison-table thead th {
+            color: var(--text); font-weight: 600;
+            background: rgba(255,255,255,0.02);
+            position: sticky; top: 0;
+        }
+        .comparison-table thead th:nth-child(2) { color: var(--green); }
+        .comparison-table td:first-child { font-weight: 500; }
+        .check { color: var(--green); }
+        .cross { color: #ff4466; }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+        .footer-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .footer-links a { color: var(--text-dim); text-decoration: none; font-size: .9rem; transition: color .2s; }
+        .footer-links a:hover { color: var(--green); }
+        .footer-gpg { font-size: .8rem; color: var(--text-dim); margin-bottom: 1rem; font-family: monospace; }
+        .footer-copy { font-size: .85rem; color: var(--text-dim); }
+
+        /* ── SCROLL REVEAL ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity .7s ease, transform .7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 64px; left: 0; width: 100%; background: rgba(10,10,15,0.97); padding: 1.5rem 2rem; gap: 1rem; border-bottom: 1px solid var(--border); }
+            .nav-links.open { display: flex; }
+            .nav-toggle { display: block; }
+            .hero h1 { letter-spacing: 2px; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .price-card.featured { transform: none; }
+            .price-card.featured:hover { transform: translateY(-4px); }
+            .arch-container { padding: 1.5rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="nav-logo"><i class="fas fa-bolt"></i> OPTIMUS</a>
+        <button class="nav-toggle" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#how">How It Works</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#compare">Compare</a></li>
+            <li><a href="https://github.com/sxc3030-eng/Optimus" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+        <div class="hero-badge"><i class="fas fa-shield-halved"></i>&ensp;CYBERSECURITY DEFENSE PLATFORM</div>
+        <h1><span><i class="fas fa-bolt"></i> OPTIMUS</span></h1>
+        <h2>Cybersecurity Defense Suite</h2>
+        <p>14 integrated security tools. One platform. Linux native.</p>
+        <div class="hero-buttons">
+            <a href="#pricing" class="btn btn-primary"><i class="fas fa-download"></i> Download ISO</a>
+            <a href="https://github.com/sxc3030-eng/Optimus" class="btn btn-secondary" target="_blank"><i class="fab fa-github"></i> View on GitHub</a>
+            <a href="#pricing" class="btn btn-accent"><i class="fas fa-tag"></i> Get Early Bird License</a>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ FEATURES ════════════ -->
+<section id="features">
+    <div class="container">
+        <div class="reveal">
+            <span class="section-label">Integrated Tools</span>
+            <h2 class="section-title">14 Programs. Zero Gaps.</h2>
+            <p class="section-sub">Every tool is built to work together through the Cortex intelligence bus. No glue scripts, no compatibility nightmares.</p>
+        </div>
+        <div class="features-grid reveal">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-brain" style="color:var(--purple)"></i></div>
+                <h3>Cortex</h3>
+                <div class="port">Port 5600</div>
+                <p>Central AI intelligence bus. Correlates events across all modules in real time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-network-wired" style="color:var(--green)"></i></div>
+                <h3>NetGuard</h3>
+                <div class="port">Port 5000</div>
+                <p>Real-time packet capture, threat detection, and network monitoring dashboard.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-fire-flame-curved" style="color:#ff6644"></i></div>
+                <h3>PyroWall</h3>
+                <div class="port">Port 5001</div>
+                <p>Intelligent firewall manager with GUI, geo-blocking, and adaptive rules.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-envelope-circle-check" style="color:var(--blue)"></i></div>
+                <h3>MailShield</h3>
+                <div class="port">Port 5002</div>
+                <p>Secure email client with phishing detection and intelligent spam filtering.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-virus" style="color:#ff4466"></i></div>
+                <h3>Sentinel</h3>
+                <div class="port">Port 5003</div>
+                <p>Host-based intrusion detection and prevention with behavioral analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-lock" style="color:var(--green)"></i></div>
+                <h3>VPNGuard</h3>
+                <div class="port">Port 5004</div>
+                <p>WireGuard VPN manager with kill switch, DNS leak protection, and auto-connect.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-broom" style="color:#ffaa00"></i></div>
+                <h3>CleanGuard</h3>
+                <div class="port">Port 5005</div>
+                <p>System hygiene tool: temp file cleanup, log rotation, and disk optimization.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line" style="color:var(--blue)"></i></div>
+                <h3>SIEMGuard</h3>
+                <div class="port">Port 5006</div>
+                <p>Full SIEM dashboard with log aggregation, alerting, and compliance reporting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-spider" style="color:var(--purple)"></i></div>
+                <h3>WebCrawler</h3>
+                <div class="port">Port 5007</div>
+                <p>OSINT web crawler for threat intelligence gathering and dark web monitoring.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-crosshairs" style="color:#ff4466"></i></div>
+                <h3>RedTeam Simulator</h3>
+                <div class="port">Port 5008</div>
+                <p>Automated penetration testing and attack simulation against your own infra.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-fingerprint" style="color:var(--green)"></i></div>
+                <h3>ForensicKit</h3>
+                <div class="port">Port 5009</div>
+                <p>Digital forensics toolkit: disk imaging, memory analysis, and evidence chain.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-satellite-dish" style="color:var(--blue)"></i></div>
+                <h3>SignalGuard</h3>
+                <div class="port">Port 5010</div>
+                <p>Wireless security monitor for Wi-Fi, Bluetooth, and RF signal analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-key" style="color:#ffaa00"></i></div>
+                <h3>VaultKeeper</h3>
+                <div class="port">Port 5011</div>
+                <p>Encrypted secrets vault with GPG integration and secure credential sharing.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-desktop" style="color:var(--blue)"></i></div>
+                <h3>Optimus Desktop</h3>
+                <div class="port">Openbox DE</div>
+                <p>Custom Linux desktop environment with security-first defaults and hardened kernel.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ PRICING ════════════ -->
+<section id="pricing" style="background:var(--bg-light)">
+    <div class="container">
+        <div class="reveal" style="text-align:center">
+            <span class="section-label">Pricing</span>
+            <h2 class="section-title">Choose Your Shield</h2>
+            <p class="section-sub" style="margin-left:auto;margin-right:auto">From hobbyist to enterprise. Every tier includes free updates for the duration of your license.</p>
+        </div>
+        <div class="pricing-grid reveal">
+            <!-- Community -->
+            <div class="price-card">
+                <h3>Community</h3>
+                <div class="price-amount">FREE</div>
+                <p style="color:var(--text-dim);font-size:.85rem">Forever</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> 5 core programs</li>
+                    <li><i class="fas fa-check"></i> Personal use only</li>
+                    <li><i class="fas fa-check"></i> Community support</li>
+                    <li><i class="fas fa-check"></i> 1 device</li>
+                    <li><i class="fas fa-check"></i> GitHub updates</li>
+                </ul>
+                <a href="#" class="btn btn-secondary" style="width:100%;justify-content:center">Get Free</a>
+            </div>
+            <!-- Pro -->
+            <div class="price-card">
+                <h3>Pro</h3>
+                <div class="price-amount">$29<span>/year</span></div>
+                <p style="color:var(--text-dim);font-size:.85rem">Billed annually</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> All 14 programs</li>
+                    <li><i class="fas fa-check"></i> Commercial use</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                    <li><i class="fas fa-check"></i> 5 devices</li>
+                    <li><i class="fas fa-check"></i> Cortex AI features</li>
+                </ul>
+                <a href="#" class="btn btn-secondary" style="width:100%;justify-content:center">Buy Pro</a>
+            </div>
+            <!-- Early Bird -->
+            <div class="price-card featured">
+                <div class="price-badge">LIMITED &mdash; 500 SPOTS</div>
+                <h3>Early Bird</h3>
+                <div class="price-amount" style="color:var(--green)">$14.99</div>
+                <p style="color:var(--green);font-size:.85rem;font-weight:600">Lifetime License</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> All 14 programs</li>
+                    <li><i class="fas fa-check"></i> Lifetime updates</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                    <li><i class="fas fa-check"></i> 10 devices</li>
+                    <li><i class="fas fa-check"></i> Early access to new tools</li>
+                    <li><i class="fas fa-star" style="color:#ffaa00"></i> Founding member badge</li>
+                </ul>
+                <a href="#" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-bolt"></i> GET NOW!</a>
+            </div>
+            <!-- Enterprise -->
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price-amount">$99<span>/year</span></div>
+                <p style="color:var(--text-dim);font-size:.85rem">Per organization</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> Unlimited devices</li>
+                    <li><i class="fas fa-check"></i> Multi-site deployment</li>
+                    <li><i class="fas fa-check"></i> Dedicated support</li>
+                    <li><i class="fas fa-check"></i> Custom integrations</li>
+                    <li><i class="fas fa-check"></i> SLA guarantee</li>
+                </ul>
+                <a href="#" class="btn btn-secondary" style="width:100%;justify-content:center">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ HOW IT WORKS ════════════ -->
+<section id="how">
+    <div class="container">
+        <div class="reveal" style="text-align:center">
+            <span class="section-label">Getting Started</span>
+            <h2 class="section-title">Up and Running in 3 Steps</h2>
+        </div>
+        <div class="steps reveal">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Download &amp; Install</h3>
+                <p>Grab the bootable ISO or <code style="color:var(--green)">git clone</code> the repository. Flash to USB or run in a VM.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Launch optimus.sh</h3>
+                <p>Run the unified launcher menu. Pick which modules to activate or start them all at once.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>You're Protected</h3>
+                <p>All 14 tools are ready. Cortex correlates threats across modules automatically.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ ARCHITECTURE ════════════ -->
+<section id="architecture" style="background:var(--bg-light)">
+    <div class="container">
+        <div class="reveal">
+            <span class="section-label">System Design</span>
+            <h2 class="section-title">Architecture</h2>
+            <p class="section-sub">Cortex sits at the center, connecting every module through a shared intelligence bus.</p>
+        </div>
+        <div class="arch-container reveal">
+            <div class="arch-visual">
+                <div class="arch-core">
+                    <h3><i class="fas fa-brain"></i> Cortex Intelligence Bus</h3>
+                    <p>Event correlation &bull; Threat scoring &bull; Cross-module orchestration</p>
+                </div>
+                <div class="arch-connector"></div>
+                <div class="arch-bus"></div>
+                <div class="arch-ring">
+                    <div class="arch-node"><span><i class="fas fa-network-wired"></i></span> NetGuard</div>
+                    <div class="arch-node"><span><i class="fas fa-fire-flame-curved"></i></span> PyroWall</div>
+                    <div class="arch-node"><span><i class="fas fa-envelope-circle-check"></i></span> MailShield</div>
+                    <div class="arch-node"><span><i class="fas fa-shield-virus"></i></span> Sentinel</div>
+                    <div class="arch-node"><span><i class="fas fa-lock"></i></span> VPNGuard</div>
+                    <div class="arch-node"><span><i class="fas fa-broom"></i></span> CleanGuard</div>
+                    <div class="arch-node"><span><i class="fas fa-chart-line"></i></span> SIEMGuard</div>
+                    <div class="arch-node"><span><i class="fas fa-spider"></i></span> WebCrawler</div>
+                    <div class="arch-node"><span><i class="fas fa-crosshairs"></i></span> RedTeam</div>
+                    <div class="arch-node"><span><i class="fas fa-fingerprint"></i></span> ForensicKit</div>
+                    <div class="arch-node"><span><i class="fas fa-satellite-dish"></i></span> SignalGuard</div>
+                    <div class="arch-node"><span><i class="fas fa-key"></i></span> VaultKeeper</div>
+                    <div class="arch-node"><span><i class="fas fa-desktop"></i></span> Desktop</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ STATS ════════════ -->
+<section id="stats">
+    <div class="container">
+        <div class="reveal" style="text-align:center">
+            <span class="section-label">By the Numbers</span>
+            <h2 class="section-title">Built to Defend</h2>
+        </div>
+        <div class="stats-grid reveal">
+            <div class="stat-card">
+                <div class="stat-number">110,000+</div>
+                <div class="stat-label">Lines of Code</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">14</div>
+                <div class="stat-label">Integrated Tools</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><i class="fas fa-key"></i> GPG</div>
+                <div class="stat-label">Signed Commits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><i class="fas fa-compact-disc"></i> ISO</div>
+                <div class="stat-label">Bootable Image Included</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ COMPARISON ════════════ -->
+<section id="compare" style="background:var(--bg-light)">
+    <div class="container">
+        <div class="reveal" style="text-align:center">
+            <span class="section-label">Comparison</span>
+            <h2 class="section-title">Optimus vs. The Rest</h2>
+            <p class="section-sub" style="margin-left:auto;margin-right:auto">Purpose-built security platform vs. general-purpose pentesting distros.</p>
+        </div>
+        <div class="comparison-wrap reveal">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th><i class="fas fa-bolt"></i> Optimus</th>
+                        <th>Kali Linux</th>
+                        <th>Parrot OS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Integrated SIEM</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Built-in Firewall GUI</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Custom Desktop Environment</td><td class="check"><i class="fas fa-check"></i></td><td class="check"><i class="fas fa-check"></i></td><td class="check"><i class="fas fa-check"></i></td></tr>
+                    <tr><td>RedTeam Simulator</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>AI Threat Correlation</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Secure Email Client</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>VPN Manager (WireGuard)</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Secrets Vault</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Digital Forensics Toolkit</td><td class="check"><i class="fas fa-check"></i></td><td class="check"><i class="fas fa-check"></i></td><td class="check"><i class="fas fa-check"></i></td></tr>
+                    <tr><td>Unified Launcher Menu</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                    <tr><td>Cross-module Event Bus</td><td class="check"><i class="fas fa-check"></i></td><td class="cross"><i class="fas fa-xmark"></i></td><td class="cross"><i class="fas fa-xmark"></i></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/sxc3030-eng/Optimus" target="_blank"><i class="fab fa-github"></i> Optimus</a>
+            <a href="https://github.com/sxc3030-eng/NetGuardPro" target="_blank"><i class="fab fa-github"></i> NetGuardPro</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#compare">Compare</a>
+        </div>
+        <div class="footer-gpg"><i class="fas fa-key"></i> GPG: All commits signed &mdash; verify with <code>git log --show-signature</code></div>
+        <p class="footer-copy">&copy; 2026 sxc3030-eng. All rights reserved. Built with &#10084;&#65039; and Python.</p>
+    </div>
+</footer>
+
+<!-- ════════════ JS ════════════ -->
+<script>
+    // Mobile nav toggle
+    document.querySelector('.nav-toggle').addEventListener('click', function () {
+        document.querySelector('.nav-links').classList.toggle('open');
+    });
+
+    // Close mobile nav on link click
+    document.querySelectorAll('.nav-links a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            document.querySelector('.nav-links').classList.remove('open');
+        });
+    });
+
+    // Scroll reveal
+    var reveals = document.querySelectorAll('.reveal');
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.12 });
+
+    reveals.forEach(function (el) { observer.observe(el); });
+
+    // Active nav link highlight
+    var sections = document.querySelectorAll('section[id]');
+    window.addEventListener('scroll', function () {
+        var scrollY = window.scrollY + 100;
+        sections.forEach(function (sec) {
+            var top = sec.offsetTop;
+            var height = sec.offsetHeight;
+            var id = sec.getAttribute('id');
+            var link = document.querySelector('.nav-links a[href="#' + id + '"]');
+            if (link) {
+                if (scrollY >= top && scrollY < top + height) {
+                    link.style.color = 'var(--green)';
+                } else {
+                    link.style.color = '';
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

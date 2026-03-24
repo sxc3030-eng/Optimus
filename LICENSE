@@ -1,87 +1,258 @@
-GNU GENERAL PUBLIC LICENSE
-Version 3, 29 June 2007
+================================================================================
 
-Copyright (C) 2024 sxc3030-eng
-https://github.com/sxc3030-eng
+               OPTIMUS — CYBERSECURITY DEFENSE SUITE LICENSE AGREEMENT
 
-Everyone is permitted to copy and distribute verbatim copies
-of this license document, but changing it is not allowed.
+                        Version 1.0.0 — Effective March 2026
 
-                            PREAMBLE
+================================================================================
 
-  The GNU General Public License is a free, copyleft license for
-software and other kinds of works.
+    Copyright (c) 2026 sxc3030-eng. All rights reserved.
 
-  When we speak of free software, we are referring to freedom, not
-price. Our General Public Licenses are designed to make sure that you
-have the freedom to share and change all versions of a program--to
-make sure it remains free software for all its users.
+    This Software License Agreement ("Agreement") is a legal agreement between
+    you ("Licensee") and sxc3030-eng ("Licensor") for the use of the
+    Optimus Cybersecurity Defense Suite and all associated programs,
+    documentation, and related materials (collectively, the "Software").
 
-  To protect your rights, we need to prevent others from denying you
-these rights or asking you to surrender the rights. Therefore, you have
-certain responsibilities if you distribute copies of the software, or if
-you modify it: responsibilities to respect the freedom of others.
+    BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU ACKNOWLEDGE
+    THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THE TERMS AND
+    CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT USE THE SOFTWARE.
 
-  For example, if you distribute copies of such a program, whether
-gratis or for a fee, you must pass on to the same freedoms to the
-recipients. You must make sure that they, too, receive or can get the
-source code. And you must show them these terms so they know their rights.
+================================================================================
+                              SECTION 1 — DEFINITIONS
+================================================================================
 
-  Developers that use the GNU GPL protect your rights with two steps:
-(1) assert copyright on the software, and (2) offer you this License
-giving you legal permission to copy, distribute and/or modify it.
+    "Software" refers to the Optimus Cybersecurity Defense Suite, including
+    but not limited to: NetGuard Pro, CleanGuard Pro, MailShield Pro,
+    VPN Guard Pro, File Integrity Monitor, SentinelOS SIEM/SOAR, HoneyPot
+    Deployer, Network Recorder, StrikeBack Active Defense, Help Agent, and
+    all associated configuration files, documentation, and assets.
 
-TERMS AND CONDITIONS
+    "License Key" refers to the unique alphanumeric code provided upon
+    purchase or registration that activates and validates the Software.
 
-  0. Definitions.
+    "Device" refers to a single physical or virtual machine on which the
+    Software is installed.
 
-  "This License" refers to version 3 of the GNU General Public License.
+    "Organization" refers to a single legal entity, including all of its
+    subsidiaries and affiliates operating under the same corporate umbrella.
 
-  "The Program" refers to any copyrightable work licensed under this License.
+================================================================================
+                           SECTION 2 — LICENSING TIERS
+================================================================================
 
-  1. Source Code.
-  The "source code" for a work means the preferred form of the work
-for making modifications to it.
+    The Software is available under the following licensing tiers. Each tier
+    grants specific rights and limitations as described below.
 
-  2. Basic Permissions.
-  All rights granted under this License are granted for the term of
-copyright on the Program, and are irrevocable provided the stated
-conditions are met. This License explicitly affirms your unlimited
-permission to run the unmodified Program.
+    --------------------------------------------------------------------------
+    2.1  COMMUNITY LICENSE (Free of Charge)
+    --------------------------------------------------------------------------
 
-  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
-  No covered work shall be deemed part of an effective technological
-measure under any applicable law fulfilling obligations under article 11
-of the WIPO copyright treaty.
+         (a)  SCOPE: Grants a non-exclusive, non-transferable, revocable
+              license to use the following programs:
 
-  4. Conveying Verbatim Copies.
-  You may convey verbatim copies of the Program's source code as you
-receive it, in any medium, provided that you conspicuously and
-appropriately publish on each copy an appropriate copyright notice.
+                  - NetGuard Pro (Network Monitor & Packet Analyzer)
+                  - CleanGuard Pro (System Cleanup & Optimization)
+                  - MailShield Pro (Secure Email Client)
+                  - VPN Guard Pro (VPN Management & WireGuard Integration)
+                  - File Integrity Monitor (FIM)
 
-  5. Conveying Modified Source Versions.
-  You may convey a work based on the Program, or the modifications to
-produce it from the Program, in the form of source code under the
-terms of section 4, provided that you also meet all of these conditions:
-  a) The work must carry prominent notices stating that you modified it.
-  b) The work must carry prominent notices stating it is released under
-  this License.
-  c) You must license the entire work, as a whole, under this License to
-  anyone who comes into possession of a copy.
+         (b)  PERMITTED USE: Personal and educational use only.
 
-  6. No Surrender of Others' Freedom.
-  If conditions are imposed on you that contradict the conditions of
-this License, they do not excuse you from the conditions of this License.
+         (c)  RESTRICTIONS:
+              - No commercial deployment or use in production environments
+              - No redistribution in any form
+              - No modification of source code
+              - Limited to one (1) device per license
+              - No access to SentinelOS SIEM/SOAR advanced features
 
-  7. Disclaimer of Warranty.
-  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
-APPLICABLE LAW. THE PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE.
+         (d)  SUPPORT: Community forums only. No guaranteed response time.
 
-  8. Limitation of Liability.
-  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW WILL ANY COPYRIGHT
-HOLDER BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OF THIS PROGRAM.
+    --------------------------------------------------------------------------
+    2.2  PRO LICENSE ($29.00 USD / Year)
+    --------------------------------------------------------------------------
 
-For the full license text, see:
-https://www.gnu.org/licenses/gpl-3.0.txt
+         (a)  SCOPE: Grants a non-exclusive, non-transferable license to use
+              ALL fourteen (14) programs included in the Software.
+
+         (b)  PERMITTED USE: Commercial use permitted within a single
+              organization.
+
+         (c)  DEVICE LIMIT: Up to five (5) devices per license.
+
+         (d)  DURATION: Valid for twelve (12) months from the date of
+              purchase. Renewable annually at the then-current rate.
+
+         (e)  SUPPORT: Standard email support with 72-hour response time
+              during business days.
+
+         (f)  UPDATES: All software updates released during the active
+              license period are included at no additional cost.
+
+    --------------------------------------------------------------------------
+    2.3  EARLY BIRD LICENSE ($14.99 USD — Lifetime)
+    --------------------------------------------------------------------------
+
+         (a)  SCOPE: Grants a non-exclusive, non-transferable, perpetual
+              license to use ALL fourteen (14) programs included in the
+              Software.
+
+         (b)  PERMITTED USE: Commercial use permitted within a single
+              organization.
+
+         (c)  DEVICE LIMIT: Up to ten (10) devices per license.
+
+         (d)  DURATION: Lifetime. This license does not expire and includes
+              all future versions of the Software at no additional cost.
+
+         (e)  SUPPORT: Priority email support with 48-hour response time
+              during business days.
+
+         (f)  AVAILABILITY: Limited to the first five hundred (500)
+              purchasers. Once all Early Bird licenses have been sold,
+              this tier will no longer be available.
+
+         (g)  SPECIAL CONDITIONS:
+              - Non-transferable: Cannot be sold, assigned, or transferred
+                to another individual or organization
+              - Non-refundable: All sales are final
+              - Lifetime updates: Includes all major and minor versions
+
+    --------------------------------------------------------------------------
+    2.4  ENTERPRISE LICENSE ($99.00 USD / Year)
+    --------------------------------------------------------------------------
+
+         (a)  SCOPE: Grants a non-exclusive, non-transferable license to use
+              ALL fourteen (14) programs included in the Software, plus
+              advanced SentinelOS SIEM/SOAR features and enterprise
+              integrations.
+
+         (b)  PERMITTED USE: Commercial use permitted. Multi-site deployment
+              within the licensed organization is allowed.
+
+         (c)  DEVICE LIMIT: Unlimited devices within the licensed
+              organization.
+
+         (d)  DURATION: Valid for twelve (12) months from the date of
+              purchase. Renewable annually at the then-current rate.
+
+         (e)  SUPPORT:
+              - Dedicated support channel
+              - Service Level Agreement (SLA): 24-hour response time
+              - Custom integration assistance
+
+         (f)  ADDITIONAL FEATURES:
+              - Advanced threat intelligence feeds
+              - Custom playbook development assistance
+              - Multi-site deployment management
+              - Centralized logging and reporting
+
+================================================================================
+                          SECTION 3 — GENERAL TERMS
+================================================================================
+
+    3.1  INTELLECTUAL PROPERTY
+
+         The Software is protected by copyright laws and international
+         treaties. The Licensor retains all intellectual property rights,
+         title, and interest in and to the Software. This Agreement does not
+         grant the Licensee any rights to trademarks, service marks, or
+         trade names of the Licensor.
+
+    3.2  RESTRICTIONS
+
+         Unless expressly authorized by this Agreement, the Licensee shall
+         NOT:
+
+         (a)  Copy, reproduce, or duplicate the Software except for
+              reasonable backup purposes;
+         (b)  Reverse engineer, decompile, disassemble, or otherwise attempt
+              to derive the source code of the Software;
+         (c)  Modify, adapt, translate, or create derivative works based on
+              the Software;
+         (d)  Redistribute, sublicense, rent, lease, lend, or resell the
+              Software or any portion thereof;
+         (e)  Remove or alter any proprietary notices, labels, or marks on
+              the Software;
+         (f)  Use the Software to develop a competing product or service;
+         (g)  Share license keys with unauthorized parties.
+
+    3.3  DISCLAIMER OF WARRANTIES
+
+         THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT
+         WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+         TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+         PURPOSE, AND NONINFRINGEMENT. THE LICENSOR DOES NOT WARRANT THAT
+         THE SOFTWARE WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY
+         SECURE. USE OF THE SOFTWARE IS AT THE LICENSEE'S OWN RISK.
+
+    3.4  LIMITATION OF LIABILITY
+
+         IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY INDIRECT,
+         INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING
+         BUT NOT LIMITED TO LOSS OF PROFITS, DATA, BUSINESS OPPORTUNITY, OR
+         GOODWILL, ARISING OUT OF OR IN CONNECTION WITH THE USE OR INABILITY
+         TO USE THE SOFTWARE, EVEN IF THE LICENSOR HAS BEEN ADVISED OF THE
+         POSSIBILITY OF SUCH DAMAGES.
+
+         THE LICENSOR'S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED THE AMOUNT
+         PAID BY THE LICENSEE FOR THE SOFTWARE IN THE TWELVE (12) MONTHS
+         PRECEDING THE CLAIM.
+
+    3.5  TERMINATION
+
+         (a)  This Agreement is effective until terminated.
+         (b)  The Licensor may terminate this Agreement immediately if the
+              Licensee breaches any provision herein.
+         (c)  Upon termination, the Licensee must cease all use of the
+              Software and destroy all copies in their possession.
+         (d)  Sections 3.1, 3.3, 3.4, and 3.6 shall survive termination.
+
+    3.6  GOVERNING LAW
+
+         This Agreement shall be governed by and construed in accordance with
+         the laws of the jurisdiction in which the Licensor resides, without
+         regard to its conflict of law provisions. Any disputes arising under
+         or in connection with this Agreement shall be subject to the
+         exclusive jurisdiction of the courts in that jurisdiction.
+
+    3.7  SEVERABILITY
+
+         If any provision of this Agreement is held to be invalid or
+         unenforceable, the remaining provisions shall continue in full force
+         and effect.
+
+    3.8  ENTIRE AGREEMENT
+
+         This Agreement constitutes the entire agreement between the parties
+         regarding the subject matter hereof and supersedes all prior or
+         contemporaneous agreements, representations, and understandings.
+
+================================================================================
+                            SECTION 4 — ATTRIBUTION
+================================================================================
+
+    The Optimus Cybersecurity Defense Suite is built with Python, pywebview,
+    Scapy, and various open-source components. All open-source dependencies
+    retain their original licenses (MIT, BSD, GPL, Apache, etc.) as specified
+    in their respective source repositories.
+
+    The Licensor acknowledges and respects the contributions of the open-source
+    community. A full list of third-party components and their licenses is
+    available in the Software's documentation.
+
+================================================================================
+                           SECTION 5 — CONTACT
+================================================================================
+
+    For licensing inquiries, support, or questions regarding this Agreement:
+
+        Developer:   sxc3030-eng
+        Repository:  https://github.com/sxc3030-eng
+        License:     Commercial — All Rights Reserved
+
+================================================================================
+
+    Last Updated: March 2026
+    Document Version: 1.0.0
+
+================================================================================
