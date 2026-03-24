@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimus — Update Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Inter, system-ui, -apple-system, sans-serif;
+            background: #0f0f13;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .updater-card {
+            background: #16161d;
+            border: 1px solid #2a2a3a;
+            border-radius: 14px;
+            width: 480px;
+            max-width: 100%;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .header .icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #e040fb, #7c4dff);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header .version-tag {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .version-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #1c1c26;
+            border-radius: 8px;
+            border: 1px solid #2a2a3a;
+        }
+
+        .version-row .label { color: #999; font-size: 13px; }
+        .version-row .value { font-weight: 600; color: #e040fb; font-size: 14px; }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e040fb, #7c4dff);
+            color: #fff;
+        }
+        .btn-primary:hover { filter: brightness(1.15); }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: none;
+        }
+
+        .btn-secondary {
+            background: #1c1c26;
+            color: #ccc;
+            border: 1px solid #2a2a3a;
+            margin-top: 8px;
+        }
+        .btn-secondary:hover { background: #24243a; }
+
+        .btn-danger {
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .btn-danger:hover { color: #f06292; }
+
+        /* Progress bar */
+        .progress-container {
+            display: none;
+            margin-top: 16px;
+        }
+        .progress-container.visible { display: block; }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: #1c1c26;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #2a2a3a;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e040fb, #ea80fc);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* Update info panel */
+        .update-info {
+            display: none;
+            background: #1c1c26;
+            border: 1px solid #2a2a3a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .update-info.visible { display: block; }
+
+        .update-info .new-version {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4caf50;
+            margin-bottom: 4px;
+        }
+
+        .update-info .release-name {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+
+        .update-info .changelog {
+            font-size: 12px;
+            color: #999;
+            max-height: 140px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            padding: 10px;
+            background: #12121a;
+            border-radius: 6px;
+            border: 1px solid #222;
+        }
+
+        .update-info .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Status messages */
+        .status-msg {
+            text-align: center;
+            font-size: 13px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .status-msg.visible { display: block; }
+        .status-msg.success { background: #1b3a1b; color: #66bb6a; border: 1px solid #2e5a2e; }
+        .status-msg.error   { background: #3a1b1b; color: #ef5350; border: 1px solid #5a2e2e; }
+        .status-msg.info    { background: #1b2a3a; color: #42a5f5; border: 1px solid #2e3e5a; }
+
+        /* Backup indicator */
+        .backup-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+        }
+        .backup-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #444;
+        }
+        .backup-dot.active { background: #4caf50; }
+
+        /* Auto-update toggle */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid #222;
+            margin-top: 16px;
+        }
+        .toggle-row .label { font-size: 13px; color: #aaa; }
+
+        .toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+        }
+        .toggle input { display: none; }
+        .toggle .slider {
+            position: absolute; inset: 0;
+            background: #333;
+            border-radius: 22px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 3px; top: 3px;
+            background: #999;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle input:checked + .slider { background: #7c4dff; }
+        .toggle input:checked + .slider::before {
+            transform: translateX(20px);
+            background: #fff;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="updater-card">
+        <!-- Header -->
+        <div class="header">
+            <div class="icon">&#9889;</div>
+            <div>
+                <h1>Optimus Update Manager</h1>
+                <div class="version-tag">Auto-Updater v1.0</div>
+            </div>
+        </div>
+
+        <!-- Current Version -->
+        <div class="section">
+            <div class="section-label">Installed Version</div>
+            <div class="version-row">
+                <span class="label">Optimus Suite</span>
+                <span class="value" id="currentVersion">v1.0.0</span>
+            </div>
+        </div>
+
+        <!-- Status message -->
+        <div class="status-msg" id="statusMsg"></div>
+
+        <!-- Update info (hidden by default) -->
+        <div class="update-info" id="updateInfo">
+            <div class="new-version" id="newVersion"></div>
+            <div class="release-name" id="releaseName"></div>
+            <div class="changelog" id="changelog"></div>
+            <div class="meta">
+                <span id="downloadSize"></span>
+                <span id="publishDate"></span>
+            </div>
+        </div>
+
+        <!-- Progress bar (hidden by default) -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-label" id="progressLabel">Downloading... 0%</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="section" id="btnSection">
+            <button class="btn btn-primary" id="btnCheck" onclick="checkForUpdates()">
+                Check for Updates
+            </button>
+            <button class="btn btn-primary" id="btnInstall" onclick="startUpdate()" style="display:none;">
+                Download &amp; Install Update
+            </button>
+            <button class="btn btn-danger" id="btnSkip" onclick="skipVersion()" style="display:none;">
+                Skip this version
+            </button>
+        </div>
+
+        <!-- Backup indicator -->
+        <div class="backup-status">
+            <div class="backup-dot" id="backupDot"></div>
+            <span id="backupLabel">No recent backup</span>
+        </div>
+
+        <!-- Auto-update toggle -->
+        <div class="toggle-row">
+            <span class="label">Check for updates on startup</span>
+            <label class="toggle">
+                <input type="checkbox" id="autoUpdateToggle" checked onchange="toggleAutoUpdate(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <script>
+        // -- State --
+        let latestInfo = null;
+        let pollTimer = null;
+
+        // -- Helpers --
+        function $(id) { return document.getElementById(id); }
+
+        function showStatus(msg, type) {
+            const el = $('statusMsg');
+            el.textContent = msg;
+            el.className = 'status-msg visible ' + type;
+        }
+
+        function hideStatus() {
+            $('statusMsg').className = 'status-msg';
+        }
+
+        function formatBytes(b) {
+            if (!b) return '';
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+            return (b / 1048576).toFixed(1) + ' MB';
+        }
+
+        // -- pywebview bridge --
+        async function pyCall(method, ...args) {
+            if (window.pywebview && window.pywebview.api) {
+                const result = await window.pywebview.api[method](...args);
+                return typeof result === 'string' ? JSON.parse(result) : result;
+            }
+            console.warn('pywebview not available, method:', method, args);
+            return null;
+        }
+
+        // -- Actions --
+        async function checkForUpdates() {
+            $('btnCheck').disabled = true;
+            $('btnCheck').innerHTML = '<span class="spinner"></span> Checking...';
+            hideStatus();
+            $('updateInfo').className = 'update-info';
+            $('btnInstall').style.display = 'none';
+            $('btnSkip').style.display = 'none';
+
+            const info = await pyCall('check_for_updates');
+
+            $('btnCheck').disabled = false;
+            $('btnCheck').innerHTML = 'Check for Updates';
+
+            if (!info) {
+                showStatus('Could not connect to update server.', 'error');
+                return;
+            }
+
+            if (info.error) {
+                showStatus(info.error, 'error');
+                return;
+            }
+
+            $('currentVersion').textContent = 'v' + info.current_version;
+
+            if (info.update_available) {
+                latestInfo = info;
+                $('newVersion').textContent = 'v' + info.latest_version + ' available';
+                $('releaseName').textContent = info.release_name || '';
+                $('changelog').textContent = info.changelog || 'No changelog provided.';
+                $('downloadSize').textContent = info.download_size ? formatBytes(info.download_size) : '';
+                $('publishDate').textContent = info.published_at ? new Date(info.published_at).toLocaleDateString() : '';
+                $('updateInfo').className = 'update-info visible';
+                $('btnCheck').style.display = 'none';
+                $('btnInstall').style.display = 'flex';
+                $('btnSkip').style.display = 'flex';
+            } else {
+                showStatus('You are running the latest version.', 'success');
+            }
+        }
+
+        async function startUpdate() {
+            $('btnInstall').disabled = true;
+            $('btnInstall').innerHTML = '<span class="spinner"></span> Starting...';
+            $('btnSkip').style.display = 'none';
+            $('progressContainer').className = 'progress-container visible';
+
+            await pyCall('start_update');
+            pollProgress();
+        }
+
+        function pollProgress() {
+            pollTimer = setInterval(async () => {
+                const state = await pyCall('get_updater_state');
+                if (!state) return;
+
+                if (state.status === 'downloading') {
+                    const pct = state.download_progress || 0;
+                    $('progressFill').style.width = pct + '%';
+                    $('progressLabel').textContent = 'Downloading... ' + pct.toFixed(0) + '%';
+                    $('btnInstall').innerHTML = '<span class="spinner"></span> Downloading...';
+                } else if (state.status === 'installing') {
+                    $('progressFill').style.width = '100%';
+                    $('progressLabel').textContent = 'Installing update...';
+                    $('btnInstall').innerHTML = '<span class="spinner"></span> Installing...';
+                    $('backupDot').className = 'backup-dot active';
+                    $('backupLabel').textContent = 'Backup created before update';
+                } else if (state.status === 'complete') {
+                    clearInterval(pollTimer);
+                    $('progressFill').style.width = '100%';
+                    $('progressLabel').textContent = 'Update installed successfully!';
+                    $('btnInstall').style.display = 'none';
+                    $('currentVersion').textContent = 'v' + (state.current_version || '');
+                    showStatus('Update complete! Restart to apply changes.', 'success');
+                    $('btnCheck').style.display = 'flex';
+                    $('btnCheck').innerHTML = 'Check for Updates';
+                    $('btnCheck').disabled = false;
+                } else if (state.status === 'error') {
+                    clearInterval(pollTimer);
+                    showStatus(state.error || 'Update failed.', 'error');
+                    $('progressContainer').className = 'progress-container';
+                    $('btnInstall').style.display = 'none';
+                    $('btnCheck').style.display = 'flex';
+                    $('btnCheck').innerHTML = 'Check for Updates';
+                    $('btnCheck').disabled = false;
+                }
+            }, 500);
+        }
+
+        async function skipVersion() {
+            if (latestInfo && latestInfo.latest_version) {
+                await pyCall('skip_version', latestInfo.latest_version);
+                showStatus('Version v' + latestInfo.latest_version + ' skipped.', 'info');
+                $('updateInfo').className = 'update-info';
+                $('btnInstall').style.display = 'none';
+                $('btnSkip').style.display = 'none';
+                $('btnCheck').style.display = 'flex';
+            }
+        }
+
+        async function toggleAutoUpdate(enabled) {
+            await pyCall('set_auto_update', enabled);
+        }
+
+        // -- Init --
+        async function init() {
+            const verState = await pyCall('get_updater_state');
+            if (verState) {
+                $('currentVersion').textContent = 'v' + verState.current_version;
+            }
+            const autoPref = await pyCall('get_auto_update');
+            if (autoPref) {
+                $('autoUpdateToggle').checked = autoPref.auto_update !== false;
+            }
+        }
+
+        window.addEventListener('pywebviewready', init);
+        setTimeout(init, 300);
+    </script>
+</body>
+</html>
