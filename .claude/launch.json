@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8085", "--directory", "D:\\NetGuardPro-Linux\\optimus_desktop"],
       "port": 8085
+    },
+    {
+      "name": "netguardpro-desktop",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8086", "--directory", "D:\\NetGuardPro\\netguardpro_desktop"],
+      "port": 8086
     }
   ]
 }
