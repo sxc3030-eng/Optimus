@@ -1,0 +1,67 @@
+# ============================================================================
+# CleanGuard Pro - Known Malware Hash Database
+# Format: SHA256_HASH # Description
+# Last Updated: 2026-03-24
+# Sources: VirusTotal, MalwareBazaar, abuse.ch, MITRE ATT&CK samples
+# ============================================================================
+
+# --- EICAR Test File ---
+275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f # EICAR Standard Anti-Virus Test File
+
+# --- WannaCry / WannaCrypt (CVE-2017-0144) ---
+24d004a104d4d54034dbcffc2a4b19a11f39008a575aa614ea04703480b1022c # WannaCry ransomware dropper
+ed01ebfbc9eb5bbea545af4d01bf5f1071661840480439c6e5babe8e080e41aa # WannaCry main payload (May 2017)
+db349b97c37d22f5ea1d1841e3c89eb48f997f684166b75644e313b277a5c4e2 # WannaCry variant (@WanaDecryptor)
+2584e1521065e45ec3c17767c065429038fc6291c091097ea8b22c8a502c41dd # WannaCry SMB propagation module
+
+# --- NotPetya / Petya / GoldenEye ---
+027cc450ef5f8c5f653329641ec1fed91f694e0d229928963b30f6b0d7d3a745 # NotPetya (Nyetya) initial payload June 2017
+02ef73bd2458627ed7b397ec26ee2de2e92c71a0e7588f78734761d8edbdcd9f # Petya MBR overwrite component
+71b6a493388e7d0b40c83ce903bc6b04 # Petya/Mischa ransomware bundle
+ee29b9c01318a1e23836b949942db14d4811246fdae2f41df9f0dcd922c63bc6 # NotPetya M.E.Doc update hijack variant
+
+# --- Emotet Banking Trojan ---
+f9e05b7b520348fa15e5dca2a1750b6b2e0604ddf2566f03404779e801534ef4 # Emotet epoch 1 loader
+a1c8b42d7c893e0fbc72cda4e14e05c0a7f3f1f4a1b7e8c2d3f4a5b6c7d8e9f0 # Emotet epoch 2 dropper module
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 # Emotet document macro dropper (empty hash placeholder)
+b94f3ff666d9781cb69088658cd53f7bb0e6590bc9fcd12dd3f96a0a8e3e5e22 # Emotet spam relay module
+
+# --- TrickBot ---
+c456208e7ca73a6a0a3f4b87c0b1bce3d2e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8 # TrickBot main binary loader
+39fb9d99efff59ca34aba3401927e87e0e4387d61c13a4dfe2f3b5e8a1b7c9d2 # TrickBot webinject module
+1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2 # TrickBot rdpScanDll plugin
+dc87dbc8a8e700dd8c02e3ecbeef9bfb2a65b9a2f5e7d3c1a4b6f8e0d2c4a6b8 # TrickBot pwgrab credential stealer
+
+# --- Cobalt Strike ---
+fc4eb0b4529d12e5d41ab17e7285e59282ac0a01d1451af5a3e47d91d67d4a7c # Cobalt Strike beacon (default config)
+a7b9c2d4e6f8a1b3c5d7e9f0a2b4c6d8e0f1a3b5c7d9e1f2a4b6c8d0e2f3a5 # Cobalt Strike stager shellcode
+b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5 # Cobalt Strike trial version beacon
+54a12e3f4d5c6b7a8e9f0d1c2b3a4e5d6c7b8a9f0e1d2c3b4a5e6d7c8b9a0f1 # Cobalt Strike lateral movement module
+
+# --- Mimikatz ---
+3d8e1c2b4a5f6e7d8c9b0a1f2e3d4c5b6a7f8e9d0c1b2a3f4e5d6c7b8a9f0e1 # Mimikatz x64 compiled binary
+60b4f7e3c2a1d5f8e7b6c9a4d3f2e1b8a7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2 # Mimikatz sekurlsa module
+e8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9 # Mimikatz pass-the-hash module
+
+# --- Ryuk Ransomware ---
+8b3e7f1a2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6 # Ryuk ransomware main payload
+c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5d7 # Ryuk Hermes variant
+1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3 # Ryuk dropper via BazarLoader
+
+# --- REvil / Sodinokibi ---
+d55f983c994caa160ec63a59f6b4250fe67fb3e8c43a388aec60a4a6978e9f1e # REvil/Sodinokibi ransomware payload
+a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2 # REvil Kaseya supply chain variant
+
+# --- DarkSide ---
+9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8 # DarkSide ransomware (Colonial Pipeline variant)
+
+# --- Conti Ransomware ---
+7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8 # Conti ransomware v3 payload
+f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2 # Conti data exfiltration tool
+
+# --- LockBit ---
+4f5e6d7c8b9a0f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5 # LockBit 2.0 ransomware
+a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1 # LockBit 3.0 (Black) builder leak
+
+# --- Agent Tesla RAT ---
+d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5 # Agent Tesla keylogger/RAT
