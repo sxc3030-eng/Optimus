@@ -65,6 +65,15 @@ try:
 except ImportError:
     HAS_PEFILE = False
 
+# ── Enhanced Antivirus Engine ─────────────────────────────────────────
+try:
+    from antivirus_engine import AntivirusEngine
+    HAS_AV_ENGINE = True
+except ImportError:
+    HAS_AV_ENGINE = False
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 # ─── Paths ───────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.resolve()
 SETTINGS_FILE = BASE_DIR / "cleanguard_settings.json"
@@ -97,6 +106,17 @@ class Config:
     last_scan: str = ""
     last_clean: str = ""
     signatures_updated: str = ""
+    virustotal_api_key: str = ""
+    scheduled_scan_enabled: bool = False
+    scheduled_scan_interval: str = "weekly"
+    scheduled_scan_day: int = 0
+    scheduled_scan_time: str = "02:00"
+    last_scheduled_scan: str = ""
+    scan_threads: int = 4
+    incremental_scan: bool = True
+    realtime_scan_all_types: bool = False
+    realtime_recursive: bool = True
+    quarantine_encrypted: bool = True
 
 CFG = Config()
 
@@ -116,6 +136,24 @@ def save_settings():
         SETTINGS_FILE.write_text(json.dumps(asdict(CFG), indent=2, ensure_ascii=False), encoding="utf-8")
     except Exception as e:
         print(f"[!] Erreur sauvegarde settings: {e}")
+
+# ── Enhanced AV Engine ────────────────────────────────────────
+AV_ENGINE = None
+SIGNATURES_DIR_AV = BASE_DIR / "signatures"
+THREAT_DB_DIR = BASE_DIR / "threat_db"
+SIGNATURES_DIR_AV.mkdir(exist_ok=True)
+THREAT_DB_DIR.mkdir(exist_ok=True)
+
+def init_av_engine():
+    global AV_ENGINE
+    if HAS_AV_ENGINE:
+        try:
+            AV_ENGINE = AntivirusEngine(CFG, SIGNATURES_DIR_AV, THREAT_DB_DIR)
+            print(f"[AV Engine] Initialized — ClamAV: {AV_ENGINE.clamav.available}, "
+                  f"YARA: {AV_ENGINE.yara._rule_count} rules, "
+                  f"Hash DB: {len(AV_ENGINE._hash_db)} entries")
+        except Exception as e:
+            print(f"[AV Engine] Init failed: {e}")
 
 # ─── EICAR test signature ───────────────────────────────────────────────
 EICAR_SHA256 = "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
@@ -1246,6 +1284,15 @@ def scan_file(filepath: Path) -> list:
         if any(wp in path_lower for wp in WHITELIST_PATHS):
             return findings
 
+        # ── Enhanced engine scan (priority) ──────────────────────
+        if AV_ENGINE and HAS_AV_ENGINE:
+            try:
+                enhanced_findings = AV_ENGINE.scan_file_enhanced(filepath)
+                if enhanced_findings:
+                    return enhanced_findings
+            except Exception:
+                pass  # Fall through to built-in scanner
+
         ext = filepath.suffix.lower()
         name_lower = filepath.name.lower()
 
@@ -1394,7 +1441,10 @@ def run_scan(scan_type: str, custom_path: str = None, ws_broadcast=None):
     # Quick estimate
     SCAN.files_total = count_files_in_paths(paths) if scan_type != "full" else 100000
 
+    _scan_lock = threading.Lock()
     try:
+        # Collect files to scan
+        files_to_scan = []
         for scan_path in paths:
             if SCAN.stop_requested:
                 break
@@ -1402,40 +1452,54 @@ def run_scan(scan_type: str, custom_path: str = None, ws_broadcast=None):
                 for filepath in scan_path.rglob("*"):
                     if SCAN.stop_requested:
                         break
-                    while SCAN.paused:
-                        time.sleep(0.2)
-                        if SCAN.stop_requested:
-                            break
-
                     if not filepath.is_file():
                         continue
-
-                    # Skip exclusions
                     fp_str = str(filepath)
                     if any(excl in fp_str for excl in CFG.exclusions):
                         continue
-
-                    # Skip our own quarantine
                     if str(QUARANTINE_DIR) in fp_str:
                         continue
+                    files_to_scan.append(filepath)
+            except (PermissionError, OSError):
+                pass
 
-                    SCAN.current_file = fp_str
-                    SCAN.files_scanned += 1
+        SCAN.files_total = len(files_to_scan) or SCAN.files_total
 
-                    # Update progress
-                    elapsed = time.time() - SCAN.start_time
-                    SCAN.speed = SCAN.files_scanned / max(elapsed, 0.1)
-                    if SCAN.files_total > 0:
-                        SCAN.progress = min(99, int(SCAN.files_scanned * 100 / SCAN.files_total))
+        # Multi-threaded scanning
+        with ThreadPoolExecutor(max_workers=CFG.scan_threads) as executor:
+            futures = {}
+            for filepath in files_to_scan:
+                if SCAN.stop_requested:
+                    break
+                while SCAN.paused:
+                    time.sleep(0.2)
+                future = executor.submit(scan_file, filepath)
+                futures[future] = filepath
 
-                    # Scan the file
-                    threats = scan_file(filepath)
+            for future in as_completed(futures):
+                filepath = futures[future]
+                fp_str = str(filepath)
+                SCAN.files_scanned += 1
+                SCAN.current_file = fp_str
+
+                # Update progress
+                elapsed = time.time() - SCAN.start_time
+                SCAN.speed = SCAN.files_scanned / max(elapsed, 0.1)
+                if SCAN.files_total > 0:
+                    SCAN.progress = min(99, int(SCAN.files_scanned * 100 / SCAN.files_total))
+
+                try:
+                    threats = future.result()
                     if threats:
                         for t in threats:
                             t["file"] = fp_str
-                            t["size"] = filepath.stat().st_size
+                            try:
+                                t["size"] = filepath.stat().st_size
+                            except Exception:
+                                t["size"] = 0
                             t["date"] = datetime.now().isoformat()
-                        SCAN.threats_found.extend(threats)
+                        with _scan_lock:
+                            SCAN.threats_found.extend(threats)
 
                         # Log each threat to timeline
                         for t in threats:
@@ -1449,9 +1513,8 @@ def run_scan(scan_type: str, custom_path: str = None, ws_broadcast=None):
                             for t in threats:
                                 if t["severity"] in ("critical", "high"):
                                     quarantine_file(filepath, t["name"])
-
-            except (PermissionError, OSError):
-                pass
+                except Exception:
+                    pass
 
     finally:
         duration = time.time() - SCAN.start_time
@@ -1542,8 +1605,18 @@ def quarantine_file(filepath: Path, threat_name: str) -> bool:
         q_name = f"{int(time.time())}_{filepath.name}.quarantined"
         q_path = QUARANTINE_DIR / q_name
 
-        # Move file
-        shutil.move(str(filepath), str(q_path))
+        # Move file (with optional encryption)
+        if CFG.quarantine_encrypted:
+            data = filepath.read_bytes()
+            key = hashlib.sha256(platform.node().encode()).digest()
+            encrypted = bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
+            q_path.write_bytes(encrypted)
+            try:
+                os.unlink(str(filepath))
+            except Exception:
+                pass
+        else:
+            shutil.move(str(filepath), str(q_path))
 
         # Record in quarantine DB
         entries = load_quarantine()
@@ -1612,8 +1685,7 @@ class RealtimeHandler(FileSystemEventHandler if HAS_WATCHDOG else object):
         if event.is_directory:
             return
         filepath = Path(event.src_path)
-        # Only scan executable and suspicious files
-        if filepath.suffix.lower() in DANGEROUS_EXTENSIONS:
+        if CFG.realtime_scan_all_types or filepath.suffix.lower() in DANGEROUS_EXTENSIONS:
             threading.Thread(target=self._check_file, args=(filepath,), daemon=True).start()
 
     def on_modified(self, event):
@@ -1670,7 +1742,7 @@ def start_realtime_protection(engine=None):
     for wp in watch_paths:
         if wp and Path(wp).exists():
             try:
-                REALTIME_OBSERVER.schedule(handler, wp, recursive=False)
+                REALTIME_OBSERVER.schedule(handler, wp, recursive=CFG.realtime_recursive)
             except Exception:
                 pass
 
@@ -1869,6 +1941,13 @@ class CleanGuardEngine:
             "auto_quarantine": CFG.auto_quarantine,
             # Timeline
             "timeline": list(TIMELINE)[:30],
+            # Enhanced AV Engine
+            "engine_available": AV_ENGINE is not None,
+            "clamav_available": AV_ENGINE.clamav.available if AV_ENGINE else False,
+            "virustotal_available": AV_ENGINE.virustotal.available if AV_ENGINE else False,
+            "yara_rules_count": AV_ENGINE.yara._rule_count if AV_ENGINE else 0,
+            "hash_db_count": len(AV_ENGINE._hash_db) if AV_ENGINE else 0,
+            "scheduled_scan_enabled": CFG.scheduled_scan_enabled,
         }
 
     async def broadcast_state(self):
@@ -2067,7 +2146,7 @@ try:
 except ImportError:
     HAS_STARTUP_UTILS = False
 
-# Optimus shared modules
+# NetGuardPro shared modules
 try:
     import sys as _sys
     _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -2309,6 +2388,36 @@ class CleanGuardAPI:
             self._perm.unlock("cleanguard")
         return {"success": ok, "user": user}
 
+    # ── Enhanced AV Engine API ──────────────────────────────────────────
+    def get_engine_status(self) -> dict:
+        if AV_ENGINE:
+            return {"ok": True, **AV_ENGINE.get_status()}
+        return {"ok": False, "message": "Engine not available"}
+
+    def update_signatures(self) -> dict:
+        if AV_ENGINE:
+            result = AV_ENGINE.update_signatures()
+            return {"ok": True, **result}
+        return {"ok": False}
+
+    def scan_network_threats(self) -> list:
+        if AV_ENGINE:
+            return AV_ENGINE.scan_network()
+        return []
+
+    def vt_lookup(self, sha256: str) -> dict:
+        if AV_ENGINE and AV_ENGINE.virustotal.available:
+            result = AV_ENGINE.virustotal.lookup(sha256)
+            return {"ok": True, "result": result}
+        return {"ok": False, "message": "VirusTotal not configured"}
+
+    def set_vt_api_key(self, key: str) -> dict:
+        CFG.virustotal_api_key = key
+        if AV_ENGINE:
+            AV_ENGINE.virustotal.api_key = key
+        save_settings()
+        return {"ok": True}
+
 
 def _pywebview_state_broadcast(api):
     """Background thread: push state to pywebview window periodically"""
@@ -2380,6 +2489,11 @@ def main_webview():
 
     timeline_add("🚀", "CleanGuard Pro démarré", "system")
 
+    # Initialize enhanced AV engine
+    init_av_engine()
+    if AV_ENGINE and CFG.scheduled_scan_enabled:
+        AV_ENGINE.scheduler.start()
+
     # Initial scan of temp files
     threading.Thread(target=scan_clean_targets, daemon=True).start()
 
@@ -2391,7 +2505,7 @@ def main_webview():
     dashboard_path = str(BASE_DIR / "cleanguard_dashboard.html")
 
     window = webview.create_window(
-        f"CleanGuard Pro — Optimus Suite",
+        f"CleanGuard Pro � NetGuardPro Suite",
         dashboard_path,
         js_api=api,
         width=1280,
@@ -2424,6 +2538,11 @@ async def main_async():
 
     ENGINE.loop = asyncio.get_event_loop()
     timeline_add("🚀", "CleanGuard Pro démarré (mode WebSocket)", "system")
+
+    # Initialize enhanced AV engine
+    init_av_engine()
+    if AV_ENGINE and CFG.scheduled_scan_enabled:
+        AV_ENGINE.scheduler.start()
 
     threading.Thread(target=scan_clean_targets, daemon=True).start()
 

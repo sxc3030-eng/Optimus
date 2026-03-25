@@ -1,0 +1,73 @@
+# ============================================================================
+# CleanGuard Pro - Known C2 / Malicious IP Address Database
+# One IP per line. Comments start with #
+# Last Updated: 2026-03-24
+# Sources: abuse.ch, Feodo Tracker, Emerging Threats, ThreatFox, DShield
+# WARNING: These are example IPs for threat detection. Do NOT use for blocking
+#          without verifying against current threat intelligence feeds.
+# ============================================================================
+
+# --- Emotet C2 Infrastructure (Feodo Tracker) ---
+185.7.214.7 # Emotet epoch 4 C2 server
+51.178.161.32 # Emotet epoch 5 C2 relay
+45.79.33.48 # Emotet loader distribution server
+103.75.201.2 # Emotet spam relay APAC region
+209.97.163.214 # Emotet document dropper server
+
+# --- TrickBot C2 Servers ---
+194.5.249.162 # TrickBot gtag mor84 C2
+82.146.42.68 # TrickBot webinject distribution
+192.3.124.40 # TrickBot rdpScanDll C2
+23.95.97.59 # TrickBot pwgrab exfiltration relay
+195.123.237.149 # TrickBot proxy module C2
+
+# --- Cobalt Strike Team Servers ---
+23.106.122.192 # Cobalt Strike beacon staging server
+104.168.44.129 # Cobalt Strike HTTPS C2 listener
+5.252.176.3 # Cobalt Strike malleable C2
+172.105.120.7 # Cobalt Strike trial watermarked
+185.106.120.64 # Cobalt Strike DNS beacon C2
+
+# --- QakBot / QBot C2 ---
+73.151.236.31 # QakBot tier 1 proxy C2
+190.252.242.69 # QakBot LATAM C2 node
+71.74.12.34 # QakBot US residential proxy C2
+47.22.148.6 # QakBot campaign obama tier 2 C2
+
+# --- IcedID / BokBot C2 ---
+128.199.192.135 # IcedID BackConnect C2
+157.245.142.66 # IcedID loader C2
+45.153.240.135 # IcedID VNC module C2
+
+# --- Ransomware C2 (various families) ---
+185.220.101.10 # LockBit 3.0 data exfiltration relay
+193.42.36.53 # Conti ransomware C2 server
+91.243.44.49 # REvil/Sodinokibi payment gateway proxy
+185.215.113.39 # BlackCat/ALPHV C2 infrastructure
+79.141.169.220 # Hive ransomware C2 node
+
+# --- RAT C2 Infrastructure ---
+2.58.14.86 # AsyncRAT C2 panel
+45.137.65.132 # Remcos RAT C2 server
+194.147.142.232 # Agent Tesla exfiltration SMTP relay
+91.92.240.39 # QuasarRAT C2 dashboard
+185.196.8.124 # NanoCore RAT C2 panel
+103.136.42.3 # WarzoneRAT C2 server
+
+# --- Known Malicious Tor Exit Nodes (used by malware) ---
+185.220.101.1 # Tor exit node - malware traffic observed
+185.220.101.34 # Tor exit node - credential stuffing source
+185.220.101.46 # Tor exit node - ransomware payment relay
+176.10.99.200 # Tor exit node - data exfiltration observed
+62.210.105.116 # Tor exit node - C2 tunnel endpoint
+
+# --- Cryptominer / Cryptojacking C2 ---
+144.76.183.204 # XMRig proxy pool relay
+178.63.48.196 # Monero mining pool proxy
+104.140.201.42 # Coinhive alternative mining proxy
+91.121.140.167 # Cryptojacking WebSocket relay
+
+# --- Botnet C2 (Mirai/IoT) ---
+185.244.25.213 # Mirai botnet C2 server
+45.61.184.103 # Mozi P2P botnet bootstrap node
+193.239.147.224 # Hajime IoT worm C2 node

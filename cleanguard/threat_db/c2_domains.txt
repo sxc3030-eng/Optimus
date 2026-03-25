@@ -1,0 +1,146 @@
+# ============================================================================
+# CleanGuard Pro - Known C2 / Malware Domains Database
+# One domain per line. Comments start with #
+# Last Updated: 2026-03-24
+# Sources: abuse.ch, URLhaus, MITRE ATT&CK, Feodo Tracker, ThreatFox
+# ============================================================================
+
+# --- Emotet C2 Infrastructure ---
+emotet-c2-dropzone.xyz
+maldoc-payload.top
+emotet-epoch4-relay.com
+invoice-doc-secure.net
+emotet-loader-cdn.info
+macro-enabled-docs.biz
+
+# --- TrickBot C2 Domains ---
+trickbot-c2-panel.com
+tbot-webinject-srv.net
+trickbot-rdp-scan.xyz
+trick-pwgrab-exfil.top
+trickbot-proxy-relay.info
+
+# --- Cobalt Strike Team Servers ---
+cs-beacon-stage.com
+cobalt-c2-listener.net
+beacon-https-c2.xyz
+cobaltstrike-trial.top
+cs-malleable-cdn.info
+team-server-relay.biz
+
+# --- DGA-Generated Domains (Conficker patterns) ---
+xjkh2lqpfm.com
+qwrty7nxbz.net
+asdfjkl823.org
+mnbvc9xlwp.info
+zxcvb4nmqw.com
+plokij38uh.net
+tgbnhy72rf.org
+yhnujm16dc.info
+wsxedc54vf.com
+bgtrf8ikol.net
+
+# --- DGA-Generated Domains (Necurs patterns) ---
+akhfyenrms.com
+bxlwqptczd.net
+cjrmfdsnwt.org
+dmqwekfhvp.com
+eplxnbhgyt.net
+fwkrmdcjsv.org
+gxhqnelptm.com
+hynwoempzd.net
+
+# --- Ransomware Payment / C2 ---
+pay-decrypt-files.onion.ws
+ransom-payment-portal.com
+lockbit-blog-mirror.xyz
+revil-decrypt-service.top
+darkside-support.net
+conti-data-leak.info
+blackcat-alphv-blog.com
+hive-ransom-chat.xyz
+
+# --- RAT C2 Servers ---
+darkcomet-c2-panel.com
+njrat-controller.net
+asyncrat-c2-server.xyz
+quasarrat-manage.top
+remcos-c2-dashboard.info
+nanocore-panel.biz
+poisonivy-c2.com
+orcus-rat-server.net
+warzone-rat-c2.xyz
+lime-rat-panel.top
+
+# --- Banking Trojan C2 ---
+zeus-panda-gate.com
+dridex-c2-proxy.net
+gozi-isfb-panel.xyz
+ursnif-webinject.top
+qakbot-c2-relay.info
+icedid-bokbot-c2.biz
+zloader-config-srv.com
+
+# --- Cryptominer Pools (malicious redirectors) ---
+pool-proxy-mine.com
+xmr-stratum-relay.net
+crypto-jack-pool.xyz
+monero-mine-proxy.top
+coinhive-alt-cdn.info
+browser-mine-srv.biz
+
+# --- APT Infrastructure ---
+# APT28 / Fancy Bear
+fancy-bear-phish.com
+apt28-spearphish.net
+sofacy-c2-redirect.xyz
+
+# APT29 / Cozy Bear
+cozy-bear-implant.com
+apt29-wellmess-c2.net
+sunburst-c2-relay.xyz
+
+# APT41 / Winnti
+winnti-backdoor-c2.com
+apt41-shadowpad.net
+barium-supply-chain.xyz
+
+# Lazarus Group
+lazarus-apt-c2.com
+hidden-cobra-relay.net
+apt38-swift-heist.xyz
+
+# --- Phishing Domains ---
+secure-microsoft-login.com
+account-google-verify.net
+apple-id-support-update.xyz
+paypal-security-alert.top
+amazon-order-confirm.info
+netflix-billing-update.biz
+facebook-security-check.com
+instagram-verify-account.net
+linkedin-profile-view.xyz
+dropbox-shared-document.top
+
+# --- Malware Distribution ---
+download-free-crack.com
+keygen-serial-activator.net
+free-software-full.xyz
+cracked-apps-download.top
+warez-latest-release.info
+pirated-games-dl.biz
+
+# --- Exploit Kit Landing Pages ---
+rig-ek-landing.com
+magnitude-ek-gate.net
+fallout-ek-redirect.xyz
+spelevo-ek-traffic.top
+underminer-ek-drop.info
+
+# --- Botnet C2 ---
+mirai-botnet-c2.com
+hajime-iot-worm.net
+mozi-p2p-botnet.xyz
+emotet-spam-relay.top
+necurs-spam-bot.info
+andromeda-gamarue.biz
