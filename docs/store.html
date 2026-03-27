@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimus Store — Get Protected</title>
+    <meta name="description" content="Purchase Optimus cybersecurity suite. 14 integrated tools. Lifetime & annual licenses available.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #06060b;
+            --bg-light: #0c0c14;
+            --bg-card: rgba(255,255,255,0.025);
+            --glass-bg: rgba(12,12,20,0.75);
+            --glass-border: rgba(255,255,255,0.08);
+            --green: #00ff88;
+            --blue: #00ccff;
+            --purple: #a855f7;
+            --red: #ff4d6a;
+            --amber: #ffb347;
+            --cyan: #00d4ff;
+            --text: #e0e0e0;
+            --text-dim: #7a7a8e;
+            --border: rgba(255,255,255,0.06);
+            --glow-green: 0 0 40px rgba(0,255,136,0.12);
+            --glow-blue: 0 0 40px rgba(0,204,255,0.12);
+            --glow-purple: 0 0 40px rgba(168,85,247,0.12);
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+        /* ═══ NAV ═══ */
+        nav { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(6,6,11,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; }
+        .nav-inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+        .nav-logo { font-weight: 800; font-size: 1.25rem; color: var(--green); text-decoration: none; letter-spacing: 2px; }
+        .nav-center { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color .2s; }
+        .nav-links a:hover { color: var(--green); }
+        .nav-right { display: flex; align-items: center; gap: .75rem; }
+        .lang-toggle { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: .75rem; font-weight: 600; transition: all .2s; }
+        .lang-toggle:hover { color: var(--green); border-color: rgba(0,255,136,0.3); }
+        .cart-btn { position: relative; background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.15); color: var(--green); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: .85rem; font-weight: 600; transition: all .2s; display: flex; align-items: center; gap: .4rem; }
+        .cart-btn:hover { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); }
+        .cart-badge { position: absolute; top: -6px; right: -6px; background: var(--red); color: #fff; font-size: .6rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .cart-badge.hidden { display: none; }
+        .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.4rem; cursor: pointer; }
+
+        /* ═══ COMMON ═══ */
+        section { padding: 5rem 2rem; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        .section-label { display: inline-block; color: var(--green); font-size: .75rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: .5rem; }
+        .section-title { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 700; margin-bottom: 1rem; }
+        .section-sub { color: var(--text-dim); max-width: 600px; margin-bottom: 3rem; font-size: .95rem; }
+        .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.75rem; border-radius: 8px; font-family: inherit; font-weight: 600; font-size: .95rem; text-decoration: none; cursor: pointer; border: none; transition: transform .2s, box-shadow .2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: var(--green); color: #06060b; box-shadow: var(--glow-green); }
+        .btn-secondary { background: transparent; color: var(--blue); border: 1px solid rgba(0,204,255,0.3); }
+        .btn-secondary:hover { border-color: var(--blue); box-shadow: var(--glow-blue); }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; }
+
+        /* ═══ HERO STORE ═══ */
+        .store-hero { padding: 8rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
+        .store-hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%); pointer-events: none; }
+        .store-hero .section-title { font-size: clamp(2rem,5vw,3.2rem); }
+        .store-hero .section-sub { margin: 0 auto 2rem; max-width: 550px; }
+        .trust-badges { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
+        .trust-badge { display: flex; align-items: center; gap: .5rem; color: var(--text-dim); font-size: .8rem; }
+        .trust-badge i { color: var(--green); font-size: 1rem; }
+
+        /* ═══ PRODUCTS ═══ */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .product-card { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; position: relative; transition: transform .3s, box-shadow .3s, border-color .3s; overflow: hidden; display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-6px); border-color: rgba(0,255,136,0.2); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .product-card.featured { border-color: rgba(0,255,136,0.25); }
+        .product-card.featured::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--green), var(--blue)); }
+        .product-badge { position: absolute; top: 16px; right: 16px; font-size: .6rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: 1px; }
+        .product-badge.best { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+        .product-badge.popular { background: rgba(0,204,255,0.15); color: var(--blue); border: 1px solid rgba(0,204,255,0.2); }
+        .product-badge.free-badge { background: rgba(61,255,180,0.15); color: #3dffb4; border: 1px solid rgba(61,255,180,0.2); }
+        .product-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.25rem; }
+        .product-name { font-size: 1.3rem; font-weight: 700; margin-bottom: .25rem; }
+        .product-desc { color: var(--text-dim); font-size: .85rem; margin-bottom: 1.25rem; }
+        .product-price { font-size: 2.2rem; font-weight: 800; margin-bottom: .15rem; }
+        .product-price .currency { font-size: 1.2rem; font-weight: 600; vertical-align: super; }
+        .product-price .period { font-size: .85rem; font-weight: 400; color: var(--text-dim); }
+        .product-features { list-style: none; margin: 1.25rem 0; flex: 1; }
+        .product-features li { padding: .4rem 0; font-size: .85rem; color: var(--text-dim); display: flex; align-items: center; gap: .5rem; }
+        .product-features li::before { content: '✓'; color: var(--green); font-weight: 700; font-size: .75rem; }
+        .product-actions { margin-top: auto; }
+        .add-to-cart { width: 100%; padding: .85rem; border-radius: 10px; font-family: inherit; font-weight: 700; font-size: .95rem; cursor: pointer; border: none; transition: all .25s; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+        .add-to-cart.buy { background: var(--green); color: #06060b; }
+        .add-to-cart.buy:hover { box-shadow: var(--glow-green); transform: translateY(-2px); }
+        .add-to-cart.free { background: rgba(61,255,180,0.12); color: #3dffb4; border: 1px solid rgba(61,255,180,0.2); }
+        .add-to-cart.free:hover { background: rgba(61,255,180,0.2); }
+        .add-to-cart.added { background: rgba(0,255,136,0.15); color: var(--green); pointer-events: none; }
+
+        /* ═══ FEATURES BAR ═══ */
+        .features-bar { background: var(--bg-light); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 3rem 2rem; }
+        .features-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; max-width: 1300px; margin: 0 auto; text-align: center; }
+        .feat-item i { font-size: 1.5rem; color: var(--green); margin-bottom: .5rem; display: block; }
+        .feat-item h4 { font-size: .95rem; font-weight: 600; margin-bottom: .25rem; }
+        .feat-item p { font-size: .75rem; color: var(--text-dim); }
+
+        /* ═══ CART SIDEBAR ═══ */
+        .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity .3s; }
+        .cart-overlay.open { opacity: 1; pointer-events: auto; }
+        .cart-sidebar { position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw; height: 100%; background: #0a0a12; border-left: 1px solid var(--border); z-index: 2001; transition: right .35s ease; display: flex; flex-direction: column; }
+        .cart-sidebar.open { right: 0; }
+        .cart-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .cart-header h3 { font-size: 1.1rem; font-weight: 700; }
+        .cart-close { background: none; border: none; color: var(--text-dim); font-size: 1.4rem; cursor: pointer; transition: color .2s; }
+        .cart-close:hover { color: var(--text); }
+        .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+        .cart-empty { text-align: center; color: var(--text-dim); padding: 3rem 1rem; }
+        .cart-empty i { font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: .3; }
+        .cart-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+        .cart-item-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-name { font-size: .9rem; font-weight: 600; }
+        .cart-item-price { font-size: .8rem; color: var(--green); font-weight: 600; }
+        .cart-item-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: .8rem; transition: color .2s; }
+        .cart-item-remove:hover { color: var(--red); }
+        .cart-footer { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border); }
+        .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .cart-total-label { font-size: .95rem; font-weight: 600; }
+        .cart-total-val { font-size: 1.4rem; font-weight: 800; color: var(--green); }
+        .checkout-btn { width: 100%; padding: .9rem; border-radius: 10px; background: var(--green); color: #06060b; font-family: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; transition: all .25s; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+        .checkout-btn:hover { box-shadow: var(--glow-green); transform: translateY(-2px); }
+        .checkout-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ═══ CHECKOUT MODAL ═══ */
+        .checkout-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity .3s; display: flex; align-items: center; justify-content: center; }
+        .checkout-overlay.open { opacity: 1; pointer-events: auto; }
+        .checkout-modal { background: #0d0d16; border: 1px solid var(--glass-border); border-radius: 20px; width: 500px; max-width: 92vw; max-height: 90vh; overflow-y: auto; padding: 2rem; }
+        .checkout-modal h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: .5rem; }
+        .checkout-modal h2 i { color: var(--green); }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: .8rem; font-weight: 600; color: var(--text-dim); margin-bottom: .4rem; text-transform: uppercase; letter-spacing: 1px; }
+        .form-input { width: 100%; padding: .75rem 1rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .9rem; transition: border-color .2s; }
+        .form-input:focus { outline: none; border-color: rgba(0,255,136,0.4); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        #card-element { padding: .85rem 1rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; transition: border-color .2s; }
+        #card-element.StripeElement--focus { border-color: rgba(0,255,136,0.4); }
+        .checkout-summary { background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.1); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; }
+        .checkout-summary-row { display: flex; justify-content: space-between; font-size: .85rem; padding: .3rem 0; }
+        .checkout-summary-row.total { font-weight: 700; font-size: 1rem; border-top: 1px solid rgba(0,255,136,0.1); margin-top: .5rem; padding-top: .5rem; color: var(--green); }
+        .pay-btn { width: 100%; padding: 1rem; border-radius: 10px; background: linear-gradient(135deg, var(--green), var(--blue)); color: #06060b; font-family: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer; border: none; transition: all .25s; }
+        .pay-btn:hover { box-shadow: 0 0 30px rgba(0,255,136,0.2); transform: translateY(-2px); }
+        .pay-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+        .checkout-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; }
+        .payment-msg { text-align: center; padding: .75rem; border-radius: 8px; margin-top: 1rem; font-size: .85rem; font-weight: 600; display: none; }
+        .payment-msg.success { display: block; background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+        .payment-msg.error { display: block; background: rgba(255,77,106,0.1); color: var(--red); border: 1px solid rgba(255,77,106,0.2); }
+
+        /* ═══ FAQ ═══ */
+        .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: border-color .2s; }
+        .faq-item:hover { border-color: rgba(0,255,136,0.15); }
+        .faq-q { font-weight: 600; font-size: .95rem; display: flex; justify-content: space-between; align-items: center; }
+        .faq-q i { color: var(--text-dim); font-size: .75rem; transition: transform .3s; }
+        .faq-item.open .faq-q i { transform: rotate(180deg); }
+        .faq-a { color: var(--text-dim); font-size: .85rem; max-height: 0; overflow: hidden; transition: max-height .3s ease, margin .3s; }
+        .faq-item.open .faq-a { max-height: 200px; margin-top: .75rem; }
+
+        /* ═══ ADMIN SECTION ═══ */
+        .admin-section { display: none; }
+        .admin-section.visible { display: block; }
+        .admin-login { max-width: 400px; margin: 2rem auto; text-align: center; }
+        .admin-login h2 { margin-bottom: 1.5rem; }
+        .admin-dashboard { display: none; }
+        .admin-dashboard.visible { display: block; }
+        .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .admin-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; text-align: center; }
+        .admin-stat-val { font-size: 2rem; font-weight: 800; color: var(--green); }
+        .admin-stat-label { font-size: .8rem; color: var(--text-dim); margin-top: .25rem; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .admin-table th { text-align: left; padding: .75rem 1rem; font-size: .75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+        .admin-table td { padding: .75rem 1rem; font-size: .85rem; border-bottom: 1px solid var(--border); }
+        .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .4rem; }
+        .status-dot.paid { background: var(--green); }
+        .status-dot.pending { background: var(--amber); }
+        .status-dot.delivered { background: var(--blue); }
+        .admin-actions { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .admin-btn { padding: .6rem 1.2rem; border-radius: 8px; font-family: inherit; font-weight: 600; font-size: .8rem; cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text); transition: all .2s; display: flex; align-items: center; gap: .4rem; }
+        .admin-btn:hover { border-color: rgba(0,255,136,0.3); color: var(--green); }
+        .admin-btn.danger { border-color: rgba(255,77,106,0.2); }
+        .admin-btn.danger:hover { border-color: rgba(255,77,106,0.5); color: var(--red); }
+
+        /* ═══ PRODUCT MGMT MODAL ═══ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 4000; opacity: 0; pointer-events: none; transition: opacity .3s; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-box { background: #0d0d16; border: 1px solid var(--glass-border); border-radius: 16px; width: 500px; max-width: 92vw; max-height: 85vh; overflow-y: auto; padding: 2rem; }
+        .modal-box h3 { font-size: 1.1rem; margin-bottom: 1.5rem; }
+
+        /* ═══ FOOTER ═══ */
+        footer { border-top: 1px solid var(--border); padding: 3rem 2rem; text-align: center; }
+        .footer-inner { max-width: 1300px; margin: 0 auto; }
+        .footer-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .footer-links a { color: var(--text-dim); text-decoration: none; font-size: .85rem; transition: color .2s; }
+        .footer-links a:hover { color: var(--green); }
+        .footer-contact { color: var(--text-dim); font-size: .8rem; margin-bottom: .5rem; }
+        .footer-copy { color: var(--text-dim); font-size: .75rem; opacity: .6; }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .nav-center.open { display: flex; flex-direction: column; position: absolute; top: 64px; left: 0; width: 100%; background: rgba(6,6,11,0.96); padding: 1.5rem; border-bottom: 1px solid var(--border); }
+            .nav-links { flex-direction: column; gap: .75rem; }
+            .nav-toggle { display: block; }
+            .products-grid { grid-template-columns: 1fr; }
+            .faq-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .cart-sidebar { width: 100%; max-width: 100vw; right: -100%; }
+            .admin-stats { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+    <div class="nav-inner">
+        <a href="index.html" class="nav-logo">⬡ OPTIMUS</a>
+        <div class="nav-center" id="navMenu">
+            <ul class="nav-links">
+                <li><a href="index.html" data-en="Home" data-fr="Accueil">Home</a></li>
+                <li><a href="#products" data-en="Products" data-fr="Produits">Products</a></li>
+                <li><a href="#faq" data-en="FAQ" data-fr="FAQ">FAQ</a></li>
+                <li><a href="#admin-section" id="adminLink" data-en="Admin" data-fr="Admin">Admin</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <button class="lang-toggle" onclick="toggleLang()" id="langBtn">FR</button>
+            <button class="cart-btn" onclick="openCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span data-en="Cart" data-fr="Panier">Cart</span>
+                <span class="cart-badge hidden" id="cartBadge">0</span>
+            </button>
+            <button class="nav-toggle" onclick="document.getElementById('navMenu').classList.toggle('open')">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="store-hero">
+    <div class="container">
+        <span class="section-label" data-en="OFFICIAL STORE" data-fr="BOUTIQUE OFFICIELLE">OFFICIAL STORE</span>
+        <h1 class="section-title" data-en="Get Protected Today" data-fr="Protégez-vous dès aujourd'hui">Get Protected Today</h1>
+        <p class="section-sub" data-en="Choose the plan that fits your needs. 14 integrated security tools, one powerful platform." data-fr="Choisissez le plan qui vous convient. 14 outils de sécurité intégrés, une plateforme puissante.">Choose the plan that fits your needs. 14 integrated security tools, one powerful platform.</p>
+        <div class="trust-badges">
+            <div class="trust-badge"><i class="fas fa-shield-halved"></i> <span data-en="Secure Payments" data-fr="Paiements sécurisés">Secure Payments</span></div>
+            <div class="trust-badge"><i class="fas fa-lock"></i> <span data-en="256-bit Encryption" data-fr="Chiffrement 256 bits">256-bit Encryption</span></div>
+            <div class="trust-badge"><i class="fas fa-rotate-left"></i> <span data-en="30-Day Refund" data-fr="Remboursement 30 jours">30-Day Refund</span></div>
+            <div class="trust-badge"><i class="fas fa-headset"></i> <span data-en="Priority Support" data-fr="Support prioritaire">Priority Support</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ PRODUCTS ═══ -->
+<section id="products">
+    <div class="container">
+        <span class="section-label" data-en="CHOOSE YOUR PLAN" data-fr="CHOISISSEZ VOTRE PLAN">CHOOSE YOUR PLAN</span>
+        <h2 class="section-title" data-en="Pricing & Licenses" data-fr="Tarifs & Licences">Pricing & Licenses</h2>
+        <p class="section-sub" data-en="From individuals to enterprises — every plan includes all 14 security tools." data-fr="Des particuliers aux entreprises — chaque plan inclut les 14 outils de sécurité.">From individuals to enterprises — every plan includes all 14 security tools.</p>
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
+</section>
+
+<!-- ═══ FEATURES BAR ═══ -->
+<div class="features-bar">
+    <div class="features-row">
+        <div class="feat-item">
+            <i class="fas fa-bolt"></i>
+            <h4 data-en="Instant Activation" data-fr="Activation instantanée">Instant Activation</h4>
+            <p data-en="License key delivered immediately" data-fr="Clé de licence livrée immédiatement">License key delivered immediately</p>
+        </div>
+        <div class="feat-item">
+            <i class="fas fa-arrows-rotate"></i>
+            <h4 data-en="Free Updates" data-fr="Mises à jour gratuites">Free Updates</h4>
+            <p data-en="All future versions included" data-fr="Toutes les versions futures incluses">All future versions included</p>
+        </div>
+        <div class="feat-item">
+            <i class="fab fa-linux"></i>
+            <h4 data-en="Cross-Platform" data-fr="Multi-plateforme">Cross-Platform</h4>
+            <p data-en="Linux, Windows & Android" data-fr="Linux, Windows & Android">Linux, Windows & Android</p>
+        </div>
+        <div class="feat-item">
+            <i class="fas fa-users"></i>
+            <h4 data-en="Multi-Device" data-fr="Multi-appareils">Multi-Device</h4>
+            <p data-en="Use on all your devices" data-fr="Utilisez sur tous vos appareils">Use on all your devices</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ FAQ ═══ -->
+<section id="faq">
+    <div class="container">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-title" data-en="Frequently Asked Questions" data-fr="Questions fréquentes">Frequently Asked Questions</h2>
+        <div class="faq-grid">
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="What platforms are supported?" data-fr="Quelles plateformes sont supportées ?">What platforms are supported?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="Optimus runs on Linux (Debian/Ubuntu/Fedora/Arch), Windows 10/11, and Android 8+. One license works across all platforms." data-fr="Optimus fonctionne sur Linux (Debian/Ubuntu/Fedora/Arch), Windows 10/11 et Android 8+. Une licence fonctionne sur toutes les plateformes.">Optimus runs on Linux (Debian/Ubuntu/Fedora/Arch), Windows 10/11, and Android 8+. One license works across all platforms.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="What's included in the Early Bird license?" data-fr="Qu'inclut la licence Early Bird ?">What's included in the Early Bird license?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="All 14 programs, lifetime updates, up to 10 devices, and priority email support. This is a limited-time price — it will increase after launch." data-fr="Les 14 programmes, mises à jour à vie, jusqu'à 10 appareils et support email prioritaire. Prix limité — il augmentera après le lancement.">All 14 programs, lifetime updates, up to 10 devices, and priority email support. This is a limited-time price — it will increase after launch.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="How do I install Optimus?" data-fr="Comment installer Optimus ?">How do I install Optimus?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="After purchase, download the installer for your platform. Run it, enter your license key, and all 14 programs will be installed automatically." data-fr="Après l'achat, téléchargez l'installateur pour votre plateforme. Lancez-le, entrez votre clé de licence, et les 14 programmes s'installent automatiquement.">After purchase, download the installer for your platform. Run it, enter your license key, and all 14 programs will be installed automatically.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="Can I get a refund?" data-fr="Puis-je obtenir un remboursement ?">Can I get a refund?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="Yes! We offer a 30-day money-back guarantee. If you're not satisfied, contact us at sxc3030@gmail.com for a full refund." data-fr="Oui ! Nous offrons une garantie de remboursement de 30 jours. Si vous n'êtes pas satisfait, contactez-nous à sxc3030@gmail.com.">Yes! We offer a 30-day money-back guarantee. If you're not satisfied, contact us at sxc3030@gmail.com for a full refund.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="Is the mobile app really free?" data-fr="L'application mobile est-elle vraiment gratuite ?">Is the mobile app really free?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="Yes, NetGuardPro Mobile is completely free and open source. It includes VPN, Firewall, DNS Filter, and Cleaner. No ads, no tracking." data-fr="Oui, NetGuardPro Mobile est totalement gratuit et open source. Il inclut VPN, Pare-feu, Filtre DNS et Nettoyeur. Pas de pub, pas de tracking.">Yes, NetGuardPro Mobile is completely free and open source. It includes VPN, Firewall, DNS Filter, and Cleaner. No ads, no tracking.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <div class="faq-q"><span data-en="Do you offer enterprise volume pricing?" data-fr="Offrez-vous des tarifs entreprise en volume ?">Do you offer enterprise volume pricing?</span><i class="fas fa-chevron-down"></i></div>
+                <div class="faq-a" data-en="Yes! The Enterprise plan supports unlimited devices. For custom volume pricing or SLA requirements, contact us at sxc3030@gmail.com." data-fr="Oui ! Le plan Entreprise supporte un nombre illimité d'appareils. Pour des tarifs volume ou des SLA personnalisés, contactez-nous à sxc3030@gmail.com.">Yes! The Enterprise plan supports unlimited devices. For custom volume pricing or SLA requirements, contact us at sxc3030@gmail.com.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ ADMIN SECTION ═══ -->
+<section id="admin-section" class="admin-section">
+    <div class="container">
+        <!-- Login -->
+        <div class="admin-login" id="adminLogin">
+            <h2 data-en="Admin Dashboard" data-fr="Tableau de bord Admin">Admin Dashboard</h2>
+            <p class="section-sub" style="margin:0 auto 1.5rem;text-align:center" data-en="Enter your credentials to access the admin panel." data-fr="Entrez vos identifiants pour accéder au panneau admin.">Enter your credentials to access the admin panel.</p>
+            <div class="form-group">
+                <label data-en="Username" data-fr="Utilisateur">Username</label>
+                <input type="text" class="form-input" id="adminUser" placeholder="admin" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label data-en="Password" data-fr="Mot de passe">Password</label>
+                <input type="password" class="form-input" id="adminPass" placeholder="••••••" autocomplete="off">
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="adminLogin()" data-en="Login" data-fr="Connexion">Login</button>
+            <p id="adminError" style="color:var(--red);font-size:.8rem;margin-top:.75rem;display:none" data-en="Invalid credentials" data-fr="Identifiants invalides">Invalid credentials</p>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="admin-dashboard" id="adminDashboard">
+            <h2 style="margin-bottom:.5rem"><i class="fas fa-chart-line" style="color:var(--green);margin-right:.5rem"></i> <span data-en="Revenue Dashboard" data-fr="Tableau de bord Revenus">Revenue Dashboard</span></h2>
+            <p class="section-sub" style="margin-bottom:1.5rem" data-en="Manage your orders, products and revenue." data-fr="Gérez vos commandes, produits et revenus.">Manage your orders, products and revenue.</p>
+
+            <div class="admin-stats" id="adminStats"></div>
+
+            <div class="admin-actions">
+                <button class="admin-btn" onclick="exportCSV()"><i class="fas fa-file-csv"></i> <span data-en="Export CSV" data-fr="Exporter CSV">Export CSV</span></button>
+                <button class="admin-btn" onclick="openProductModal()"><i class="fas fa-plus"></i> <span data-en="Add Product" data-fr="Ajouter Produit">Add Product</span></button>
+                <button class="admin-btn danger" onclick="clearOrders()"><i class="fas fa-trash"></i> <span data-en="Clear Orders" data-fr="Effacer commandes">Clear Orders</span></button>
+                <button class="admin-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> <span data-en="Logout" data-fr="Déconnexion">Logout</span></button>
+            </div>
+
+            <h3 style="margin-bottom:1rem" data-en="Recent Orders" data-fr="Commandes récentes">Recent Orders</h3>
+            <div style="overflow-x:auto">
+                <table class="admin-table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th data-en="Order ID" data-fr="N° Commande">Order ID</th>
+                            <th data-en="Date" data-fr="Date">Date</th>
+                            <th data-en="Customer" data-fr="Client">Customer</th>
+                            <th data-en="Product" data-fr="Produit">Product</th>
+                            <th data-en="Amount" data-fr="Montant">Amount</th>
+                            <th data-en="Status" data-fr="Statut">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody"></tbody>
+                </table>
+            </div>
+
+            <h3 style="margin:2rem 0 1rem" data-en="Product Management" data-fr="Gestion des produits">Product Management</h3>
+            <div style="overflow-x:auto">
+                <table class="admin-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th data-en="Product" data-fr="Produit">Product</th>
+                            <th data-en="Price" data-fr="Prix">Price</th>
+                            <th data-en="Sales" data-fr="Ventes">Sales</th>
+                            <th data-en="Revenue" data-fr="Revenu">Revenue</th>
+                            <th data-en="Actions" data-fr="Actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-links">
+            <a href="index.html" data-en="Home" data-fr="Accueil">Home</a>
+            <a href="#products" data-en="Products" data-fr="Produits">Products</a>
+            <a href="#faq" data-en="FAQ" data-fr="FAQ">FAQ</a>
+            <a href="https://github.com/sxc3030-eng" target="_blank">GitHub</a>
+            <a href="mailto:sxc3030@gmail.com" data-en="Contact" data-fr="Contact">Contact</a>
+        </div>
+        <p class="footer-contact">
+            <i class="fas fa-envelope" style="color:var(--green);margin-right:.3rem"></i> sxc3030@gmail.com &nbsp;|&nbsp;
+            <i class="fas fa-map-marker-alt" style="color:var(--green);margin-right:.3rem"></i> Lévis, Québec, Canada
+        </p>
+        <p class="footer-copy">&copy; 2026 Optimus Cybersecurity Suite. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- ═══ CART SIDEBAR ═══ -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+        <h3><i class="fas fa-shopping-cart" style="color:var(--green);margin-right:.5rem"></i> <span data-en="Your Cart" data-fr="Votre panier">Your Cart</span></h3>
+        <button class="cart-close" onclick="closeCart()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span class="cart-total-label" data-en="Total" data-fr="Total">Total</span>
+            <span class="cart-total-val" id="cartTotal">$0.00</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()" disabled>
+            <i class="fas fa-lock"></i>
+            <span data-en="Proceed to Checkout" data-fr="Passer à la caisse">Proceed to Checkout</span>
+        </button>
+    </div>
+</div>
+
+<!-- ═══ CHECKOUT MODAL ═══ -->
+<div class="checkout-overlay" id="checkoutOverlay">
+    <div class="checkout-modal">
+        <h2><i class="fas fa-lock"></i> <span data-en="Secure Checkout" data-fr="Paiement sécurisé">Secure Checkout</span></h2>
+        <div class="checkout-summary" id="checkoutSummary"></div>
+        <form id="checkoutForm" onsubmit="processPayment(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-en="Full Name" data-fr="Nom complet">Full Name</label>
+                    <input type="text" class="form-input" id="custName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label data-en="Email" data-fr="Courriel">Email</label>
+                    <input type="email" class="form-input" id="custEmail" required placeholder="john@example.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-en="Card Details" data-fr="Détails de carte">Card Details</label>
+                <div id="card-element"></div>
+            </div>
+            <button type="submit" class="pay-btn" id="payBtn">
+                <i class="fas fa-shield-halved"></i>
+                <span data-en="Pay Now" data-fr="Payer maintenant" id="payBtnText">Pay Now</span>
+            </button>
+        </form>
+        <div class="payment-msg" id="paymentMsg"></div>
+        <p style="text-align:center;margin-top:1rem;font-size:.7rem;color:var(--text-dim)">
+            <i class="fas fa-lock" style="margin-right:.3rem"></i>
+            <span data-en="Secured by Stripe. We never store your card details." data-fr="Sécurisé par Stripe. Nous ne stockons jamais vos données de carte.">Secured by Stripe. We never store your card details.</span>
+        </p>
+        <button style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-dim);font-size:1.3rem;cursor:pointer" onclick="closeCheckout()">&times;</button>
+    </div>
+</div>
+
+<!-- ═══ ADD PRODUCT MODAL ═══ -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal-box">
+        <h3><i class="fas fa-box" style="color:var(--green);margin-right:.5rem"></i> <span data-en="Add Product" data-fr="Ajouter un produit">Add Product</span></h3>
+        <form onsubmit="saveProduct(event)">
+            <div class="form-group">
+                <label data-en="Product Name" data-fr="Nom du produit">Product Name</label>
+                <input type="text" class="form-input" id="newProdName" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-en="Price ($)" data-fr="Prix ($)">Price ($)</label>
+                    <input type="number" step="0.01" class="form-input" id="newProdPrice" required>
+                </div>
+                <div class="form-group">
+                    <label data-en="Period" data-fr="Période">Period</label>
+                    <input type="text" class="form-input" id="newProdPeriod" placeholder="/year or leave empty">
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-en="Description" data-fr="Description">Description</label>
+                <input type="text" class="form-input" id="newProdDesc" required>
+            </div>
+            <div class="form-group">
+                <label data-en="Features (comma-separated)" data-fr="Fonctionnalités (séparées par des virgules)">Features (comma-separated)</label>
+                <input type="text" class="form-input" id="newProdFeatures" placeholder="Feature 1, Feature 2, Feature 3">
+            </div>
+            <div class="form-row" style="margin-top:1rem">
+                <button type="button" class="btn btn-secondary" style="width:100%;justify-content:center" onclick="closeProductModal()" data-en="Cancel" data-fr="Annuler">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" data-en="Save Product" data-fr="Enregistrer">Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  Optimus Store — E-Commerce Engine
+// ═══════════════════════════════════════════
+
+// ── PRODUCTS ──
+var DEFAULT_PRODUCTS = [
+    {
+        id: 'optimus-earlybird',
+        name: 'Optimus Early Bird',
+        price: 14.99,
+        badge: 'BEST VALUE',
+        badgeClass: 'best',
+        desc_en: 'Lifetime license — All 14 programs. Limited launch price.',
+        desc_fr: 'Licence à vie — Les 14 programmes. Prix de lancement limité.',
+        features_en: ['All 14 programs', 'Lifetime updates', 'Up to 10 devices', 'Priority email support'],
+        features_fr: ['Les 14 programmes', 'Mises à jour à vie', 'Jusqu\'à 10 appareils', 'Support email prioritaire'],
+        icon: 'fa-bolt',
+        color: '#00ff88',
+        featured: true
+    },
+    {
+        id: 'optimus-pro',
+        name: 'Optimus Pro',
+        price: 29.00,
+        period: '/year',
+        badge: 'POPULAR',
+        badgeClass: 'popular',
+        desc_en: 'Annual license — Full suite with Cortex AI.',
+        desc_fr: 'Licence annuelle — Suite complète avec Cortex IA.',
+        features_en: ['All 14 programs', 'Up to 5 devices', 'Priority support', 'Cortex AI module', 'Auto-updates'],
+        features_fr: ['Les 14 programmes', 'Jusqu\'à 5 appareils', 'Support prioritaire', 'Module Cortex IA', 'Mises à jour auto'],
+        icon: 'fa-shield-halved',
+        color: '#00ccff',
+        featured: false
+    },
+    {
+        id: 'optimus-enterprise',
+        name: 'Optimus Enterprise',
+        price: 99.00,
+        period: '/year',
+        badge: '',
+        badgeClass: '',
+        desc_en: 'Organization license — Unlimited devices & SLA.',
+        desc_fr: 'Licence organisation — Appareils illimités & SLA.',
+        features_en: ['Unlimited devices', 'Custom integrations', 'Dedicated support', 'SLA guarantee', 'Admin console'],
+        features_fr: ['Appareils illimités', 'Intégrations sur mesure', 'Support dédié', 'Garantie SLA', 'Console admin'],
+        icon: 'fa-building',
+        color: '#a855f7',
+        featured: false
+    },
+    {
+        id: 'netguardpro-mobile',
+        name: 'NetGuardPro Mobile',
+        price: 0,
+        badge: 'FREE',
+        badgeClass: 'free-badge',
+        desc_en: 'Android security app — 100% free & open source.',
+        desc_fr: 'Application Android — 100% gratuite et open source.',
+        features_en: ['VPN protection', 'Firewall', 'DNS Filter', 'Device Cleaner'],
+        features_fr: ['Protection VPN', 'Pare-feu', 'Filtre DNS', 'Nettoyeur d\'appareil'],
+        icon: 'fa-mobile-screen-button',
+        color: '#3dffb4',
+        featured: false,
+        free: true,
+        downloadUrl: 'https://github.com/sxc3030-eng/NetGuardPro-Mobile/releases'
+    }
+];
+
+// ── STATE ──
+var cart = JSON.parse(localStorage.getItem('optimus-cart') || '[]');
+var orders = JSON.parse(localStorage.getItem('optimus-orders') || '[]');
+var customProducts = JSON.parse(localStorage.getItem('optimus-custom-products') || '[]');
+var lang = localStorage.getItem('optimus-lang') || 'en';
+var adminLoggedIn = false;
+
+// Admin credentials — SHA-256 of "Master"
+var ADMIN_USER = 'admin';
+var ADMIN_PASS_HASH = 'a2bb34780af80cf92faf0872e60567400a910e72543b8de3f47cdb90fc99ffb4';
+
+// ── STRIPE (TEST MODE) ──
+// Replace with your real Stripe publishable key for production
+var STRIPE_PK = 'pk_test_REPLACE_WITH_YOUR_STRIPE_KEY';
+var stripe = null;
+var cardElement = null;
+
+function initStripe() {
+    try {
+        if (STRIPE_PK.indexOf('REPLACE') === -1) {
+            stripe = Stripe(STRIPE_PK);
+            var elements = stripe.elements();
+            cardElement = elements.create('card', {
+                style: {
+                    base: { color: '#e0e0e0', fontFamily: 'Outfit, sans-serif', fontSize: '14px', '::placeholder': { color: '#7a7a8e' } },
+                    invalid: { color: '#ff4d6a' }
+                }
+            });
+            cardElement.mount('#card-element');
+        }
+    } catch(e) {
+        console.log('Stripe not initialized (test mode):', e.message);
+    }
+}
+
+// ── PRODUCTS ──
+function getAllProducts() {
+    return DEFAULT_PRODUCTS.concat(customProducts);
+}
+
+function renderProducts() {
+    var grid = document.getElementById('productsGrid');
+    var products = getAllProducts();
+    grid.innerHTML = '';
+    products.forEach(function(p) {
+        var desc = lang === 'fr' ? (p.desc_fr || p.desc_en) : p.desc_en;
+        var features = lang === 'fr' ? (p.features_fr || p.features_en) : p.features_en;
+        var featureList = (features || []).map(function(f) { return '<li>' + f + '</li>'; }).join('');
+        var badge = p.badge ? '<span class="product-badge ' + (p.badgeClass || '') + '">' + p.badge + '</span>' : '';
+        var priceHtml = p.free ? '<span class="product-price" style="color:#3dffb4">' + (lang === 'fr' ? 'GRATUIT' : 'FREE') + '</span>' : '<span class="product-price"><span class="currency">$</span>' + p.price.toFixed(2) + (p.period ? '<span class="period">' + p.period + '</span>' : '') + '</span>';
+        var inCart = cart.some(function(c) { return c.id === p.id; });
+        var btnClass = p.free ? 'free' : (inCart ? 'added' : 'buy');
+        var btnText = p.free ? (lang === 'fr' ? '<i class="fas fa-download"></i> Télécharger' : '<i class="fas fa-download"></i> Download') : (inCart ? (lang === 'fr' ? '<i class="fas fa-check"></i> Ajouté' : '<i class="fas fa-check"></i> Added') : (lang === 'fr' ? '<i class="fas fa-cart-plus"></i> Ajouter au panier' : '<i class="fas fa-cart-plus"></i> Add to Cart'));
+        var btnAction = p.free ? 'onclick="window.open(\'' + (p.downloadUrl || '#') + '\',\'_blank\')"' : (inCart ? '' : 'onclick="addToCart(\'' + p.id + '\')"');
+
+        grid.innerHTML += '<div class="product-card' + (p.featured ? ' featured' : '') + '">' +
+            badge +
+            '<div class="product-icon" style="background:' + p.color + '18;color:' + p.color + '"><i class="fas ' + p.icon + '"></i></div>' +
+            '<h3 class="product-name">' + p.name + '</h3>' +
+            '<p class="product-desc">' + desc + '</p>' +
+            priceHtml +
+            '<ul class="product-features">' + featureList + '</ul>' +
+            '<div class="product-actions"><button class="add-to-cart ' + btnClass + '" ' + btnAction + '>' + btnText + '</button></div>' +
+            '</div>';
+    });
+}
+
+// ── CART ──
+function addToCart(productId) {
+    var product = getAllProducts().find(function(p) { return p.id === productId; });
+    if (!product || product.free) return;
+    if (cart.some(function(c) { return c.id === productId; })) return;
+    cart.push({ id: product.id, name: product.name, price: product.price, period: product.period || '', icon: product.icon, color: product.color });
+    saveCart();
+    renderProducts();
+    renderCart();
+    openCart();
+}
+
+function removeFromCart(productId) {
+    cart = cart.filter(function(c) { return c.id !== productId; });
+    saveCart();
+    renderProducts();
+    renderCart();
+}
+
+function saveCart() {
+    localStorage.setItem('optimus-cart', JSON.stringify(cart));
+    var badge = document.getElementById('cartBadge');
+    if (cart.length > 0) {
+        badge.textContent = cart.length;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function getCartTotal() {
+    return cart.reduce(function(sum, item) { return sum + item.price; }, 0);
+}
+
+function renderCart() {
+    var container = document.getElementById('cartItems');
+    var checkoutBtn = document.getElementById('checkoutBtn');
+    if (cart.length === 0) {
+        container.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-cart"></i><p>' + (lang === 'fr' ? 'Votre panier est vide' : 'Your cart is empty') + '</p></div>';
+        checkoutBtn.disabled = true;
+    } else {
+        var html = '';
+        cart.forEach(function(item) {
+            html += '<div class="cart-item">' +
+                '<div class="cart-item-icon" style="background:' + item.color + '18;color:' + item.color + '"><i class="fas ' + item.icon + '"></i></div>' +
+                '<div class="cart-item-info"><div class="cart-item-name">' + item.name + '</div><div class="cart-item-price">$' + item.price.toFixed(2) + (item.period || '') + '</div></div>' +
+                '<button class="cart-item-remove" onclick="removeFromCart(\'' + item.id + '\')"><i class="fas fa-trash"></i></button>' +
+                '</div>';
+        });
+        container.innerHTML = html;
+        checkoutBtn.disabled = false;
+    }
+    document.getElementById('cartTotal').textContent = '$' + getCartTotal().toFixed(2);
+    saveCart();
+}
+
+function openCart() {
+    document.getElementById('cartOverlay').classList.add('open');
+    document.getElementById('cartSidebar').classList.add('open');
+}
+
+function closeCart() {
+    document.getElementById('cartOverlay').classList.remove('open');
+    document.getElementById('cartSidebar').classList.remove('open');
+}
+
+// ── CHECKOUT ──
+function openCheckout() {
+    closeCart();
+    var summary = document.getElementById('checkoutSummary');
+    var html = '';
+    cart.forEach(function(item) {
+        html += '<div class="checkout-summary-row"><span>' + item.name + '</span><span>$' + item.price.toFixed(2) + '</span></div>';
+    });
+    html += '<div class="checkout-summary-row total"><span>' + (lang === 'fr' ? 'Total' : 'Total') + '</span><span>$' + getCartTotal().toFixed(2) + '</span></div>';
+    summary.innerHTML = html;
+    document.getElementById('payBtnText').textContent = (lang === 'fr' ? 'Payer ' : 'Pay ') + '$' + getCartTotal().toFixed(2);
+    document.getElementById('checkoutOverlay').classList.add('open');
+    document.getElementById('paymentMsg').className = 'payment-msg';
+    document.getElementById('paymentMsg').textContent = '';
+}
+
+function closeCheckout() {
+    document.getElementById('checkoutOverlay').classList.remove('open');
+}
+
+async function processPayment(e) {
+    e.preventDefault();
+    var payBtn = document.getElementById('payBtn');
+    var msgEl = document.getElementById('paymentMsg');
+    payBtn.disabled = true;
+    payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (lang === 'fr' ? 'Traitement...' : 'Processing...');
+
+    var custName = document.getElementById('custName').value;
+    var custEmail = document.getElementById('custEmail').value;
+
+    // If Stripe is configured, process real payment
+    if (stripe && cardElement) {
+        try {
+            // NOTE: In production, create PaymentIntent server-side
+            // This is a simplified client-side flow for testing
+            var result = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+                billing_details: { name: custName, email: custEmail }
+            });
+            if (result.error) {
+                msgEl.className = 'payment-msg error';
+                msgEl.textContent = result.error.message;
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-shield-halved"></i> ' + (lang === 'fr' ? 'Réessayer' : 'Retry');
+                return;
+            }
+            // Success — record order
+            recordOrder(custName, custEmail, result.paymentMethod.id);
+        } catch (err) {
+            msgEl.className = 'payment-msg error';
+            msgEl.textContent = err.message || 'Payment failed';
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-shield-halved"></i> ' + (lang === 'fr' ? 'Réessayer' : 'Retry');
+            return;
+        }
+    } else {
+        // Demo mode — simulate payment
+        await new Promise(function(r) { setTimeout(r, 1500); });
+        recordOrder(custName, custEmail, 'demo_' + Date.now());
+    }
+
+    // Show success
+    msgEl.className = 'payment-msg success';
+    msgEl.textContent = lang === 'fr' ? '✓ Paiement réussi ! Vérifiez votre courriel pour la licence.' : '✓ Payment successful! Check your email for the license key.';
+    payBtn.innerHTML = '<i class="fas fa-check"></i> ' + (lang === 'fr' ? 'Complété' : 'Complete');
+
+    // Clear cart
+    cart = [];
+    saveCart();
+    renderCart();
+    renderProducts();
+
+    setTimeout(function() { closeCheckout(); }, 4000);
+}
+
+function recordOrder(name, email, paymentId) {
+    var order = {
+        id: 'ORD-' + String(orders.length + 1).padStart(4, '0'),
+        date: new Date().toISOString(),
+        customer: { name: name, email: email },
+        items: cart.map(function(c) { return { productId: c.id, name: c.name, price: c.price }; }),
+        total: getCartTotal(),
+        status: 'paid',
+        stripePaymentId: paymentId
+    };
+    orders.push(order);
+    localStorage.setItem('optimus-orders', JSON.stringify(orders));
+}
+
+// ── ADMIN ──
+async function sha256(msg) {
+    var enc = new TextEncoder();
+    var data = enc.encode(msg);
+    var buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function adminLogin() {
+    var user = document.getElementById('adminUser').value;
+    var pass = document.getElementById('adminPass').value;
+    var hash = await sha256(pass);
+    if (user === ADMIN_USER && hash === ADMIN_PASS_HASH) {
+        adminLoggedIn = true;
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminDashboard').classList.add('visible');
+        document.getElementById('adminError').style.display = 'none';
+        renderAdminDashboard();
+    } else {
+        document.getElementById('adminError').style.display = 'block';
+    }
+}
+
+function adminLogout() {
+    adminLoggedIn = false;
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminDashboard').classList.remove('visible');
+    document.getElementById('adminUser').value = '';
+    document.getElementById('adminPass').value = '';
+}
+
+function renderAdminDashboard() {
+    if (!adminLoggedIn) return;
+    var now = new Date();
+    var todayStr = now.toISOString().slice(0, 10);
+    var weekAgo = new Date(now - 7 * 86400000);
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    var todayRev = 0, weekRev = 0, monthRev = 0, totalRev = 0, totalOrders = orders.length;
+    orders.forEach(function(o) {
+        var d = new Date(o.date);
+        totalRev += o.total;
+        if (o.date.slice(0, 10) === todayStr) todayRev += o.total;
+        if (d >= weekAgo) weekRev += o.total;
+        if (d >= monthStart) monthRev += o.total;
+    });
+
+    document.getElementById('adminStats').innerHTML =
+        '<div class="admin-stat"><div class="admin-stat-val">$' + todayRev.toFixed(2) + '</div><div class="admin-stat-label">' + (lang === 'fr' ? 'Aujourd\'hui' : 'Today') + '</div></div>' +
+        '<div class="admin-stat"><div class="admin-stat-val">$' + weekRev.toFixed(2) + '</div><div class="admin-stat-label">' + (lang === 'fr' ? 'Cette semaine' : 'This Week') + '</div></div>' +
+        '<div class="admin-stat"><div class="admin-stat-val">$' + monthRev.toFixed(2) + '</div><div class="admin-stat-label">' + (lang === 'fr' ? 'Ce mois' : 'This Month') + '</div></div>' +
+        '<div class="admin-stat"><div class="admin-stat-val">$' + totalRev.toFixed(2) + '</div><div class="admin-stat-label">' + (lang === 'fr' ? 'Total' : 'Total') + '</div></div>' +
+        '<div class="admin-stat"><div class="admin-stat-val">' + totalOrders + '</div><div class="admin-stat-label">' + (lang === 'fr' ? 'Commandes' : 'Orders') + '</div></div>';
+
+    // Orders table
+    var tbody = document.getElementById('ordersBody');
+    tbody.innerHTML = '';
+    orders.slice().reverse().forEach(function(o) {
+        var statusClass = o.status === 'paid' ? 'paid' : (o.status === 'delivered' ? 'delivered' : 'pending');
+        var items = o.items.map(function(i) { return i.name; }).join(', ');
+        tbody.innerHTML += '<tr>' +
+            '<td style="font-family:JetBrains Mono,monospace;font-size:.8rem;color:var(--green)">' + o.id + '</td>' +
+            '<td>' + new Date(o.date).toLocaleDateString() + '</td>' +
+            '<td>' + o.customer.name + '<br><span style="font-size:.7rem;color:var(--text-dim)">' + o.customer.email + '</span></td>' +
+            '<td>' + items + '</td>' +
+            '<td style="font-weight:700;color:var(--green)">$' + o.total.toFixed(2) + '</td>' +
+            '<td><span class="status-dot ' + statusClass + '"></span>' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</td>' +
+            '</tr>';
+    });
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:2rem">' + (lang === 'fr' ? 'Aucune commande' : 'No orders yet') + '</td></tr>';
+    }
+
+    // Products table
+    var ptbody = document.getElementById('productsBody');
+    ptbody.innerHTML = '';
+    getAllProducts().forEach(function(p) {
+        var sales = orders.reduce(function(s, o) {
+            return s + o.items.filter(function(i) { return i.productId === p.id; }).length;
+        }, 0);
+        var revenue = orders.reduce(function(s, o) {
+            return s + o.items.filter(function(i) { return i.productId === p.id; }).reduce(function(a, i) { return a + i.price; }, 0);
+        }, 0);
+        var isCustom = customProducts.some(function(cp) { return cp.id === p.id; });
+        ptbody.innerHTML += '<tr>' +
+            '<td><i class="fas ' + p.icon + '" style="color:' + p.color + ';margin-right:.5rem"></i>' + p.name + '</td>' +
+            '<td>' + (p.free ? (lang === 'fr' ? 'Gratuit' : 'Free') : '$' + p.price.toFixed(2) + (p.period || '')) + '</td>' +
+            '<td>' + sales + '</td>' +
+            '<td style="color:var(--green)">$' + revenue.toFixed(2) + '</td>' +
+            '<td>' + (isCustom ? '<button class="admin-btn danger" style="padding:.3rem .6rem;font-size:.7rem" onclick="deleteProduct(\'' + p.id + '\')"><i class="fas fa-trash"></i></button>' : '<span style="color:var(--text-dim);font-size:.75rem">' + (lang === 'fr' ? 'Par défaut' : 'Default') + '</span>') + '</td>' +
+            '</tr>';
+    });
+}
+
+function exportCSV() {
+    if (orders.length === 0) { alert(lang === 'fr' ? 'Aucune commande à exporter' : 'No orders to export'); return; }
+    var csv = 'Date,Order ID,Customer Name,Customer Email,Product,Amount,Status,Stripe Payment ID\n';
+    orders.forEach(function(o) {
+        o.items.forEach(function(item) {
+            csv += '"' + new Date(o.date).toLocaleDateString() + '","' + o.id + '","' + o.customer.name + '","' + o.customer.email + '","' + item.name + '",' + item.price.toFixed(2) + ',"' + o.status + '","' + (o.stripePaymentId || '') + '"\n';
+        });
+    });
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'optimus-orders-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function clearOrders() {
+    if (!confirm(lang === 'fr' ? 'Effacer toutes les commandes ? Cette action est irréversible.' : 'Clear all orders? This action cannot be undone.')) return;
+    orders = [];
+    localStorage.setItem('optimus-orders', JSON.stringify(orders));
+    renderAdminDashboard();
+}
+
+function openProductModal() {
+    document.getElementById('productModal').classList.add('open');
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').classList.remove('open');
+}
+
+function saveProduct(e) {
+    e.preventDefault();
+    var name = document.getElementById('newProdName').value;
+    var price = parseFloat(document.getElementById('newProdPrice').value);
+    var period = document.getElementById('newProdPeriod').value;
+    var desc = document.getElementById('newProdDesc').value;
+    var features = document.getElementById('newProdFeatures').value.split(',').map(function(f) { return f.trim(); }).filter(Boolean);
+
+    var product = {
+        id: 'custom-' + Date.now(),
+        name: name,
+        price: price,
+        period: period || '',
+        badge: '',
+        badgeClass: '',
+        desc_en: desc,
+        desc_fr: desc,
+        features_en: features,
+        features_fr: features,
+        icon: 'fa-box',
+        color: '#00ccff',
+        featured: false,
+        free: price === 0
+    };
+
+    customProducts.push(product);
+    localStorage.setItem('optimus-custom-products', JSON.stringify(customProducts));
+    closeProductModal();
+    renderProducts();
+    renderAdminDashboard();
+
+    // Reset form
+    document.getElementById('newProdName').value = '';
+    document.getElementById('newProdPrice').value = '';
+    document.getElementById('newProdPeriod').value = '';
+    document.getElementById('newProdDesc').value = '';
+    document.getElementById('newProdFeatures').value = '';
+}
+
+function deleteProduct(id) {
+    if (!confirm(lang === 'fr' ? 'Supprimer ce produit ?' : 'Delete this product?')) return;
+    customProducts = customProducts.filter(function(p) { return p.id !== id; });
+    localStorage.setItem('optimus-custom-products', JSON.stringify(customProducts));
+    renderProducts();
+    renderAdminDashboard();
+}
+
+// ── LANGUAGE ──
+function toggleLang() {
+    lang = lang === 'en' ? 'fr' : 'en';
+    localStorage.setItem('optimus-lang', lang);
+    applyLang();
+    renderProducts();
+    renderCart();
+    if (adminLoggedIn) renderAdminDashboard();
+}
+
+function applyLang() {
+    document.getElementById('langBtn').textContent = lang === 'en' ? 'FR' : 'EN';
+    document.querySelectorAll('[data-' + lang + ']').forEach(function(el) {
+        var val = el.getAttribute('data-' + lang);
+        if (val) el.textContent = val;
+    });
+}
+
+// ── ADMIN LINK ──
+document.getElementById('adminLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    var section = document.getElementById('admin-section');
+    section.classList.add('visible');
+    section.scrollIntoView({ behavior: 'smooth' });
+});
+
+// ── INIT ──
+(function init() {
+    applyLang();
+    renderProducts();
+    renderCart();
+    saveCart(); // update badge
+    initStripe();
+})();
+</script>
+
+</body>
+</html>
