@@ -25,7 +25,12 @@ echo "[*] Checking dependencies..."
 python3 -m pip install pywebview[gtk] scapy requests psutil --quiet 2>/dev/null
 echo "[OK] Dependencies ready."
 
-# Launch
+# Launch (needs root for packet capture)
 echo "[*] Starting NetGuard Pro..."
 cd "$(dirname "$0")/.."
-python3 netguard.py
+if [ "$EUID" -ne 0 ]; then
+    echo "[!] Root required for packet capture. Relaunching with sudo..."
+    sudo python3 netguard.py
+else
+    python3 netguard.py
+fi

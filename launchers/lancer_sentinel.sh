@@ -58,7 +58,5 @@ echo "  [*] Cortex dashboard on port 8900"
 echo ""
 
 cd "$(dirname "$0")/../sentinel"
-python3 cortex.py &
-echo "  [OK] SentinelOS started in background!"
-echo "  [*] Check the system tray icon."
-sleep 3
+python3 cortex.py
+echo "  [OK] SentinelOS Cortex exited."

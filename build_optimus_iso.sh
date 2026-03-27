@@ -224,21 +224,31 @@ APT
 apt-get update -qq
 
 # ── 6c. Install Linux kernel and boot infrastructure ──────────────────────
-apt-get install -y -qq linux-image-amd64 live-boot systemd-sysv
+apt-get install -y linux-image-amd64 live-boot systemd-sysv
+# Verify kernel installed
+if ! ls /boot/vmlinuz-* 2>/dev/null; then
+    echo "[!] KERNEL NOT FOUND - retrying without -qq..."
+    apt-get install -y --reinstall linux-image-amd64
+fi
+ls /boot/vmlinuz-* || { echo "[FATAL] Kernel installation failed"; exit 1; }
+echo "[OK] Kernel installed: $(ls /boot/vmlinuz-*)"
 
 # ── 6d. Install desktop environment (XFCE — lightweight) ──────────────────
-apt-get install -y -qq \
+apt-get install -y \
     xfce4 xfce4-goodies xfce4-terminal \
     lightdm lightdm-gtk-greeter \
     dbus-x11 xorg
 
 # ── 6e. Install Python ecosystem ──────────────────────────────────────────
-apt-get install -y -qq \
+apt-get install -y \
     python3 python3-pip python3-venv python3-dev \
     python3-setuptools python3-wheel
 
 # ── 6f. Install networking and security tools ─────────────────────────────
-apt-get install -y -qq \
+# Create wireshark group BEFORE installing wireshark-common to avoid postinst failure
+groupadd -f wireshark
+echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wireshark-common tshark nmap tcpdump \
     net-tools iptables iptables-persistent \
     wireguard wireguard-tools \
@@ -247,14 +257,15 @@ apt-get install -y -qq \
     traceroute whois dnsutils iproute2 ethtool
 
 # ── 6g. Install system utilities ──────────────────────────────────────────
-apt-get install -y -qq \
+apt-get install -y \
     git curl wget vim nano htop tmux \
     unzip p7zip-full rsync sudo \
     build-essential libffi-dev libssl-dev \
-    libpcap-dev
+    libpcap-dev \
+    firefox-esr fonts-dejavu-core
 
 # ── 6h. Install GUI dependencies (pywebview needs webkit) ─────────────────
-apt-get install -y -qq \
+apt-get install -y \
     libwebkit2gtk-4.0-37 gir1.2-webkit2-4.0 \
     python3-gi python3-gi-cairo gir1.2-gtk-3.0 \
     libgirepository1.0-dev
@@ -264,11 +275,24 @@ apt-get install -y -qq \
 pip3 install --break-system-packages \
     pywebview scapy psutil requests websockets \
     cryptography qrcode Pillow yara-python \
-    flask netifaces
+    flask netifaces || true
+
+# Verify scapy specifically — critical for NetGuard
+python3 -c "import scapy; print('[OK] scapy', scapy.VERSION)" || {
+    echo "[!] scapy failed, retrying..."
+    pip3 install --break-system-packages --force-reinstall scapy
+}
+python3 -c "import websockets; print('[OK] websockets')" || pip3 install --break-system-packages websockets
+python3 -c "import psutil; print('[OK] psutil')" || pip3 install --break-system-packages psutil
 
 # ── 6j. Create the optimus user ──────────────────────────────────────────
 # Default password "optimus" — users should change this after first boot.
-useradd -m -s /bin/bash -G sudo,wireshark,adm optimus
+groupadd wireshark 2>/dev/null || true
+getent group wireshark >/dev/null || groupadd wireshark
+useradd -m -s /bin/bash optimus 2>/dev/null || true
+usermod -aG sudo optimus 2>/dev/null || true
+usermod -aG wireshark optimus 2>/dev/null || true
+usermod -aG adm optimus 2>/dev/null || true
 echo "optimus:optimus" | chpasswd
 echo "optimus ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/optimus
 chmod 440 /etc/sudoers.d/optimus
@@ -306,7 +330,59 @@ cat > "$XFCE_CONF/xsettings.xml" << 'XSET'
 </channel>
 XSET
 
-# Set solid dark wallpaper (#0a0a0f) — XFCE desktop background
+# Generate Optimus wallpaper using Python (dark cybersecurity theme)
+python3 << 'WALLPAPER_GEN'
+from PIL import Image, ImageDraw, ImageFont
+import math, random
+
+W, H = 1920, 1080
+img = Image.new("RGB", (W, H), (10, 10, 15))
+draw = ImageDraw.Draw(img)
+
+# Dark gradient background
+for y in range(H):
+    r = int(10 + 5 * math.sin(y / 200))
+    g = int(10 + 8 * math.sin(y / 150 + 1))
+    b = int(15 + 12 * math.sin(y / 100 + 2))
+    draw.line([(0, y), (W, y)], fill=(max(0,r), max(0,g), max(0,b)))
+
+# Grid lines
+for x in range(0, W, 80):
+    draw.line([(x, 0), (x, H)], fill=(20, 20, 40), width=1)
+for y in range(0, H, 80):
+    draw.line([(0, y), (W, y)], fill=(20, 20, 40), width=1)
+
+# Accent glow circle in center
+cx, cy = W//2, H//2
+for r in range(300, 0, -1):
+    alpha = int(0.3 * (1 - r/300) * 255)
+    c = (0, int(alpha * 0.6), int(alpha * 0.3))
+    draw.ellipse([cx-r, cy-r, cx+r, cy+r], outline=c)
+
+# Stars
+random.seed(42)
+for _ in range(200):
+    sx, sy = random.randint(0, W), random.randint(0, H)
+    br = random.randint(40, 120)
+    draw.point((sx, sy), fill=(br, br, br+20))
+
+# Title text
+try:
+    font_big = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 72)
+    font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+except:
+    font_big = ImageFont.load_default()
+    font_sm = font_big
+
+draw.text((W//2, H//2 - 60), "OPTIMUS", fill=(0, 255, 136), font=font_big, anchor="mm")
+draw.text((W//2, H//2 + 20), "Cybersecurity Defense Suite", fill=(180, 180, 200), font=font_sm, anchor="mm")
+draw.text((W//2, H//2 + 55), "Protect. Detect. Respond.", fill=(100, 100, 130), font=font_sm, anchor="mm")
+
+img.save("/opt/optimus/wallpaper.png", "PNG")
+print("[OK] Wallpaper generated: /opt/optimus/wallpaper.png")
+WALLPAPER_GEN
+
+# Set wallpaper in XFCE desktop config
 cat > "$XFCE_CONF/xfce4-desktop.xml" << 'XDESK'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-desktop" version="1.0">
@@ -315,13 +391,15 @@ cat > "$XFCE_CONF/xfce4-desktop.xml" << 'XDESK'
       <property name="monitorVirtual-1" type="empty">
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
-          <property name="rgba1" type="array">
-            <value type="double" value="0.039216"/>
-            <value type="double" value="0.039216"/>
-            <value type="double" value="0.058824"/>
-            <value type="double" value="1.000000"/>
-          </property>
-          <property name="image-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/opt/optimus/wallpaper.png"/>
+        </property>
+      </property>
+      <property name="monitor0" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/opt/optimus/wallpaper.png"/>
         </property>
       </property>
     </property>
@@ -394,11 +472,41 @@ MASTER
 DESKTOP_DIR="/home/optimus/Desktop"
 mkdir -p "$DESKTOP_DIR"
 
-# Copy the master launcher shortcut to the desktop
-cp "${APPS_DIR}/optimus-suite.desktop" "${DESKTOP_DIR}/"
-chmod +x "${DESKTOP_DIR}/optimus-suite.desktop"
+# Copy ALL program shortcuts to the desktop
+for desktop_file in "${APPS_DIR}"/optimus-*.desktop; do
+    cp "$desktop_file" "${DESKTOP_DIR}/"
+    chmod +x "${DESKTOP_DIR}/$(basename $desktop_file)"
+done
 
-# Also add a terminal shortcut
+# Optimus Desktop Environment launcher
+cat > "${DESKTOP_DIR}/optimus-desktop-env.desktop" << 'DESKENV'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Optimus Desktop
+Comment=Graphical Command Center
+Exec=bash /opt/optimus/launchers/lancer_desktop.sh
+Icon=preferences-desktop
+Terminal=false
+Categories=System;Security;
+DESKENV
+chmod +x "${DESKTOP_DIR}/optimus-desktop-env.desktop"
+
+# Firefox dashboard shortcut
+cat > "${DESKTOP_DIR}/dashboard.desktop" << 'FDASH'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=NetGuard Dashboard
+Comment=Open Dashboard in browser
+Exec=firefox /opt/optimus/netguard_dashboard.html
+Icon=firefox
+Terminal=false
+Categories=Network;Security;
+FDASH
+chmod +x "${DESKTOP_DIR}/dashboard.desktop"
+
+# Terminal shortcut
 cat > "${DESKTOP_DIR}/terminal.desktop" << 'TERM'
 [Desktop Entry]
 Version=1.0
@@ -491,6 +599,14 @@ cat > "${ISO_DIR}/boot/grub/grub.cfg" << 'GRUB'
 set timeout=5
 set default=0
 
+insmod all_video
+insmod part_msdos
+insmod part_gpt
+insmod iso9660
+insmod fat
+insmod search
+insmod linux
+
 # Detect if we booted via EFI
 if [ "${grub_platform}" = "efi" ]; then
     insmod efi_gop
@@ -504,27 +620,29 @@ insmod gfxterm
 terminal_output gfxterm
 set gfxmode=auto
 
+# Find the partition containing our live files
+search --set=root --file /live/vmlinuz
+
 # ── Menu Colors ──────────────────────────────────────────────────────────
 set menu_color_normal=cyan/black
 set menu_color_highlight=white/dark-gray
 
 menuentry "Optimus v1.0.0 — Live (Default)" {
+    search --set=root --file /live/vmlinuz
     linux /live/vmlinuz boot=live quiet splash
     initrd /live/initrd.img
 }
 
 menuentry "Optimus v1.0.0 — Live (Safe Mode)" {
+    search --set=root --file /live/vmlinuz
     linux /live/vmlinuz boot=live nomodeset
     initrd /live/initrd.img
 }
 
 menuentry "Optimus v1.0.0 — Live (Debug / Verbose)" {
+    search --set=root --file /live/vmlinuz
     linux /live/vmlinuz boot=live debug verbose
     initrd /live/initrd.img
-}
-
-menuentry "Memory Test (memtest86+)" {
-    linux16 /live/vmlinuz memtest
 }
 GRUB
 
