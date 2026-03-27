@@ -4,7 +4,7 @@
 
 ### Cybersecurity Defense Suite for Linux
 
-[![License](https://img.shields.io/badge/License-Commercial-blue.svg)]()
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-green.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg)]()
 [![Programs](https://img.shields.io/badge/Programs-14-ff6600.svg)]()
@@ -247,17 +247,11 @@ pip install -r requirements.txt
 
 ## 💰 Licensing
 
-### 🆓 Community (Free)
-5 core programs for personal, non-commercial use.
+**Optimus Linux is FREE and Open Source (GPLv3).**
 
-### ⭐ Pro — $29/year
-All 14 programs + commercial use license.
+All 14 programs, bootable ISO, desktop environment — 100% free for everyone.
 
-### 🎯 Early Bird — $14.99 (Lifetime!)
-**Limited to 500 spots** — All 14 programs, all future updates, forever.
-
-### 🏢 Enterprise — $99/year
-Unlimited devices + priority support + custom playbooks.
+Want the **Windows version** with professional installer and premium support? See [NetGuardPro](https://github.com/sxc3030-eng/NetGuardPro).
 
 ---
 
@@ -325,7 +319,7 @@ All contributions must include GPG-signed commits.
 
 ## 📜 License
 
-Commercial software. See [LICENSE](LICENSE) for full terms.
+This project is licensed under the **GNU General Public License v3.0** — free to use, modify, and distribute. See [LICENSE](LICENSE) for details.
 
 ---
 

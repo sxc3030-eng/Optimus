@@ -94,7 +94,7 @@ PROGRAMS = [
         "icon": "fa-spider",
         "emoji": "\U0001f36f",
         "port": 8830,
-        "launcher": "lancer_sentinel.sh",
+        "launcher": "lancer_honeypot.sh",
         "color": "#eb3b5a",
     },
     {
@@ -104,7 +104,7 @@ PROGRAMS = [
         "icon": "fa-file-shield",
         "emoji": "\U0001f4c4",
         "port": 8840,
-        "launcher": "lancer_sentinel.sh",
+        "launcher": "lancer_fim.sh",
         "color": "#20bf6b",
     },
     {
@@ -114,7 +114,7 @@ PROGRAMS = [
         "icon": "fa-crosshairs",
         "emoji": "\U0001f3af",
         "port": 8850,
-        "launcher": "lancer_sentinel.sh",
+        "launcher": "lancer_strikeback.sh",
         "color": "#fc5c65",
     },
     {
@@ -124,7 +124,7 @@ PROGRAMS = [
         "icon": "fa-video",
         "emoji": "\U0001f4f9",
         "port": 8860,
-        "launcher": "lancer_sentinel.sh",
+        "launcher": "lancer_recorder.sh",
         "color": "#45aaf2",
     },
     {
@@ -242,8 +242,11 @@ class DesktopAPI:
             return {"ok": True, "msg": f"{prog['name']} is already running."}
 
         try:
+            # Programs needing root: netguard, sentinel, vpnguard, honeypot, strikeback
+            needs_root = name in ("netguard", "sentinel", "vpnguard", "honeypot", "strikeback")
+            cmd = ["sudo", "bash", launcher_path] if needs_root and os.geteuid() != 0 else ["bash", launcher_path]
             proc = subprocess.Popen(
-                ["bash", launcher_path],
+                cmd,
                 cwd=PROJECT_DIR,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
