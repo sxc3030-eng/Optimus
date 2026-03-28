@@ -64,8 +64,23 @@ echo "[OK] System dependencies installed."
 # ── Install pip packages ──────────────────────────────
 echo ""
 echo "[*] Installing Python packages..."
-python3 -m pip install --upgrade pip 2>/dev/null
-python3 -m pip install -r requirements.txt 2>/dev/null
+python3 -m pip install --upgrade pip --break-system-packages 2>/dev/null || python3 -m pip install --upgrade pip 2>/dev/null || true
+python3 -m pip install --break-system-packages -r requirements.txt || python3 -m pip install -r requirements.txt
+echo ""
+# Verify critical packages
+echo "[*] Verifying critical packages..."
+python3 -c "import scapy; print('  [OK] scapy', scapy.VERSION)" 2>/dev/null || {
+    echo "  [!] scapy missing, installing..."
+    sudo pip3 install --break-system-packages scapy 2>/dev/null || sudo pip3 install scapy
+}
+python3 -c "import websockets; print('  [OK] websockets')" 2>/dev/null || {
+    echo "  [!] websockets missing, installing..."
+    sudo pip3 install --break-system-packages websockets 2>/dev/null || sudo pip3 install websockets
+}
+python3 -c "import psutil; print('  [OK] psutil')" 2>/dev/null || {
+    echo "  [!] psutil missing, installing..."
+    sudo pip3 install --break-system-packages psutil 2>/dev/null || sudo pip3 install psutil
+}
 echo "[OK] Python packages installed."
 
 # ── Make launchers executable ─────────────────────────
