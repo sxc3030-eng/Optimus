@@ -4,16 +4,17 @@
 
 ### Cybersecurity Defense Suite for Linux
 
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.8%2B-green.svg)]()
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![CI](https://github.com/sxc3030-eng/Optimus/actions/workflows/ci.yml/badge.svg)](https://github.com/sxc3030-eng/Optimus/actions)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg)]()
 [![Programs](https://img.shields.io/badge/Programs-14-ff6600.svg)]()
-[![ISO](https://img.shields.io/badge/Bootable-ISO-red.svg)]()
-[![GPG Signed](https://img.shields.io/badge/Commits-GPG%20Signed-brightgreen.svg)]()
+[![Bootable ISO](https://img.shields.io/badge/Bootable-ISO-red.svg)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 *Like Kali, but yours. Protect. Detect. Respond.*
 
-[Quick Start](#-quick-start) | [Programs](#-programs) | [ISO Builder](#-bootable-iso-builder) | [Desktop Environment](#-optimus-desktop-environment) | [Windows Version](#-windows-version)
+[Quick Start](#-quick-start) | [Programs](#-programs) | [ISO Builder](#-bootable-iso-builder) | [Desktop](#-optimus-desktop-environment) | [Roadmap](ROADMAP.md) | [Contributing](CONTRIBUTING.md) | [Security](SECURITY.md)
 
 </div>
 
