@@ -339,3 +339,11 @@ Looking for Windows? Check out **[NetGuardPro](https://github.com/sxc3030-eng/Ne
 Made by [@sxc3030-eng](https://github.com/sxc3030-eng)
 
 </div>
+
+---
+
+### Method
+
+Architecture-first, AI-paired. Built over a focused **5-day sprint in March 2026** with **Claude (Opus 4.6)** as paired implementation and audit partner. Linux-port of the NetGuardPro suite: 14 integrated defense tools, custom desktop environment, bootable ISO builder. Each commit is cross-audited (code review, dependency scan, threat-model check on the iptables/nftables layer).
+
+---
